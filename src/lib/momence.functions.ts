@@ -20,6 +20,7 @@ const SignupInput = z.object({
   homeLocationId: z.number().int().positive(),
   waiverAccepted: z.literal(true),
   signatureName: z.string().trim().min(2).max(120),
+  signatureDataUrl: z.string().max(300000).optional(),
   signatures: z.array(SignatureSchema).max(20).optional().default([]),
   // Tracking
   utmSource: z.string().max(200).optional(),
