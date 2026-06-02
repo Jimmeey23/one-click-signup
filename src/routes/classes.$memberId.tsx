@@ -76,9 +76,10 @@ function ClassesPage() {
     }
   }
 
+  const grouped = useMemo(() => groupByDay(sessions ?? []), [sessions]);
+
   if (booked) return <ThankYou booked={booked} onAnother={() => setBooked(null)} />;
 
-  const grouped = useMemo(() => groupByDay(sessions ?? []), [sessions]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
