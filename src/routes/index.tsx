@@ -6,15 +6,16 @@ import { LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { MomenceWidget } from "@/components/MomenceWidget";
 
-import logo from "@/assets/Physique57-800x600-1.jpg.asset.json";
-import heroBike from "@/assets/108_Physique57_Photoshoot_Tanmay_Kothari_56A1227.jpg.asset.json";
-import intenseFace from "@/assets/110_Physique57_Photoshoot_Tanmay_Kothari_56A1345.jpg.asset.json";
-import lunge from "@/assets/120_Physique57_Photoshoot_Tanmay_Kothari_04A1551.jpg.asset.json";
-import kettlebellPink from "@/assets/139_Physique57_Photoshoot_Tanmay_Kothari_56A3173.jpg.asset.json";
-import trainerArm from "@/assets/2100_Physique57_Trainer_Shots_04A1735.jpg.asset.json";
-import trainerLunge from "@/assets/2066_Physique57_Trainer_Shots_56A2552.jpg.asset.json";
-import groupBarre from "@/assets/2068_Physique57_Trainer_Shots_04A1243.jpg.asset.json";
-import sculptSide from "@/assets/3012_Physique57_Deliverable_3_56A1619.jpg.asset.json";
+import heroBike from "@/assets/108 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1227.jpg";
+import intenseFace from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.jpg";
+import lunge from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04A1551.jpg";
+import kettlebellPink from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A3173.jpg";
+import trainerArm from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.jpg";
+import trainerLunge from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.jpg";
+import groupBarre from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
+import sculptSide from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.jpg";
+
+const logoUrl = "/Physique57-800x600-1.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,8 +32,8 @@ export const Route = createFileRoute("/")({
         content:
           "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
       },
-      { property: "og:image", content: groupBarre.url },
-      { name: "twitter:image", content: groupBarre.url },
+      { property: "og:image", content: groupBarre },
+      { name: "twitter:image", content: groupBarre },
     ],
   }),
   component: Landing,
@@ -124,7 +125,7 @@ function Landing() {
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${groupBarre.url})` }}
+          style={{ backgroundImage: `url(${groupBarre})` }}
           aria-hidden
         />
         <div
@@ -138,7 +139,7 @@ function Landing() {
         <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24 grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-start text-white">
           <div className="pt-4">
             <p className="text-[11px] uppercase tracking-[0.35em] text-primary font-bold mb-6">
-              Mumbai · Kemps Corner · Bandra
+              Mumbai · Bengaluru · Delhi
             </p>
             <h1 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.95] tracking-tight">
               Your first
@@ -176,11 +177,12 @@ function Landing() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex gap-12 items-center">
               <Dot /> <span>Barre 57</span>
+              <Dot /> <span>FIT</span>
               <Dot /> <span>Strength Lab</span>
-              <Dot /> <span>Cycle 57</span>
-              <Dot /> <span>Reform 57</span>
-              <Dot /> <span>HIIT 57</span>
-              <Dot /> <span>Power Yoga</span>
+              <Dot /> <span>Mat 57</span>
+              <Dot /> <span>HIIT</span>              
+              <Dot /> <span>powerCycle</span>
+              <Dot /> <span>Cardio Barre</span>
             </div>
           ))}
         </div>
@@ -198,19 +200,19 @@ function Landing() {
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           <Feature
-            img={trainerLunge.url}
+            img={trainerLunge}
             tag="Sculpt"
             title="Isometric holds + dynamic reps"
             body="Tiny, precise movements that sculpt deep muscle — the Physique 57 signature."
           />
           <Feature
-            img={lunge.url}
+            img={lunge}
             tag="Burn"
             title="Interval-style class structure"
             body="Sequenced segments hit every muscle group with zero downtime, no impact."
           />
           <Feature
-            img={trainerArm.url}
+            img={trainerArm}
             tag="Recover"
             title="Stretch to lengthen, every class"
             body="We finish long and lean — every session ends with deep stretching to reset."
@@ -224,7 +226,7 @@ function Landing() {
           <div
             key={i}
             className="aspect-[3/4] bg-cover bg-center"
-            style={{ backgroundImage: `url(${img.url})` }}
+            style={{ backgroundImage: `url(${img})` }}
             aria-hidden
           />
         ))}
@@ -272,9 +274,9 @@ function Header() {
       <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src={logo.url}
+            src={logoUrl}
             alt="Physique 57"
-            className="h-10 w-auto bg-white/95 rounded-md px-2 py-1"
+            className="h-10 w-auto"
           />
         </Link>
         <a
@@ -522,9 +524,9 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10">
         <div>
           <img
-            src={logo.url}
+            src={logoUrl}
             alt="Physique 57"
-            className="h-12 w-auto bg-white/95 rounded-md px-2 py-1"
+            className="h-12 w-auto"
           />
           <p className="mt-4 text-sm text-background/60 max-w-xs">
             The legendary 57-minute barre-based workout — now in Mumbai.

@@ -3,11 +3,11 @@ import { z } from "zod";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { MomenceWidget } from "@/components/MomenceWidget";
 
-import logo from "@/assets/Physique57-800x600-1.jpg.asset.json";
-
 const searchSchema = z.object({
   locationId: z.coerce.number().int().positive().default(LOCATIONS[0].id),
 });
+
+const logoUrl = "/Physique57-800x600-1.jpg";
 
 export const Route = createFileRoute("/classes/$memberId")({
   validateSearch: searchSchema,
@@ -33,7 +33,7 @@ function ClassesPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img
-              src={logo.url}
+              src={logoUrl}
               alt="Physique 57"
               className="h-9 w-auto"
             />
