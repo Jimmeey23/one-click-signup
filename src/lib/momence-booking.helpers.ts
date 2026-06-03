@@ -27,7 +27,7 @@ export type MembershipCheckoutRequest = {
   homeLocationId: number;
   membershipId: number;
   attemptedPriceInCurrency: string;
-  paymentMethodType: "free" | "stripe";
+  paymentMethodType: "free" | "custom";
 };
 
 export type NewcomersMembershipCheckoutRequest = {
@@ -114,7 +114,7 @@ export function buildNewcomersMembershipCheckoutRequest({
     homeLocationId,
     membershipId: NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
     attemptedPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
-    paymentMethodType: "stripe",
+    paymentMethodType: "custom",
   });
 }
 

@@ -69,7 +69,7 @@ describe("Momence booking helpers", () => {
     assert.equal(membershipIdForClassName("Barre 57"), 33609);
   });
 
-  it("builds the paid test membership checkout request", () => {
+  it("builds the paid test membership checkout request using Momence custom payment", () => {
     assert.equal(NEWCOMERS_2_FOR_1_PRICE_INR, "1");
 
     const request = buildMembershipCheckoutRequest({
@@ -77,7 +77,7 @@ describe("Momence booking helpers", () => {
       homeLocationId: 9030,
       membershipId: 675444,
       attemptedPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
-      paymentMethodType: "stripe",
+      paymentMethodType: "custom",
     });
 
     assert.equal(request.path, "/host/checkout");
@@ -92,11 +92,11 @@ describe("Momence booking helpers", () => {
           attemptedPriceInCurrency: "1",
         },
       ],
-      paymentMethods: [{ id: "1", type: "stripe" }],
+      paymentMethods: [{ id: "1", type: "custom" }],
     });
   });
 
-  it("builds the paid newcomers membership checkout request with a non-free payment method", () => {
+  it("builds the paid newcomers membership checkout request with Momence custom payment", () => {
     const request = buildNewcomersMembershipCheckoutRequest({
       memberId: 27473761,
       homeLocationId: 9030,
@@ -114,7 +114,7 @@ describe("Momence booking helpers", () => {
           attemptedPriceInCurrency: "1",
         },
       ],
-      paymentMethods: [{ id: "1", type: "stripe" }],
+      paymentMethods: [{ id: "1", type: "custom" }],
     });
   });
 
