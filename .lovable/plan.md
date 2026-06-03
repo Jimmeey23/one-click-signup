@@ -11,7 +11,7 @@ A focused pass that brings the trial site fully on-brand, replaces the custom cl
 
 ## 2. Landing page redesign (`src/routes/index.tsx`)
 
-- New layered hero: full-bleed dark image (trainer shot) + Physique 57 logo lockup + headline "Your first Open Barre is on us."
+- New layered hero: full-bleed dark image (trainer shot) + Physique 57 logo lockup + headline "Discover the workout everyone talks about."
 - Marquee photo strip using the studio + trainer images.
 - "Why Physique 57" 3-up benefit grid with photo cards.
 - Reviews section: mount `<div id="momence-plugin-reviews">` and inject the Momence reviews `<script>` once on mount; expose the CSS custom properties they document, themed on brand.

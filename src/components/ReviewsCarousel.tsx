@@ -54,28 +54,36 @@ export function ReviewsCarousel() {
     return () => clearInterval(t);
   }, []);
 
-  const visible = [0, 1, 2].map(
-    (offset) => REVIEWS[(idx + offset) % REVIEWS.length],
-  );
+  const visible = [0, 1, 2].map((offset) => REVIEWS[(idx + offset) % REVIEWS.length]);
 
   return (
     <div className="grid md:grid-cols-3 gap-5">
       {visible.map((r, i) => (
         <article
           key={`${idx}-${i}`}
-          className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)] animate-fade-in"
+          className="bg-card rounded-lg p-6 border border-border shadow-[var(--shadow-card)] animate-fade-in"
         >
-          <div className="text-primary-deep text-sm tracking-widest mb-2">
+          <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                Member review
+              </p>
+              {r.meta && <p className="mt-1 text-sm font-semibold text-foreground">{r.meta}</p>}
+            </div>
+            <div className="rounded-md bg-[#fff7df] px-2.5 py-1 text-xs font-bold text-[#9d6b00]">
+              {(r.rating ?? 5).toFixed(1)}
+            </div>
+          </div>
+          <div
+            className="mt-4 text-sm tracking-[0.18em] text-[#d8a016]"
+            aria-label={`${r.rating ?? 5} out of 5 stars`}
+          >
             {"★".repeat(r.rating ?? 5)}
           </div>
-          <p className="text-foreground leading-relaxed text-[15px]">
-            "{r.text}"
-          </p>
-          <div className="mt-4 pt-4 border-t border-border">
+          <p className="mt-3 text-foreground leading-relaxed text-[15px]">"{r.text}"</p>
+          <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
             <p className="font-bold text-sm">{r.name}</p>
-            {r.meta && (
-              <p className="text-xs text-muted-foreground">{r.meta}</p>
-            )}
+            <span className="h-1.5 w-10 rounded-full bg-[#d73b2f]" aria-hidden="true" />
           </div>
         </article>
       ))}

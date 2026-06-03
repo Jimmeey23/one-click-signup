@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { momenceFetch, OPEN_BARRE_MEMBERSHIP_ID } from "./momence.server";
+import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID } from "./momence.server";
+import {
+  buildCompatibleMembershipsRequest,
+  findCompatibleBoughtMembershipId,
+  findMembershipIncompatibility,
+  OPEN_BARRE_MEMBERSHIP_ID,
+  type CompatibleMembershipsResponse,
+} from "./momence-booking.helpers";
 
 const ListInput = z.object({
   locationId: z.number().int().positive(),
@@ -66,8 +73,7 @@ export const listSessions = createServerFn({ method: "POST" })
         durationInMinutes: s.durationInMinutes,
         capacity: s.capacity ?? null,
         bookingCount: s.bookingCount ?? 0,
-        spotsLeft:
-          s.capacity != null ? Math.max(0, s.capacity - (s.bookingCount ?? 0)) : null,
+        spotsLeft: s.capacity != null ? Math.max(0, s.capacity - (s.bookingCount ?? 0)) : null,
         isCancelled: s.isCancelled,
         teacherName:
           s.teacher && (s.teacher.firstName || s.teacher.lastName)
@@ -85,72 +91,76 @@ const BookInput = z.object({
   homeLocationId: z.number().int().positive(),
 });
 
-type BoughtMembership = {
-  id: number;
+export type BookWithMomenceMembershipInput = z.infer<typeof BookInput> & {
   membershipId: number;
-  status?: string;
-  isActive?: boolean;
+  membershipLabel: string;
 };
+
+export async function bookSessionWithMomenceMembership({
+  membershipId,
+  membershipLabel,
+  ...data
+}: BookWithMomenceMembershipInput) {
+  let compatibleMemberships: CompatibleMembershipsResponse;
+  const compatibilityRequest = buildCompatibleMembershipsRequest(data);
+  try {
+    compatibleMemberships = await momenceFetch<CompatibleMembershipsResponse>(
+      compatibilityRequest.path,
+      {
+        method: "POST",
+        body: JSON.stringify(compatibilityRequest.body),
+      },
+    );
+  } catch (e) {
+    throw new Error(
+      `Could not verify ${membershipLabel} membership before booking: ${
+        e instanceof Error ? e.message : "membership compatibility lookup failed"
+      }`,
+    );
+  }
+
+  const boughtMembershipId = findCompatibleBoughtMembershipId(compatibleMemberships, membershipId);
+
+  if (!boughtMembershipId) {
+    const incompatibility = findMembershipIncompatibility(compatibleMemberships, membershipId);
+    if (incompatibility) {
+      throw new Error(
+        `${membershipLabel} membership cannot be used for this class: ${incompatibility}.`,
+      );
+    }
+    throw new Error(
+      `No compatible active ${membershipLabel} membership was found for this member and class.`,
+    );
+  }
+
+  await momenceDashboardFetch(
+    `/host/${MOMENCE_HOST_ID}/auto-book/member/${data.memberId}/session/${data.sessionId}`,
+    {
+      method: "POST",
+      headers: {
+        Referer: `https://momence.com/dashboard/${MOMENCE_HOST_ID}/sessions/${data.sessionId}`,
+        "X-Origin": `https://momence.com/dashboard/${MOMENCE_HOST_ID}/sessions/${data.sessionId}`,
+        "X-Idempotence-Key": globalThis.crypto.randomUUID(),
+      },
+      body: JSON.stringify({
+        autoCheckin: false,
+        membershipIds: [boughtMembershipId],
+        addToWaitlist: false,
+        isCapacityOverriden: false,
+        isAgeRestrictionOverridden: false,
+      }),
+    },
+  );
+
+  return { booked: true as const, method: "membership-auto-book" as const };
+}
 
 export const bookWithMembership = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => BookInput.parse(i))
   .handler(async ({ data }) => {
-    // 1. Find Open Barre bought membership for this member
-    let boughtMembershipId: number | null = null;
-    try {
-      const list = await momenceFetch<{ payload: BoughtMembership[] } | BoughtMembership[]>(
-        `/host/members/${data.memberId}/bought-memberships`,
-      );
-      const arr = Array.isArray(list) ? list : (list.payload ?? []);
-      const match = arr.find(
-        (m) =>
-          m.membershipId === OPEN_BARRE_MEMBERSHIP_ID &&
-          (m.isActive !== false) &&
-          (m.status ?? "active") !== "cancelled",
-      );
-      boughtMembershipId = match?.id ?? null;
-    } catch (e) {
-      console.warn("List bought memberships failed:", e instanceof Error ? e.message : e);
-    }
-
-    // 2. Try checkout against the membership
-    if (boughtMembershipId) {
-      try {
-        await momenceFetch("/host/checkout", {
-          method: "POST",
-          body: JSON.stringify({
-            memberId: data.memberId,
-            homeLocationId: data.homeLocationId,
-            items: [
-              {
-                id: "1",
-                type: "session",
-                sessionId: data.sessionId,
-                attemptedPriceInCurrency: "0",
-              },
-            ],
-            paymentMethods: [
-              {
-                id: "1",
-                type: "membership",
-                boughtMembershipId,
-              },
-            ],
-          }),
-        });
-        return { booked: true as const, method: "membership" as const };
-      } catch (e) {
-        console.warn(
-          "Membership checkout failed, falling back to free add:",
-          e instanceof Error ? e.message : e,
-        );
-      }
-    }
-
-    // 3. Fallback — add member to session for free (host override)
-    await momenceFetch(`/host/sessions/${data.sessionId}/bookings/free`, {
-      method: "POST",
-      body: JSON.stringify({ memberId: data.memberId }),
+    return bookSessionWithMomenceMembership({
+      ...data,
+      membershipId: OPEN_BARRE_MEMBERSHIP_ID,
+      membershipLabel: "Open Barre",
     });
-    return { booked: true as const, method: "free-add" as const };
   });
