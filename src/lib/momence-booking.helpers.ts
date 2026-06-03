@@ -6,7 +6,7 @@ export type CompatibleMembershipsRequest = {
 
 export const OPEN_BARRE_MEMBERSHIP_ID = 33609;
 export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 675444;
-export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
+export const NEWCOMERS_2_FOR_1_PRICE_INR = "1";
 
 export type CompatibleBoughtMembership = {
   id: number;
@@ -28,6 +28,11 @@ export type MembershipCheckoutRequest = {
   membershipId: number;
   attemptedPriceInCurrency: string;
   paymentMethodType: "free" | "stripe";
+};
+
+export type NewcomersMembershipCheckoutRequest = {
+  memberId: number;
+  homeLocationId: number;
 };
 
 function normalizeClassName(value: string): string {
@@ -98,6 +103,19 @@ export function buildMembershipCheckoutRequest({
       paymentMethods: [{ id: "1", type: paymentMethodType }],
     },
   } as const;
+}
+
+export function buildNewcomersMembershipCheckoutRequest({
+  memberId,
+  homeLocationId,
+}: NewcomersMembershipCheckoutRequest) {
+  return buildMembershipCheckoutRequest({
+    memberId,
+    homeLocationId,
+    membershipId: NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
+    attemptedPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
+    paymentMethodType: "stripe",
+  });
 }
 
 export function findCompatibleBoughtMembershipId(

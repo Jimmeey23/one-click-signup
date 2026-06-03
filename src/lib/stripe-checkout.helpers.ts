@@ -65,9 +65,8 @@ export function buildNewcomersCheckoutSessionParams(
           currency: "inr",
           unit_amount: Number(NEWCOMERS_2_FOR_1_PRICE_INR) * 100,
           product_data: {
-            name: "Newcomers 2 For 1",
-            description:
-              "Two Physique 57 India Studio Session credits, valid for 14 days from first use.",
+            name: `${input.className} Test Booking`,
+            description: "Test Stripe payment for a Physique 57 India paid class booking.",
           },
         },
       },

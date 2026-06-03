@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { buildNewcomersCheckoutSessionParams } from "./stripe-checkout.helpers.ts";
 
 describe("Stripe checkout helpers", () => {
-  it("builds hosted Checkout params for the Newcomers 2 For 1 membership", () => {
+  it("builds hosted Checkout params for the paid test membership", () => {
     const params = buildNewcomersCheckoutSessionParams({
       memberId: 27473761,
       sessionId: 15525,
@@ -33,7 +33,7 @@ describe("Stripe checkout helpers", () => {
     assert.deepEqual(params.payment_intent_data?.metadata, params.metadata);
     assert.equal(params.line_items?.[0]?.quantity, 1);
     assert.equal(params.line_items?.[0]?.price_data?.currency, "inr");
-    assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 175000);
-    assert.equal(params.line_items?.[0]?.price_data?.product_data?.name, "Newcomers 2 For 1");
+    assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 100);
+    assert.equal(params.line_items?.[0]?.price_data?.product_data?.name, "powerCycle Test Booking");
   });
 });

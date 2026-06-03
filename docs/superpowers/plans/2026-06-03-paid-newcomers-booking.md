@@ -18,7 +18,7 @@
 - Modify: `src/lib/momence-booking.helpers.ts`
 
 - [ ] Add tests proving paid format detection returns true for `powerCycle`, `StrengthLab`, and Momence variants like `Strength Lab Push`.
-- [ ] Add tests proving paid membership checkout request uses membership id `675444`, attempted price `1750`, and payment method `stripe`.
+- [ ] Add tests proving paid membership checkout request uses membership id `675444`, attempted price `1`, and payment method `stripe`.
 - [ ] Add tests proving paid membership lookup selects only compatible bought membership id for membership id `675444`.
 - [ ] Run the helper test and verify it fails before implementation.
 

@@ -26,7 +26,10 @@ import {
   completeNewcomersCheckoutBooking,
   createNewcomersCheckoutSession,
 } from "@/lib/stripe-checkout.functions";
-import { isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
+import {
+  isPaidNewcomersClassName,
+  NEWCOMERS_2_FOR_1_PRICE_INR,
+} from "@/lib/momence-booking.helpers";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { Footer } from "@/components/Footer";
 import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
@@ -94,6 +97,7 @@ type FormatInfo = {
 
 const ACCENT = "#6732f5";
 const DROP_IN_PRICE = "₹1,750";
+const PAID_TEST_PRICE = `₹${NEWCOMERS_2_FOR_1_PRICE_INR}`;
 
 const TRAINER_THUMBNAILS: Array<[string, string]> = [
   ["karan bhatia", karanBhatiaThumb],
@@ -730,10 +734,12 @@ function SessionCard({
 
       <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:border-l md:border-t-0 md:pl-7 md:pt-0">
         <div className="text-right">
-          <p className="text-3xl font-bold tracking-[-0.05em] text-[#202024]">{DROP_IN_PRICE}</p>
+          <p className="text-3xl font-bold tracking-[-0.05em] text-[#202024]">
+            {requiresPayment ? PAID_TEST_PRICE : DROP_IN_PRICE}
+          </p>
           {requiresPayment && (
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6732f5]">
-              Newcomers 2 For 1
+              Test paid booking
             </p>
           )}
           {s.spotsLeft != null && (
