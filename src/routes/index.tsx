@@ -167,7 +167,7 @@ function Landing() {
           }}
           aria-hidden
         />
-        <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24 grid lg:grid-cols-[0.95fr_1.12fr] gap-12 lg:gap-16 items-start text-white">
+        <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24 grid lg:grid-cols-[0.9fr_1.25fr] gap-12 lg:gap-14 items-start text-white">
           <div className="pt-4">
             <p className="text-[11px] uppercase tracking-[0.35em] text-primary font-bold mb-6">
               Mumbai · Bengaluru · Delhi

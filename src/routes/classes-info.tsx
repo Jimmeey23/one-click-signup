@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 
-import barre from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2140 _ Physique57 _ Trainer Shots _ _56A2072.jpg";
-import fit from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
-import strength from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2094 _ Physique57 _ Trainer Shots _ _04A1305.jpg";
-import sculpt from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
-import cardio from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
-import cycle from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/107 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1196.jpg";
+import barre from "@/assets/2140 _ Physique57 _ Trainer Shots _ _56A2072.jpg";
+import fit from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
+import strength from "@/assets/2094 _ Physique57 _ Trainer Shots _ _04A1305.jpg";
+import sculpt from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
+import cardio from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
+import hiit from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.jpg";
+import recovery from "@/assets/3010 _ Physique57 _ Deliverable 3 _ _56A1587.jpg";
+import cycle from "@/assets/107 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1196.jpg";
 
 const logoUrl = "/Physique57-800x600-1.jpg";
 
@@ -17,12 +19,13 @@ export const Route = createFileRoute("/classes-info")({
       {
         name: "description",
         content:
-          "Open Barre, powerCycle, Strength Lab, Cardio Barre, Mat 57 and HIIT — explore our 57-minute class formats.",
+          "Barre 57, powerCycle, StrengthLab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more — explore our 57-minute class formats.",
       },
       { property: "og:title", content: "Classes — Physique 57 India" },
       {
         property: "og:description",
-        content: "Open Barre, powerCycle, Strength Lab, Cardio Barre, Mat 57 and HIIT.",
+        content:
+          "Barre 57, powerCycle, StrengthLab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more.",
       },
     ],
   }),
@@ -59,6 +62,20 @@ const CLASSES = [
     desc: "Traditional barre precision meets faster cardiovascular sequences, dynamic intervals, and active recovery.",
   },
   {
+    name: "Cardio Barre Plus",
+    img: hiit,
+    intensity: "Advanced cardio barre",
+    bestFor: "A stronger sweat-forward barre challenge",
+    desc: "A more athletic Cardio Barre progression with longer burn blocks, quicker transitions, and elevated heart-rate intervals while keeping Physique 57 precision.",
+  },
+  {
+    name: "HIIT",
+    img: hiit,
+    intensity: "High intensity",
+    bestFor: "Cardio intervals and athletic conditioning",
+    desc: "A compact, high-output session alternating cardio bursts, strength drills, active recovery, and core work for a powerful full-body burn.",
+  },
+  {
     name: "Mat 57",
     img: sculpt,
     intensity: "Moderate to high",
@@ -71,6 +88,20 @@ const CLASSES = [
     intensity: "Advanced strength",
     bestFor: "Experienced strength trainees",
     desc: "A 57-minute circuit-based strength format using heavier weights, specific repetition counts, progressive overload, and power work.",
+  },
+  {
+    name: "Back Body Blaze",
+    img: strength,
+    intensity: "Advanced posterior-chain strength",
+    bestFor: "Back, glutes, hamstrings, posture, and power",
+    desc: "A focused strength format targeting the back body with controlled resistance, glute and hamstring work, posture-focused pulls, and core stability.",
+  },
+  {
+    name: "Recovery",
+    img: recovery,
+    intensity: "Low intensity restorative",
+    bestFor: "Mobility, flexibility, reset, and active recovery",
+    desc: "A slower session built around breath, lengthening, mobility, assisted stretch patterns, and restorative movement to help the body reset between stronger classes.",
   },
 ];
 

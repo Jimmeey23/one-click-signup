@@ -13,6 +13,7 @@ import {
   Clock3,
   Dumbbell,
   Flame,
+  HeartPulse,
   List,
   MapPin,
 } from "lucide-react";
@@ -206,6 +207,22 @@ function formatInfoForSession(session: SessionDTO): FormatInfo {
     };
   }
 
+  if (name.includes("recovery") || name.includes("restore") || name.includes("stretch")) {
+    return {
+      family: "Recovery",
+      level: "LOW INTENSITY RESTORATIVE",
+      teaser:
+        "Mobility, breath, and lengthening work designed to restore the body between classes.",
+      detail:
+        "Recovery slows the pace down with guided mobility, assisted stretch patterns, breath-led resets, and low-intensity movement to support flexibility and better training consistency.",
+      bestFor: "Mobility, flexibility, active recovery, and nervous-system reset.",
+      expect:
+        "Breath work, long holds, gentle mobility, supported stretches, and slower transitions.",
+      icon: <HeartPulse className="h-4 w-4" aria-hidden="true" />,
+      image: matImage,
+    };
+  }
+
   if (name.includes("hiit")) {
     return {
       family: "HIIT",
@@ -216,6 +233,22 @@ function formatInfoForSession(session: SessionDTO): FormatInfo {
       bestFor: "Members seeking a high-energy, sweat-forward full-body burn.",
       expect:
         "Fast intervals, bodyweight resistance, lunges, planks, sprints, and recovery blocks.",
+      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+      image: cardioImage,
+    };
+  }
+
+  if (name.includes("cardio") && name.includes("plus")) {
+    return {
+      family: "Cardio Barre Plus",
+      level: "ADVANCED CARDIO BARRE",
+      teaser:
+        "A stronger cardio-barre progression with longer burn blocks and sharper transitions.",
+      detail:
+        "Cardio Barre Plus builds from classic barre precision into athletic, heart-rate-elevating sequences with added endurance work, quick transitions, and sustained sculpting blocks.",
+      bestFor: "Members who want a more athletic barre challenge.",
+      expect:
+        "Faster barre combinations, cardio intervals, standing sculpting, active recovery, and core work.",
       icon: <Flame className="h-4 w-4" aria-hidden="true" />,
       image: cardioImage,
     };
@@ -234,6 +267,21 @@ function formatInfoForSession(session: SessionDTO): FormatInfo {
         "Standing barre work, light resistance, faster transitions, cardio bursts, and active recovery.",
       icon: <Flame className="h-4 w-4" aria-hidden="true" />,
       image: cardioImage,
+    };
+  }
+
+  if (name.includes("back body") || name.includes("blaze")) {
+    return {
+      family: "Back Body Blaze",
+      level: "ADVANCED POSTERIOR CHAIN",
+      teaser: "Focused strength work for glutes, hamstrings, back, posture, and core stability.",
+      detail:
+        "Back Body Blaze targets the posterior chain with controlled resistance, posture-focused pulls, glute and hamstring work, and stability sequences that support stronger movement patterns.",
+      bestFor: "Back-body strength, posture, glutes, hamstrings, and power.",
+      expect:
+        "Rows, hinges, glute work, hamstring sets, resistance bands, heavier weights, and core stability.",
+      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+      image: strengthImage,
     };
   }
 
@@ -527,9 +575,9 @@ function ClassesPage() {
   if (booked) return <ThankYou booked={booked} onAnother={() => setBooked(null)} />;
 
   return (
-    <div className="min-h-screen bg-white text-[#1f1f22]">
-      <header className="sticky top-0 z-30 border-b border-[#ececf1] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 md:px-8">
+    <div className="min-h-screen bg-[#f7f7fb] text-[#1f1f22]">
+      <header className="sticky top-0 z-30 border-b border-[#e7e4ee] bg-white/90 shadow-[0_1px_0_rgb(30_24_70/0.02)] backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-3">
             <img src={logoUrl} alt="Physique 57" className="h-9 w-auto" />
           </Link>
@@ -539,166 +587,174 @@ function ClassesPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-10">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-[23px] font-semibold tracking-[-0.01em]" style={{ color: ACCENT }}>
-              Classes
-            </h1>
-            <div className="mt-1 h-0.5 w-5 rounded-full" style={{ backgroundColor: ACCENT }} />
+      <main className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
+        <section className="mb-8 rounded-[28px] border border-[#e2dfea] bg-white p-4 shadow-[0_24px_70px_rgb(36_31_70/0.07)] md:p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#7a7783]">
+                {currentLoc.name.split(",")[0]}
+              </p>
+              <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.03em] text-[#202024]">
+                Class schedule
+              </h1>
+              <div className="mt-1 h-0.5 w-5 rounded-full" style={{ backgroundColor: ACCENT }} />
+            </div>
+            <div className="flex shrink-0 overflow-hidden rounded-full border border-[#ddd8ea] bg-[#f7f5fb] p-1 shadow-inner shadow-white">
+              <button
+                type="button"
+                onClick={() => switchViewMode("day")}
+                className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                  viewMode === "day"
+                    ? "bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.22)]"
+                    : "text-[#4e4d55] hover:bg-white"
+                }`}
+              >
+                <Calendar className="h-4 w-4" aria-hidden="true" />
+                Day
+              </button>
+              <button
+                type="button"
+                onClick={() => switchViewMode("week")}
+                className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                  viewMode === "week"
+                    ? "bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.22)]"
+                    : "text-[#4e4d55] hover:bg-white"
+                }`}
+              >
+                <List className="h-4 w-4" aria-hidden="true" />
+                Week
+              </button>
+              <button
+                type="button"
+                onClick={() => switchViewMode("month")}
+                className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                  viewMode === "month"
+                    ? "bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.22)]"
+                    : "text-[#4e4d55] hover:bg-white"
+                }`}
+              >
+                <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                Month
+              </button>
+            </div>
           </div>
-          <div className="flex shrink-0 overflow-hidden rounded-full border border-[#e1e1e7] bg-white p-0.5 shadow-[0_1px_2px_rgb(15_20_30/0.03)]">
-            <button
-              type="button"
-              onClick={() => switchViewMode("day")}
-              className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
-                viewMode === "day"
-                  ? "bg-white text-[#6732f5] ring-2 ring-[#6732f5]"
-                  : "text-[#1f1f22]"
-              }`}
-            >
-              <Calendar className="h-4 w-4" aria-hidden="true" />
-              Day
-            </button>
-            <button
-              type="button"
-              onClick={() => switchViewMode("week")}
-              className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
-                viewMode === "week"
-                  ? "bg-white text-[#6732f5] ring-2 ring-[#6732f5]"
-                  : "text-[#1f1f22]"
-              }`}
-            >
-              <List className="h-4 w-4" aria-hidden="true" />
-              Week
-            </button>
-            <button
-              type="button"
-              onClick={() => switchViewMode("month")}
-              className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
-                viewMode === "month"
-                  ? "bg-white text-[#6732f5] ring-2 ring-[#6732f5]"
-                  : "text-[#1f1f22]"
-              }`}
-            >
-              <CalendarDays className="h-4 w-4" aria-hidden="true" />
-              Month
-            </button>
-          </div>
-        </div>
 
-        <div className="mb-7 flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedDateKey(null);
-              setDateOffsetDays((days) => Math.max(0, days - dateStepDays));
-            }}
-            className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#e7e7ec] text-[#1f1f22] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
-            aria-label={`Previous ${viewMode}`}
-          >
-            <ChevronLeft className="h-6 w-6" aria-hidden="true" />
-          </button>
-          <div
-            className={`grid flex-1 gap-2 ${viewMode === "day" ? "grid-cols-1" : "grid-cols-4 sm:grid-cols-7"}`}
-          >
-            {dateRail.map((item) => {
-              const selected = activeDateKey === item.key;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => {
-                    if (viewMode !== "day") setSelectedDateKey(selected ? null : item.key);
-                  }}
-                  className={`min-h-[54px] rounded-xl px-2 text-center transition ${
-                    selected ? "bg-[#f4efff] text-[#6732f5]" : "text-[#77757f] hover:bg-[#f7f7fa]"
-                  }`}
-                >
-                  <span className="block text-[11px] font-semibold uppercase leading-none">
-                    {item.weekday}
-                  </span>
-                  <span
-                    className={`mt-1 block text-lg font-semibold leading-none ${
-                      selected ? "text-[#6732f5]" : "text-[#4e4d55]"
+          <div className="mt-5 flex items-center gap-3 rounded-[22px] border border-[#ece9f4] bg-[#fbfaff] p-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDateKey(null);
+                setDateOffsetDays((days) => Math.max(0, days - dateStepDays));
+              }}
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded9eb] bg-white text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
+              aria-label={`Previous ${viewMode}`}
+            >
+              <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+            </button>
+            <div
+              className={`grid flex-1 gap-2 ${viewMode === "day" ? "grid-cols-1" : "grid-cols-4 sm:grid-cols-7"}`}
+            >
+              {dateRail.map((item) => {
+                const selected = activeDateKey === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => {
+                      if (viewMode !== "day") setSelectedDateKey(selected ? null : item.key);
+                    }}
+                    className={`min-h-[64px] rounded-[18px] px-2 text-center transition ${
+                      selected
+                        ? "bg-white text-[#6732f5] shadow-[0_12px_26px_rgb(30_24_70/0.08)] ring-1 ring-[#d9d0ff]"
+                        : "text-[#77757f] hover:bg-white/70"
                     }`}
                   >
-                    {item.day}
-                  </span>
-                  <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
-                    <span className="h-1 w-1 rounded-full bg-[#a8a6ad]" />
-                    <span className="h-1 w-1 rounded-full bg-[#a8a6ad]" />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedDateKey(null);
-              setDateOffsetDays((days) => days + dateStepDays);
-            }}
-            className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#e7e7ec] text-[#1f1f22] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
-            aria-label={`Next ${viewMode}`}
-          >
-            <ChevronRight className="h-6 w-6" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="mb-7 grid gap-3 md:grid-cols-[auto_auto_1fr_1fr]">
-          <button
-            type="button"
-            onClick={() => {
-              if (viewMode === "day") {
-                setViewMode("week");
-                setDateOffsetDays(0);
-              }
-              setSelectedDateKey(null);
-            }}
-            className="h-11 rounded-full border border-[#e5e5ea] bg-white px-4 text-sm font-semibold uppercase text-[#1f1f22] transition hover:border-[#6732f5] hover:text-[#6732f5]"
-          >
-            Show all
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setDateOffsetDays(0);
-              setSelectedDateKey(viewMode === "day" ? null : dateKey(new Date()));
-            }}
-            className="h-11 rounded-full border border-[#e5e5ea] bg-white px-5 text-sm font-semibold uppercase text-[#1f1f22] transition hover:border-[#6732f5] hover:text-[#6732f5]"
-          >
-            Today
-          </button>
-          <div className="h-11 rounded-full border border-[#e5e5ea] bg-white px-5">
-            <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold">
-              <span>Instructors</span>
-              <ChevronDown className="h-5 w-5" aria-hidden="true" />
+                    <span className="block text-[11px] font-semibold uppercase leading-none">
+                      {item.weekday}
+                    </span>
+                    <span
+                      className={`mt-1 block text-lg font-semibold leading-none ${
+                        selected ? "text-[#6732f5]" : "text-[#4e4d55]"
+                      }`}
+                    >
+                      {item.day}
+                    </span>
+                    <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
+                      <span
+                        className={`h-1 w-5 rounded-full ${selected ? "bg-[#6732f5]" : "bg-[#c8c5d0]"}`}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-          <div className="h-11 rounded-full border border-[#e5e5ea] bg-white px-5">
-            <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold">
-              <span>{currentLoc.name.split(",")[0]}</span>
-              <ChevronDown className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-10 flex flex-wrap gap-2">
-          {LOCATIONS.map((l) => (
             <button
-              key={l.id}
-              onClick={() => navigate({ search: { locationId: l.id }, replace: true })}
-              className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
-                l.id === locationId
-                  ? "border-[#6732f5] bg-[#6732f5] text-white"
-                  : "border-[#e5e5ea] bg-white text-[#5f5d66] hover:border-[#6732f5] hover:text-[#6732f5]"
-              }`}
+              type="button"
+              onClick={() => {
+                setSelectedDateKey(null);
+                setDateOffsetDays((days) => days + dateStepDays);
+              }}
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded9eb] bg-white text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
+              aria-label={`Next ${viewMode}`}
             >
-              {l.name.split(",")[0]}
+              <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </button>
-          ))}
-        </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-[auto_auto_1fr_1fr]">
+            <button
+              type="button"
+              onClick={() => {
+                if (viewMode === "day") {
+                  setViewMode("week");
+                  setDateOffsetDays(0);
+                }
+                setSelectedDateKey(null);
+              }}
+              className="h-11 rounded-full border border-[#ded9eb] bg-white px-4 text-sm font-semibold uppercase text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#6732f5] hover:text-[#6732f5]"
+            >
+              Show all
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDateOffsetDays(0);
+                setSelectedDateKey(viewMode === "day" ? null : dateKey(new Date()));
+              }}
+              className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 text-sm font-semibold uppercase text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#6732f5] hover:text-[#6732f5]"
+            >
+              Today
+            </button>
+            <div className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
+              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold">
+                <span>Instructors</span>
+                <ChevronDown className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </div>
+            <div className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
+              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold">
+                <span>{currentLoc.name.split(",")[0]}</span>
+                <ChevronDown className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {LOCATIONS.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => navigate({ search: { locationId: l.id }, replace: true })}
+                className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
+                  l.id === locationId
+                    ? "border-[#6732f5] bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.2)]"
+                    : "border-[#e0ddea] bg-white text-[#5f5d66] hover:border-[#6732f5] hover:text-[#6732f5]"
+                }`}
+              >
+                {l.name.split(",")[0]}
+              </button>
+            ))}
+          </div>
+        </section>
 
         {bookErr && (
           <p className="mb-5 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{bookErr}</p>
@@ -711,24 +767,30 @@ function ClassesPage() {
         {!sessions && !loadError && <ScheduleSkeleton />}
 
         {sessions && sessions.length === 0 && (
-          <div className="rounded-[24px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d]">
+          <div className="rounded-[26px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
             No upcoming classes in this {viewMode} view at this studio.
           </div>
         )}
 
         {sessions && sessions.length > 0 && grouped.length === 0 && (
-          <div className="rounded-[24px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d]">
+          <div className="rounded-[26px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
             No classes match this date. Show all classes to browse the full schedule.
           </div>
         )}
 
         {sessions && grouped.length > 0 && (
-          <div className="space-y-7">
+          <div className="space-y-8">
             {grouped.map(({ day, items, relative }) => (
               <section key={day} className="space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[#686771]">
-                  {relative}
-                </h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="shrink-0 text-sm font-bold uppercase tracking-[0.12em] text-[#5f5d66]">
+                    {relative}
+                  </h2>
+                  <span className="h-px flex-1 bg-[#dedce8]" />
+                  <span className="rounded-full border border-[#ded9eb] bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#77757f]">
+                    {items.length} {items.length === 1 ? "class" : "classes"}
+                  </span>
+                </div>
                 <div className="space-y-5">
                   {items.map((s) => (
                     <SessionCard
@@ -1052,32 +1114,32 @@ function SessionCard({
   const teacherImage = trainerImageForName(s.teacherName) ?? s.bannerImageUrl ?? trainerPortrait;
 
   return (
-    <article className="relative grid gap-5 overflow-visible rounded-[24px] border border-[#dfdfe6] bg-white p-5 shadow-[0_1px_2px_rgb(20_20_28/0.02)] transition hover:border-[#cfc9ef] hover:shadow-[0_18px_40px_rgb(30_24_70/0.08)] md:grid-cols-[150px_minmax(0,1fr)_180px] md:p-8">
+    <article className="relative grid gap-5 overflow-visible rounded-[28px] border border-[#e0ddea] bg-white p-4 shadow-[0_18px_55px_rgb(30_24_70/0.06)] transition hover:-translate-y-0.5 hover:border-[#c8bef4] hover:shadow-[0_26px_70px_rgb(30_24_70/0.11)] md:grid-cols-[170px_minmax(0,1fr)_205px] md:p-5">
       <div className="flex items-start gap-4 md:block">
         <img
           src={format.image}
           alt={`${format.family} class format`}
-          className="h-28 w-28 shrink-0 rounded-[18px] object-cover object-top md:h-32 md:w-32"
+          className="h-28 w-28 shrink-0 rounded-[22px] object-cover object-top shadow-[0_16px_36px_rgb(30_24_70/0.12)] md:h-full md:min-h-[172px] md:w-full"
         />
         <div className="md:hidden">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#686771]">Class</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#77757f]">Class</p>
           <h3 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-[#202024]">{s.name}</h3>
         </div>
       </div>
 
       <div className="min-w-0">
-        <p className="hidden text-[11px] font-bold uppercase tracking-[0.22em] text-[#686771] md:block">
+        <p className="hidden text-[10px] font-bold uppercase tracking-[0.22em] text-[#77757f] md:block">
           Class
         </p>
-        <h3 className="hidden text-[34px] font-bold leading-[1.05] tracking-[-0.05em] text-[#202024] md:block">
+        <h3 className="hidden text-[32px] font-bold leading-[1.05] tracking-[-0.045em] text-[#202024] md:block">
           {s.name}
         </h3>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
           <img
             src={teacherImage}
             alt={s.teacherName ? `${s.teacherName} instructor thumbnail` : ""}
-            className="h-7 w-7 rounded-full object-cover object-top"
+            className="h-8 w-8 rounded-full border border-white object-cover object-top shadow-[0_8px_18px_rgb(30_24_70/0.12)]"
             aria-hidden={!s.teacherName}
           />
           <span className="font-medium text-[#232329]">{s.teacherName ?? "Studio Instructor"}</span>
@@ -1087,18 +1149,20 @@ function SessionCard({
           <FormatTrigger format={format} />
         </div>
 
-        <p className="mt-4 max-w-[44rem] text-base font-semibold leading-snug text-[#686771]">
+        <p className="mt-4 max-w-[45rem] text-base font-semibold leading-snug text-[#5f5d66]">
           {format.level} - {format.teaser}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#5a5862]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f6f4ff] px-3 py-1 text-[#6732f5]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2edff] px-3 py-1.5 text-[#6732f5] ring-1 ring-[#e3d9ff]">
             {format.icon}
             {format.family}
           </span>
-          <span className="rounded-full bg-[#f7f7fa] px-3 py-1">{format.bestFor}</span>
+          <span className="rounded-full bg-[#f7f7fa] px-3 py-1.5 text-[#62606a]">
+            {format.bestFor}
+          </span>
         </div>
 
-        <div className="mt-4 grid gap-3 text-[15px] font-medium text-[#55535d]">
+        <div className="mt-4 grid gap-2.5 text-[14px] font-medium text-[#55535d] lg:grid-cols-3">
           <ScheduleMeta icon={<CalendarDays className="h-4 w-4" />} text={dateLabel} />
           <ScheduleMeta
             icon={<Clock3 className="h-4 w-4" />}
@@ -1108,9 +1172,9 @@ function SessionCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:border-l md:border-t-0 md:pl-7 md:pt-0">
+      <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:justify-between md:border-l md:border-t-0 md:pl-6 md:pt-1">
         <div className="text-right">
-          <p className="text-3xl font-bold tracking-[-0.05em] text-[#202024]">
+          <p className="text-4xl font-bold tracking-[-0.055em] text-[#202024]">
             {requiresPayment ? PAID_BOOKING_PRICE : DROP_IN_PRICE}
           </p>
           {requiresPayment && (
@@ -1131,7 +1195,7 @@ function SessionCard({
         <button
           onClick={onBook}
           disabled={loading || isFull}
-          className="h-[52px] min-w-[140px] rounded-[11px] bg-[#6732f5] px-7 text-base font-bold text-white transition hover:bg-[#5424d8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="h-[52px] min-w-[140px] rounded-[13px] bg-[#6732f5] px-7 text-base font-bold text-white shadow-[0_14px_30px_rgb(103_50_245/0.24)] transition hover:bg-[#5424d8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
         >
           {loading
             ? requiresPayment
@@ -1190,9 +1254,11 @@ function FormatTrigger({ format }: { format: FormatInfo }) {
 
 function ScheduleMeta({ icon, text }: { icon: ReactNode; text: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="flex h-5 w-5 items-center justify-center text-[#8b8992]">{icon}</span>
-      <span>{text}</span>
+    <div className="flex min-w-0 items-center gap-2 rounded-full bg-[#f7f7fb] px-3 py-2">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-[#8b8992]">
+        {icon}
+      </span>
+      <span className="truncate">{text}</span>
     </div>
   );
 }
@@ -1203,16 +1269,16 @@ function ScheduleSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="grid animate-pulse gap-5 rounded-[24px] border border-[#dfdfe6] bg-white p-5 md:grid-cols-[150px_minmax(0,1fr)_180px] md:p-8"
+          className="grid animate-pulse gap-5 rounded-[28px] border border-[#e0ddea] bg-white p-4 shadow-[0_18px_55px_rgb(30_24_70/0.05)] md:grid-cols-[170px_minmax(0,1fr)_205px] md:p-5"
         >
-          <div className="h-28 w-28 rounded-[18px] bg-[#eeeeF3] md:h-32 md:w-32" />
+          <div className="h-28 w-28 rounded-[22px] bg-[#eeeeF3] md:h-full md:min-h-[172px] md:w-full" />
           <div>
             <div className="mb-4 h-3 w-16 rounded bg-[#eeeeF3]" />
             <div className="mb-5 h-8 w-3/4 rounded bg-[#eeeeF3]" />
             <div className="mb-4 h-4 w-1/2 rounded bg-[#eeeeF3]" />
             <div className="h-4 w-5/6 rounded bg-[#eeeeF3]" />
           </div>
-          <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:border-l md:border-t-0 md:pl-7 md:pt-0">
+          <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:border-l md:border-t-0 md:pl-6 md:pt-1">
             <div className="h-8 w-24 rounded bg-[#eeeeF3]" />
             <div className="h-12 w-36 rounded-[11px] bg-[#eeeeF3]" />
           </div>
