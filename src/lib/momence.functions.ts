@@ -1,17 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import {
-  momenceDashboardFetch,
-  momenceFetch,
-  MOMENCE_HOST_ID,
-  OPEN_BARRE_MEMBERSHIP_ID,
-  LOCATIONS,
-} from "./momence.server";
-import { buildHostMemberCreateRequest } from "./momence-member.helpers";
+import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
 import {
   buildDashboardPublicWaiverSignRequests,
   type DashboardWaiver,
 } from "./momence-waivers.helpers";
+import {
+  runSignupAndEnroll,
+  type LeadCapturePayload,
+  type SignupAndEnrollDependencies,
+} from "./signup-and-enroll.helpers";
 
 const SignatureSchema = z.object({
   documentId: z.number().int().positive(),
@@ -43,20 +41,7 @@ const SignupInput = z.object({
   landingPage: z.string().max(500).optional(),
 });
 
-async function captureLead(payload: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneE164: string;
-  center: string;
-  waiverAccepted: boolean;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  referrer?: string;
-  landingPage?: string;
-  memberId: number;
-}): Promise<{ ok: boolean; error?: string }> {
+async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
   const token = process.env.MOMENCE_API_TOKEN;
   if (!token) {
     console.warn("MOMENCE_API_TOKEN not set — skipping lead capture");
@@ -137,100 +122,35 @@ async function signMemberWaivers({
   return { signedCount: signRequests.length, availableCount: waivers.length };
 }
 
+const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
+  createMember: async (request) =>
+    momenceFetch<{ memberId: number }>(request.path, {
+      method: request.method,
+      body: JSON.stringify(request.body),
+    }),
+  signMemberWaivers,
+  enrollOpenBarre: async (request) => {
+    await momenceFetch(request.path, {
+      method: "POST",
+      body: JSON.stringify(request.body),
+    });
+  },
+  captureLead,
+  resolveCenterName: (homeLocationId) =>
+    LOCATIONS.find((l) => l.id === homeLocationId)?.name ?? "Physique 57 India",
+};
+
 export const signupAndEnroll = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
-  .handler(async ({ data }) => {
-    const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
-    const center = LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India";
-    const signatureRealSignature = data.signatureRealSignature?.trim();
-    if (!signatureRealSignature) {
-      throw new Error("Please sign the waiver before submitting it.");
-    }
+  .handler(async ({ data }) =>
+    runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: true }),
+  );
 
-    // 1. Create member
-    const createMemberRequest = buildHostMemberCreateRequest({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      phoneNumber: phoneE164,
-      homeLocationId: data.homeLocationId,
-    });
-    const created = await momenceFetch<{ memberId: number }>(createMemberRequest.path, {
-      method: createMemberRequest.method,
-      body: JSON.stringify(createMemberRequest.body),
-    });
-
-    // 2. Record required waiver/policy consent in Momence before granting access.
-    let signed = 0;
-    let availableWaivers = 0;
-    try {
-      const consent = await signMemberWaivers({
-        memberId: created.memberId,
-        realSignature: signatureRealSignature,
-      });
-      signed = consent.signedCount;
-      availableWaivers = consent.availableCount;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Waiver consent failed";
-      console.error("Waiver consent failed:", msg);
-      throw new Error(
-        "Waiver and policy consent could not be recorded in Momence. Please contact the studio team before booking.",
-      );
-    }
-
-    // 3. Enroll into Open Barre (free)
-    let enrolled = false;
-    let enrollError: string | null = null;
-    try {
-      await momenceFetch("/host/checkout", {
-        method: "POST",
-        body: JSON.stringify({
-          memberId: created.memberId,
-          homeLocationId: data.homeLocationId,
-          items: [
-            {
-              id: "1",
-              type: "subscription",
-              membershipId: OPEN_BARRE_MEMBERSHIP_ID,
-              attemptedPriceInCurrency: "0",
-            },
-          ],
-          paymentMethods: [{ id: "1", type: "free" }],
-        }),
-      });
-      enrolled = true;
-    } catch (e) {
-      enrollError = e instanceof Error ? e.message : "Enrollment failed";
-      console.error("Membership enrollment failed:", enrollError);
-    }
-
-    // 4. Capture lead in Momence CRM webhook
-    const lead = await captureLead({
-      firstName: createMemberRequest.body.firstName,
-      lastName: createMemberRequest.body.lastName,
-      email: data.email,
-      phoneE164,
-      center,
-      waiverAccepted: data.waiverAccepted,
-      utmSource: data.utmSource,
-      utmMedium: data.utmMedium,
-      utmCampaign: data.utmCampaign,
-      referrer: data.referrer,
-      landingPage: data.landingPage,
-      memberId: created.memberId,
-    });
-
-    return {
-      memberId: created.memberId,
-      homeLocationId: data.homeLocationId,
-      enrolled,
-      enrollError,
-      signedCount: signed,
-      availableWaivers,
-      leadCaptured: lead.ok,
-      leadError: lead.error,
-    };
-  });
+export const signupAndEnrollWithoutLead = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => SignupInput.parse(input))
+  .handler(async ({ data }) =>
+    runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: false }),
+  );
 
 // Kept for backwards compatibility; the classes page now uses the Momence widget.
 const ListSessionsInput = z.object({

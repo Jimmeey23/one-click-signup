@@ -45,8 +45,14 @@ const ALWAYS_REQUIRED_FIELDS: Array<keyof CustomerFieldValues> = [
   "postNatalStatus",
 ];
 
+const PHONE_NUMBER_PATTERN = /^[0-9]{7,15}$/;
+
 function trimmed(value: string | undefined): string {
   return value?.trim() ?? "";
+}
+
+export function sanitizePhoneNumber(value: string): string {
+  return value.replace(/\D/g, "");
 }
 
 export function validateCustomerFieldValues(
@@ -65,6 +71,11 @@ export function validateCustomerFieldValues(
     errors.euShoeSize = "EU Shoe Size is required for powerCycle classes.";
   }
 
+  const emergencyContact = trimmed(values.emergencyContactInfo);
+  if (emergencyContact && !PHONE_NUMBER_PATTERN.test(sanitizePhoneNumber(emergencyContact))) {
+    errors.emergencyContactInfo = "Emergency Contact Info must be a phone number.";
+  }
+
   return errors;
 }
 
@@ -80,7 +91,10 @@ export function buildCustomerFieldsDataRequest({
   for (const [key, id] of Object.entries(CUSTOMER_FIELD_IDS) as Array<
     [keyof CustomerFieldValues, number]
   >) {
-    const value = values[key];
+    const value =
+      key === "emergencyContactInfo" && typeof values[key] === "string"
+        ? sanitizePhoneNumber(values[key])
+        : values[key];
     if (typeof value === "string" && value.length > 0) {
       mappedValues[String(id)] = value;
     }

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, FileText } from "lucide-react";
-import { signupAndEnroll } from "@/lib/momence.functions";
+import { signupAndEnroll, signupAndEnrollWithoutLead } from "@/lib/momence.functions";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
@@ -25,29 +25,31 @@ import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg"
 
 const logoUrl = "/Physique57-800x600-1.jpg";
 
+const landingHead = () => ({
+  meta: [
+    { title: "Physique 57 India — Discover the workout everyone talks about." },
+    {
+      name: "description",
+      content:
+        "Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
+    },
+    {
+      property: "og:title",
+      content: "Physique 57 India — Discover the workout everyone talks about.",
+    },
+    {
+      property: "og:description",
+      content:
+        "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
+    },
+    { property: "og:image", content: groupBarre },
+    { name: "twitter:image", content: groupBarre },
+  ],
+});
+
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Physique 57 India — Discover the workout everyone talks about." },
-      {
-        name: "description",
-        content:
-          "Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
-      },
-      {
-        property: "og:title",
-        content: "Physique 57 India — Discover the workout everyone talks about.",
-      },
-      {
-        property: "og:description",
-        content:
-          "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
-      },
-      { property: "og:image", content: groupBarre },
-      { name: "twitter:image", content: groupBarre },
-    ],
-  }),
-  component: Landing,
+  head: landingHead,
+  component: OpenBarreLanding,
 });
 
 type FormState = {
@@ -62,9 +64,11 @@ type FormState = {
   signatureName: string;
 };
 
-function Landing() {
+export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean }) {
   const navigate = useNavigate();
-  const signup = useServerFn(signupAndEnroll);
+  const signupWithLead = useServerFn(signupAndEnroll);
+  const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
+  const signup = captureLead ? signupWithLead : signupWithoutLead;
   const sigRef = useRef<SignaturePadHandle | null>(null);
   const [signed, setSigned] = useState(false); // tracks if sig pad has ink
   const [loading, setLoading] = useState(false);
@@ -112,6 +116,15 @@ function Landing() {
     }
 
     try {
+      const trackingPayload = captureLead
+        ? {
+            utmSource: params.get("utm_source") ?? undefined,
+            utmMedium: params.get("utm_medium") ?? undefined,
+            utmCampaign: params.get("utm_campaign") ?? undefined,
+            referrer: typeof document !== "undefined" ? document.referrer : undefined,
+            landingPage: typeof window !== "undefined" ? window.location.href : undefined,
+          }
+        : {};
       const result = await signup({
         data: {
           firstName: form.firstName.trim(),
@@ -123,11 +136,7 @@ function Landing() {
           waiverAccepted: true,
           signatureName: form.signatureName.trim(),
           signatureRealSignature,
-          utmSource: params.get("utm_source") ?? undefined,
-          utmMedium: params.get("utm_medium") ?? undefined,
-          utmCampaign: params.get("utm_campaign") ?? undefined,
-          referrer: typeof document !== "undefined" ? document.referrer : undefined,
-          landingPage: typeof window !== "undefined" ? window.location.href : undefined,
+          ...trackingPayload,
         },
       });
       if (!result.enrolled) {

@@ -4,6 +4,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
+  BadgeCheck,
   Bike,
   Calendar,
   CalendarDays,
@@ -13,9 +14,17 @@ import {
   Clock3,
   Dumbbell,
   Flame,
+  Footprints,
   HeartPulse,
   List,
   MapPin,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+  Target,
+  UserRound,
+  Zap,
 } from "lucide-react";
 import { LOCATIONS } from "@/lib/momence-locations";
 import {
@@ -34,19 +43,22 @@ import {
 import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
 import { saveCustomerFieldsForMember } from "@/lib/momence-customer-fields.functions";
 import {
+  sanitizePhoneNumber,
   validateCustomerFieldValues,
   type CustomerFieldErrors,
   type CustomerFieldValues,
 } from "@/lib/momence-customer-fields.helpers";
+import { classFormatForSessionName } from "@/lib/class-formats";
+import {
+  addCalendarMonths,
+  buildMonthCalendarWeeks,
+  startOfCalendarMonth,
+  type MonthCalendarWeek,
+} from "@/lib/schedule-calendar.helpers";
+import { whatsappPhoneForLocationId } from "@/lib/whatsapp-contact.helpers";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { Footer } from "@/components/Footer";
 import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
-import fitImage from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A3173.jpg";
-import strengthImage from "@/assets/2007 _ Physique57 _ Trainer Shots _ _56A2318.jpg";
-import barreImage from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04A1551.jpg";
-import cardioImage from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.jpg";
-import matImage from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.jpg";
-import cycleImage from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
 import anishaThumb from "@/assets/images/001-1_Anisha-1-e1590837044475.jpg";
 import atulanThumb from "@/assets/images/002-Atulan-Image-1.jpg";
 import cauveriThumb from "@/assets/images/003-Cauveri-1.jpg";
@@ -100,6 +112,7 @@ type FormatInfo = {
   bestFor: string;
   expect: string;
   icon: ReactNode;
+  levelIcon: ReactNode;
   image: string;
 };
 
@@ -127,6 +140,25 @@ const emptyCustomerFieldValues: CustomerFieldValues = {
   euShoeSize: "",
   howDidHear: "",
 };
+
+const FITNESS_GOAL_SUGGESTIONS = [
+  "Build strength",
+  "Improve flexibility",
+  "Weight management",
+  "Better posture",
+] as const;
+
+const MEDICAL_HISTORY_SUGGESTIONS = [
+  "No concerns",
+  "Back or neck pain",
+  "Knee or ankle concern",
+  "Previous injury",
+] as const;
+
+const EU_SHOE_SIZE_OPTIONS: Array<[string, string]> = Array.from({ length: 13 }, (_, index) => {
+  const size = String(index + 35);
+  return [size, size];
+});
 
 const TRAINER_THUMBNAILS: Array<[string, string]> = [
   ["karan bhatia", karanBhatiaThumb],
@@ -173,167 +205,157 @@ function trainerImageForName(name?: string | null): string | null {
 }
 
 function formatInfoForSession(session: SessionDTO): FormatInfo {
-  const name = session.name.toLowerCase();
+  const classFormat = classFormatForSessionName(session.name);
 
-  if (name.includes("cycle") || name.includes("spin")) {
-    return {
-      family: "powerCycle",
-      level: "OPEN LEVEL CARDIO",
-      teaser:
-        "Rhythm-driven indoor cycling that builds cardiovascular capacity and lower-body endurance.",
-      detail:
-        "A science-backed ride where cadence, resistance, and music work together. The class stays focused on pedaling mechanics and cardio intervals, with no weights or core work on the bike.",
-      bestFor: "Low-impact cardio, endurance, and barre cross-training.",
-      expect:
-        "Bike setup, RPM and wattage cues, resistance pushes, speed surges, and active recovery blocks.",
-      icon: <Bike className="h-4 w-4" aria-hidden="true" />,
-      image: cycleImage,
-    };
+  switch (classFormat.key) {
+    case "power-cycle":
+      return {
+        family: classFormat.name,
+        level: "OPEN LEVEL CARDIO",
+        teaser:
+          "Rhythm-driven indoor cycling that builds cardiovascular capacity and lower-body endurance.",
+        detail:
+          "A science-backed ride where cadence, resistance, and music work together. The class stays focused on pedaling mechanics and cardio intervals, with no weights or core work on the bike.",
+        bestFor: "Low-impact cardio, endurance, and barre cross-training.",
+        expect:
+          "Bike setup, RPM and wattage cues, resistance pushes, speed surges, and active recovery blocks.",
+        icon: <Bike className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Bike className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "studio-fit":
+      return {
+        family: classFormat.name,
+        level: "HIGH INTENSITY",
+        teaser:
+          "Functional interval training with strength work, endurance blocks, and core conditioning.",
+        detail:
+          "FIT is a 50-minute strength-based interval format using progressive resistance and athletic conditioning to challenge major muscle groups and core stability.",
+        bestFor: "Members who want a demanding, weights-forward conditioning session.",
+        expect:
+          "Heavy weights, full-body circuits, cardio intervals, core work, and efficient transitions.",
+        icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Zap className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "recovery":
+      return {
+        family: classFormat.name,
+        level: "LOW INTENSITY RESTORATIVE",
+        teaser:
+          "Mobility, breath, and lengthening work designed to restore the body between classes.",
+        detail:
+          "Recovery slows the pace down with guided mobility, assisted stretch patterns, breath-led resets, and low-intensity movement to support flexibility and better training consistency.",
+        bestFor: "Mobility, flexibility, active recovery, and nervous-system reset.",
+        expect:
+          "Breath work, long holds, gentle mobility, supported stretches, and slower transitions.",
+        icon: <HeartPulse className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <HeartPulse className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "hiit":
+      return {
+        family: classFormat.name,
+        level: "INTERMEDIATE",
+        teaser: "Cardio and strength intervals designed to maximize burn and training efficiency.",
+        detail:
+          "HIIT alternates high-output cardio bursts with active recovery and strength movements, targeting aerobic and anaerobic fitness in a compact class structure.",
+        bestFor: "Members seeking a high-energy, sweat-forward full-body burn.",
+        expect:
+          "Fast intervals, bodyweight resistance, lunges, planks, sprints, and recovery blocks.",
+        icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Zap className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "cardio-barre-plus":
+      return {
+        family: classFormat.name,
+        level: "ADVANCED CARDIO BARRE",
+        teaser:
+          "A stronger cardio-barre progression with longer burn blocks and sharper transitions.",
+        detail:
+          "Cardio Barre Plus builds from classic barre precision into athletic, heart-rate-elevating sequences with added endurance work, quick transitions, and sustained sculpting blocks.",
+        bestFor: "Members who want a more athletic barre challenge.",
+        expect:
+          "Faster barre combinations, cardio intervals, standing sculpting, active recovery, and core work.",
+        icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Flame className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "cardio-barre":
+      return {
+        family: classFormat.name,
+        level: "INTERMEDIATE TO ADVANCED",
+        teaser:
+          "A faster barre format that combines sculpting precision with cardiovascular intervals.",
+        detail:
+          "Cardio Barre layers traditional barre work with dynamic, higher-intensity sequences to elevate heart rate, build endurance, and sculpt lean muscle.",
+        bestFor: "Members who want a sweat-forward barre class with stronger cardio demand.",
+        expect:
+          "Standing barre work, light resistance, faster transitions, cardio bursts, and active recovery.",
+        icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Zap className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "back-body-blaze":
+      return {
+        family: classFormat.name,
+        level: "ADVANCED POSTERIOR CHAIN",
+        teaser: "Focused strength work for glutes, hamstrings, back, posture, and core stability.",
+        detail:
+          "Back Body Blaze targets the posterior chain with controlled resistance, posture-focused pulls, glute and hamstring work, and stability sequences that support stronger movement patterns.",
+        bestFor: "Back-body strength, posture, glutes, hamstrings, and power.",
+        expect:
+          "Rows, hinges, glute work, hamstring sets, resistance bands, heavier weights, and core stability.",
+        icon: <Flame className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "strength-lab":
+      return {
+        family: classFormat.name,
+        level: "ADVANCED STRENGTH",
+        teaser:
+          "Structured circuit training with heavier weights, progressive overload, and power work.",
+        detail:
+          "StrengthLab is a 57-minute full-body strength class built around power, upper-body, lower-body, and core circuits. It prioritizes heavier weights, moderate reps, and clean form.",
+        bestFor: "Experienced members with FIT experience or a consistent external strength base.",
+        expect:
+          "Dumbbells, kettlebells, resistance bands, pull-up bars, strength circuits, and form-led progressions.",
+        icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    case "mat-57":
+      return {
+        family: classFormat.name,
+        level: "MODERATE TO HIGH",
+        teaser:
+          "Pilates-inspired floor work focused on core strength, posture, balance, and flexibility.",
+        detail:
+          "Mat 57 brings Physique 57 sculpting techniques to the floor with targeted core work, posture training, alignment, balance, and flexibility sequences.",
+        bestFor: "Core strength, better posture, flexibility, and all-level floor-based practice.",
+        expect: "Mat-based core work, ab-focused sequences, alignment coaching, and deep control.",
+        icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <BadgeCheck className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
+    default:
+      return {
+        family: classFormat.name,
+        level: "BEGINNER FRIENDLY",
+        teaser:
+          "The signature Physique 57 method: ballet-inspired movement, isometric holds, and targeted strength.",
+        detail:
+          "Barre 57 is the cornerstone format, rooted in Interval Overload with sculpting, toning, lengthening, upbeat music, and instructor-led precision.",
+        bestFor: "All fitness levels, from newcomers to experienced practitioners.",
+        expect:
+          "Thighs, seat, arms, core, stretch, precise holds, dynamic reps, and modifications.",
+        icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
+        levelIcon: <Sparkles className="h-4 w-4" aria-hidden="true" />,
+        image: classFormat.image,
+      };
   }
-
-  if (name.includes("fit") || name.includes("functional")) {
-    return {
-      family: "Studio FIT",
-      level: "HIGH INTENSITY",
-      teaser:
-        "Functional interval training with strength work, endurance blocks, and core conditioning.",
-      detail:
-        "FIT is a 50-minute strength-based interval format using progressive resistance and athletic conditioning to challenge major muscle groups and core stability.",
-      bestFor: "Members who want a demanding, weights-forward conditioning session.",
-      expect:
-        "Heavy weights, full-body circuits, cardio intervals, core work, and efficient transitions.",
-      icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
-      image: fitImage,
-    };
-  }
-
-  if (name.includes("recovery") || name.includes("restore") || name.includes("stretch")) {
-    return {
-      family: "Recovery",
-      level: "LOW INTENSITY RESTORATIVE",
-      teaser:
-        "Mobility, breath, and lengthening work designed to restore the body between classes.",
-      detail:
-        "Recovery slows the pace down with guided mobility, assisted stretch patterns, breath-led resets, and low-intensity movement to support flexibility and better training consistency.",
-      bestFor: "Mobility, flexibility, active recovery, and nervous-system reset.",
-      expect:
-        "Breath work, long holds, gentle mobility, supported stretches, and slower transitions.",
-      icon: <HeartPulse className="h-4 w-4" aria-hidden="true" />,
-      image: matImage,
-    };
-  }
-
-  if (name.includes("hiit")) {
-    return {
-      family: "HIIT",
-      level: "INTERMEDIATE",
-      teaser: "Cardio and strength intervals designed to maximize burn and training efficiency.",
-      detail:
-        "HIIT alternates high-output cardio bursts with active recovery and strength movements, targeting aerobic and anaerobic fitness in a compact class structure.",
-      bestFor: "Members seeking a high-energy, sweat-forward full-body burn.",
-      expect:
-        "Fast intervals, bodyweight resistance, lunges, planks, sprints, and recovery blocks.",
-      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
-      image: cardioImage,
-    };
-  }
-
-  if (name.includes("cardio") && name.includes("plus")) {
-    return {
-      family: "Cardio Barre Plus",
-      level: "ADVANCED CARDIO BARRE",
-      teaser:
-        "A stronger cardio-barre progression with longer burn blocks and sharper transitions.",
-      detail:
-        "Cardio Barre Plus builds from classic barre precision into athletic, heart-rate-elevating sequences with added endurance work, quick transitions, and sustained sculpting blocks.",
-      bestFor: "Members who want a more athletic barre challenge.",
-      expect:
-        "Faster barre combinations, cardio intervals, standing sculpting, active recovery, and core work.",
-      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
-      image: cardioImage,
-    };
-  }
-
-  if (name.includes("cardio")) {
-    return {
-      family: "Cardio Barre",
-      level: "INTERMEDIATE TO ADVANCED",
-      teaser:
-        "A faster barre format that combines sculpting precision with cardiovascular intervals.",
-      detail:
-        "Cardio Barre layers traditional barre work with dynamic, higher-intensity sequences to elevate heart rate, build endurance, and sculpt lean muscle.",
-      bestFor: "Members who want a sweat-forward barre class with stronger cardio demand.",
-      expect:
-        "Standing barre work, light resistance, faster transitions, cardio bursts, and active recovery.",
-      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
-      image: cardioImage,
-    };
-  }
-
-  if (name.includes("back body") || name.includes("blaze")) {
-    return {
-      family: "Back Body Blaze",
-      level: "ADVANCED POSTERIOR CHAIN",
-      teaser: "Focused strength work for glutes, hamstrings, back, posture, and core stability.",
-      detail:
-        "Back Body Blaze targets the posterior chain with controlled resistance, posture-focused pulls, glute and hamstring work, and stability sequences that support stronger movement patterns.",
-      bestFor: "Back-body strength, posture, glutes, hamstrings, and power.",
-      expect:
-        "Rows, hinges, glute work, hamstring sets, resistance bands, heavier weights, and core stability.",
-      icon: <Flame className="h-4 w-4" aria-hidden="true" />,
-      image: strengthImage,
-    };
-  }
-
-  if (
-    name.includes("strength") ||
-    name.includes("lab") ||
-    name.includes("pull") ||
-    name.includes("push") ||
-    name.includes("blaze")
-  ) {
-    return {
-      family: "StrengthLab",
-      level: "ADVANCED STRENGTH",
-      teaser:
-        "Structured circuit training with heavier weights, progressive overload, and power work.",
-      detail:
-        "StrengthLab is a 57-minute full-body strength class built around power, upper-body, lower-body, and core circuits. It prioritizes heavier weights, moderate reps, and clean form.",
-      bestFor: "Experienced members with FIT experience or a consistent external strength base.",
-      expect:
-        "Dumbbells, kettlebells, resistance bands, pull-up bars, strength circuits, and form-led progressions.",
-      icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
-      image: strengthImage,
-    };
-  }
-
-  if (name.includes("mat")) {
-    return {
-      family: "Mat 57",
-      level: "MODERATE TO HIGH",
-      teaser:
-        "Pilates-inspired floor work focused on core strength, posture, balance, and flexibility.",
-      detail:
-        "Mat 57 brings Physique 57 sculpting techniques to the floor with targeted core work, posture training, alignment, balance, and flexibility sequences.",
-      bestFor: "Core strength, better posture, flexibility, and all-level floor-based practice.",
-      expect: "Mat-based core work, ab-focused sequences, alignment coaching, and deep control.",
-      icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
-      image: matImage,
-    };
-  }
-
-  return {
-    family: "Barre 57",
-    level: "BEGINNER FRIENDLY",
-    teaser:
-      "The signature Physique 57 method: ballet-inspired movement, isometric holds, and targeted strength.",
-    detail:
-      "Barre 57 is the cornerstone format, rooted in Interval Overload with sculpting, toning, lengthening, upbeat music, and instructor-led precision.",
-    bestFor: "All fitness levels, from newcomers to experienced practitioners.",
-    expect: "Thighs, seat, arms, core, stretch, precise holds, dynamic reps, and modifications.",
-    icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
-    image: barreImage,
-  };
 }
 
 function requiresCycleShoeSize(session: SessionDTO): boolean {
@@ -375,15 +397,40 @@ function ClassesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [dateOffsetDays, setDateOffsetDays] = useState(0);
+  const [monthOffsetMonths, setMonthOffsetMonths] = useState(0);
 
   const currentLoc = LOCATIONS.find((l) => l.id === locationId) ?? LOCATIONS[0];
-  const pageSpanDays = viewMode === "day" ? 1 : viewMode === "week" ? 7 : 30;
-  const fetchDaysAhead = Math.min(60, Math.max(pageSpanDays, dateOffsetDays + pageSpanDays));
+  const whatsappPhone = whatsappPhoneForLocationId(currentLoc.id);
+  const monthStart = useMemo(
+    () => startOfCalendarMonth(addCalendarMonths(new Date(), monthOffsetMonths)),
+    [monthOffsetMonths],
+  );
+  const nextMonthStart = useMemo(() => addCalendarMonths(monthStart, 1), [monthStart]);
+  const monthLabel = monthStart.toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+  const monthCalendarWeeks = useMemo(() => buildMonthCalendarWeeks(monthStart), [monthStart]);
+  const pageSpanDays = viewMode === "day" ? 1 : 7;
+  const monthFetchDaysAhead = Math.max(1, daysUntilDate(nextMonthStart));
+  const fetchDaysAhead =
+    viewMode === "month"
+      ? Math.min(60, monthFetchDaysAhead)
+      : Math.min(60, Math.max(pageSpanDays, dateOffsetDays + pageSpanDays));
   const dateStepDays = viewMode === "day" ? 1 : 7;
   const activeDateKey =
-    viewMode === "day" ? dateKey(addDays(new Date(), dateOffsetDays)) : selectedDateKey;
-  const windowStartKey = dateKey(addDays(new Date(), dateOffsetDays));
-  const windowEndKey = dateKey(addDays(new Date(), dateOffsetDays + pageSpanDays));
+    viewMode === "day"
+      ? dateKey(addDays(new Date(), dateOffsetDays))
+      : viewMode === "week"
+        ? selectedDateKey
+        : null;
+  const windowStartKey =
+    viewMode === "month" ? dateKey(monthStart) : dateKey(addDays(new Date(), dateOffsetDays));
+  const windowEndKey =
+    viewMode === "month"
+      ? dateKey(nextMonthStart)
+      : dateKey(addDays(new Date(), dateOffsetDays + pageSpanDays));
 
   useEffect(() => {
     mountedRef.current = true;
@@ -565,11 +612,46 @@ function ClassesPage() {
     });
   }, [activeDateKey, sessions, windowEndKey, windowStartKey]);
   const grouped = useMemo(() => groupByDay(visibleSessions), [visibleSessions]);
+  const sessionsByDay = useMemo(() => groupSessionsByDate(visibleSessions), [visibleSessions]);
 
   function switchViewMode(mode: ViewMode) {
     setViewMode(mode);
     setSelectedDateKey(null);
     setDateOffsetDays(0);
+    setMonthOffsetMonths(0);
+  }
+
+  function goPreviousRange() {
+    setSelectedDateKey(null);
+    if (viewMode === "month") {
+      setMonthOffsetMonths((months) => Math.max(0, months - 1));
+      return;
+    }
+    setDateOffsetDays((days) => Math.max(0, days - dateStepDays));
+  }
+
+  function goNextRange() {
+    setSelectedDateKey(null);
+    if (viewMode === "month") {
+      setMonthOffsetMonths((months) => months + 1);
+      return;
+    }
+    setDateOffsetDays((days) => days + dateStepDays);
+  }
+
+  function showAllClasses() {
+    if (viewMode === "day") {
+      setViewMode("week");
+    }
+    setSelectedDateKey(null);
+    setDateOffsetDays(0);
+    setMonthOffsetMonths(0);
+  }
+
+  function jumpToToday() {
+    setDateOffsetDays(0);
+    setMonthOffsetMonths(0);
+    setSelectedDateKey(viewMode === "week" ? dateKey(new Date()) : null);
   }
 
   if (booked) return <ThankYou booked={booked} onAnother={() => setBooked(null)} />;
@@ -642,58 +724,73 @@ function ClassesPage() {
           <div className="mt-5 flex items-center gap-3 rounded-[22px] border border-[#ece9f4] bg-[#fbfaff] p-2">
             <button
               type="button"
-              onClick={() => {
-                setSelectedDateKey(null);
-                setDateOffsetDays((days) => Math.max(0, days - dateStepDays));
-              }}
+              onClick={goPreviousRange}
               className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded9eb] bg-white text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
               aria-label={`Previous ${viewMode}`}
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
             </button>
             <div
-              className={`grid flex-1 gap-2 ${viewMode === "day" ? "grid-cols-1" : "grid-cols-4 sm:grid-cols-7"}`}
+              className={
+                viewMode === "month"
+                  ? "flex-1"
+                  : `grid flex-1 gap-2 ${viewMode === "day" ? "grid-cols-1" : "grid-cols-4 sm:grid-cols-7"}`
+              }
             >
-              {dateRail.map((item) => {
-                const selected = activeDateKey === item.key;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => {
-                      if (viewMode !== "day") setSelectedDateKey(selected ? null : item.key);
-                    }}
-                    className={`min-h-[64px] rounded-[18px] px-2 text-center transition ${
-                      selected
-                        ? "bg-white text-[#6732f5] shadow-[0_12px_26px_rgb(30_24_70/0.08)] ring-1 ring-[#d9d0ff]"
-                        : "text-[#77757f] hover:bg-white/70"
-                    }`}
-                  >
-                    <span className="block text-[11px] font-semibold uppercase leading-none">
-                      {item.weekday}
+              {viewMode === "month" ? (
+                <div className="flex min-h-[64px] items-center justify-between gap-4 rounded-[18px] bg-white px-5 shadow-[0_12px_26px_rgb(30_24_70/0.08)] ring-1 ring-[#e7e2f4]">
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#77757f]">
+                      Calendar month
                     </span>
-                    <span
-                      className={`mt-1 block text-lg font-semibold leading-none ${
-                        selected ? "text-[#6732f5]" : "text-[#4e4d55]"
+                    <span className="mt-1 block text-2xl font-bold tracking-[-0.04em] text-[#202024]">
+                      {monthLabel}
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[#f2edff] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#6732f5] ring-1 ring-[#e3d9ff]">
+                    <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                    {visibleSessions.length} {visibleSessions.length === 1 ? "class" : "classes"}
+                  </span>
+                </div>
+              ) : (
+                dateRail.map((item) => {
+                  const selected = activeDateKey === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => {
+                        if (viewMode !== "day") setSelectedDateKey(selected ? null : item.key);
+                      }}
+                      className={`min-h-[64px] rounded-[18px] px-2 text-center transition ${
+                        selected
+                          ? "bg-white text-[#6732f5] shadow-[0_12px_26px_rgb(30_24_70/0.08)] ring-1 ring-[#d9d0ff]"
+                          : "text-[#77757f] hover:bg-white/70"
                       }`}
                     >
-                      {item.day}
-                    </span>
-                    <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
+                      <span className="block text-[11px] font-semibold uppercase leading-none">
+                        {item.weekday}
+                      </span>
                       <span
-                        className={`h-1 w-5 rounded-full ${selected ? "bg-[#6732f5]" : "bg-[#c8c5d0]"}`}
-                      />
-                    </span>
-                  </button>
-                );
-              })}
+                        className={`mt-1 block text-lg font-semibold leading-none ${
+                          selected ? "text-[#6732f5]" : "text-[#4e4d55]"
+                        }`}
+                      >
+                        {item.day}
+                      </span>
+                      <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
+                        <span
+                          className={`h-1 w-5 rounded-full ${selected ? "bg-[#6732f5]" : "bg-[#c8c5d0]"}`}
+                        />
+                      </span>
+                    </button>
+                  );
+                })
+              )}
             </div>
             <button
               type="button"
-              onClick={() => {
-                setSelectedDateKey(null);
-                setDateOffsetDays((days) => days + dateStepDays);
-              }}
+              onClick={goNextRange}
               className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded9eb] bg-white text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
               aria-label={`Next ${viewMode}`}
             >
@@ -704,23 +801,14 @@ function ClassesPage() {
           <div className="mt-4 grid gap-3 md:grid-cols-[auto_auto_1fr_1fr]">
             <button
               type="button"
-              onClick={() => {
-                if (viewMode === "day") {
-                  setViewMode("week");
-                  setDateOffsetDays(0);
-                }
-                setSelectedDateKey(null);
-              }}
+              onClick={showAllClasses}
               className="h-11 rounded-full border border-[#ded9eb] bg-white px-4 text-sm font-semibold uppercase text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#6732f5] hover:text-[#6732f5]"
             >
               Show all
             </button>
             <button
               type="button"
-              onClick={() => {
-                setDateOffsetDays(0);
-                setSelectedDateKey(viewMode === "day" ? null : dateKey(new Date()));
-              }}
+              onClick={jumpToToday}
               className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 text-sm font-semibold uppercase text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#6732f5] hover:text-[#6732f5]"
             >
               Today
@@ -764,21 +852,32 @@ function ClassesPage() {
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{loadError}</p>
         )}
 
-        {!sessions && !loadError && <ScheduleSkeleton />}
+        {!sessions &&
+          !loadError &&
+          (viewMode === "month" ? <MonthCalendarSkeleton /> : <ScheduleSkeleton />)}
 
-        {sessions && sessions.length === 0 && (
+        {sessions && viewMode === "month" && (
+          <MonthCalendar
+            weeks={monthCalendarWeeks}
+            sessionsByDay={sessionsByDay}
+            bookingId={bookingId}
+            onBook={openCustomerFields}
+          />
+        )}
+
+        {sessions && viewMode !== "month" && sessions.length === 0 && (
           <div className="rounded-[26px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
             No upcoming classes in this {viewMode} view at this studio.
           </div>
         )}
 
-        {sessions && sessions.length > 0 && grouped.length === 0 && (
+        {sessions && viewMode !== "month" && sessions.length > 0 && grouped.length === 0 && (
           <div className="rounded-[26px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
             No classes match this date. Show all classes to browse the full schedule.
           </div>
         )}
 
-        {sessions && grouped.length > 0 && (
+        {sessions && viewMode !== "month" && grouped.length > 0 && (
           <div className="space-y-8">
             {grouped.map(({ day, items, relative }) => (
               <section key={day} className="space-y-4">
@@ -828,8 +927,136 @@ function ClassesPage() {
       )}
 
       <Footer />
-      <WhatsAppFloat />
+      <WhatsAppFloat phone={whatsappPhone} />
     </div>
+  );
+}
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function MonthCalendar({
+  weeks,
+  sessionsByDay,
+  bookingId,
+  onBook,
+}: {
+  weeks: MonthCalendarWeek[];
+  sessionsByDay: Map<string, SessionDTO[]>;
+  bookingId: number | null;
+  onBook: (session: SessionDTO) => void;
+}) {
+  const todayKey = dateKey(new Date());
+
+  return (
+    <section
+      aria-label="Monthly class calendar"
+      className="overflow-hidden rounded-[28px] border border-[#e0ddea] bg-white shadow-[0_20px_55px_rgb(30_24_70/0.06)]"
+    >
+      <div className="overflow-x-auto">
+        <div className="min-w-[920px]">
+          <div className="grid grid-cols-7 border-b border-[#e4e1ec] bg-[#fbfaff]">
+            {WEEKDAY_LABELS.map((day) => (
+              <div
+                key={day}
+                className="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[#77757f]"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7">
+            {weeks.flat().map((calendarDay) => {
+              const dayKey = dateKey(calendarDay.date);
+              const daySessions = sessionsByDay.get(dayKey) ?? [];
+              const isToday = dayKey === todayKey;
+
+              return (
+                <div
+                  key={dayKey}
+                  className={`min-h-[178px] border-b border-r border-[#ece9f4] p-3 [&:nth-child(7n)]:border-r-0 ${
+                    calendarDay.inCurrentMonth ? "bg-white" : "bg-[#faf9fc] text-[#aaa6b3]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
+                        isToday
+                          ? "bg-[#6732f5] text-white"
+                          : calendarDay.inCurrentMonth
+                            ? "text-[#202024]"
+                            : "text-[#aaa6b3]"
+                      }`}
+                    >
+                      {calendarDay.date.toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        timeZone: "Asia/Kolkata",
+                      })}
+                    </span>
+                    {daySessions.length > 0 && (
+                      <span className="rounded-full bg-[#f2edff] px-2 py-0.5 text-[10px] font-bold text-[#6732f5]">
+                        {daySessions.length}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-2 max-h-[126px] space-y-1.5 overflow-y-auto pr-1">
+                    {daySessions.map((session) => (
+                      <MonthCalendarClassChip
+                        key={session.id}
+                        session={session}
+                        loading={bookingId === session.id}
+                        onBook={() => onBook(session)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MonthCalendarClassChip({
+  session,
+  loading,
+  onBook,
+}: {
+  session: SessionDTO;
+  loading: boolean;
+  onBook: () => void;
+}) {
+  const start = new Date(session.startsAt);
+  const format = formatInfoForSession(session);
+  const isFull = session.spotsLeft === 0;
+
+  return (
+    <button
+      type="button"
+      onClick={onBook}
+      disabled={loading || isFull}
+      className={`block w-full rounded-[10px] border px-2 py-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5] ${
+        isFull
+          ? "border-[#ead7dc] bg-[#fff6f7] text-[#9b5767]"
+          : "border-[#e2dcf7] bg-[#f8f5ff] text-[#322b48] hover:border-[#6732f5] hover:bg-white"
+      }`}
+      aria-label={`${isFull ? "Full" : "Book"} ${session.name} at ${formatTime(start)}`}
+    >
+      <span className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-bold text-[#6732f5]">{formatTime(start)}</span>
+        <span className="inline-flex min-w-0 items-center gap-1 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-[#6a617e] [&_svg]:h-3 [&_svg]:w-3">
+          {format.icon}
+          <span className="truncate">{format.family}</span>
+        </span>
+      </span>
+      <span className="mt-1 block truncate text-[11px] font-bold">{session.name}</span>
+      <span className="mt-0.5 block truncate text-[10px] text-[#77757f]">
+        {isFull ? "Full" : (session.teacherName ?? "Studio Instructor")}
+      </span>
+    </button>
   );
 }
 
@@ -888,94 +1115,132 @@ function CustomerFieldsModal({
           <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{submitError}</p>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <TextField
-            label="Fitness Goal"
-            value={values.fitnessGoal ?? ""}
-            error={errors.fitnessGoal}
-            onChange={(value) => onChange("fitnessGoal", value)}
-          />
-          <TextField
-            label="Emergency Contact Info"
-            value={values.emergencyContactInfo ?? ""}
-            error={errors.emergencyContactInfo}
-            required
-            inputMode="numeric"
-            onChange={(value) => onChange("emergencyContactInfo", value)}
-          />
-          <SelectField
-            label="Are you currently pregnant?"
-            value={values.pregnancyStatus ?? ""}
-            error={errors.pregnancyStatus}
-            required
-            options={[
-              ["No ", "No"],
-              ["Yes", "Yes"],
-            ]}
-            onChange={(value) => onChange("pregnancyStatus", value)}
-          />
-          <SelectField
-            label="Post Natal"
-            value={values.postNatalStatus ?? ""}
-            error={errors.postNatalStatus}
-            required
-            options={[
-              ["No", "No"],
-              ["Yes", "Yes"],
-            ]}
-            onChange={(value) => onChange("postNatalStatus", value)}
-          />
-          <div className="md:col-span-2">
+        <div className="space-y-6">
+          <FieldSection icon={<Target className="h-4 w-4" />} title="Goals">
             <TextField
-              label="Medical History"
-              value={values.medicalHistory ?? ""}
-              error={errors.medicalHistory}
-              required
-              multiline
-              onChange={(value) => onChange("medicalHistory", value)}
+              label="Fitness Goal"
+              value={values.fitnessGoal ?? ""}
+              error={errors.fitnessGoal}
+              icon={<Target className="h-4 w-4" />}
+              placeholder="Add the member's primary goal"
+              onChange={(value) => onChange("fitnessGoal", value)}
             />
-          </div>
-          <TextField
-            label="FNF"
-            value={values.fnf ?? ""}
-            error={errors.fnf}
-            onChange={(value) => onChange("fnf", value)}
-          />
-          <SelectField
-            label="Gender"
-            value={values.gender ?? ""}
-            error={errors.gender}
-            options={[
-              ["Male", "Male"],
-              ["Female", "Female"],
-              ["Non-binary", "Non-binary"],
-              ["Prefer not to say", "Prefer not to say"],
-            ]}
-            onChange={(value) => onChange("gender", value)}
-          />
-          <TextField
-            label="EU Shoe Size"
-            value={values.euShoeSize ?? ""}
-            error={errors.euShoeSize}
-            required={requiresShoeSize}
-            inputMode="numeric"
-            onChange={(value) => onChange("euShoeSize", value)}
-          />
-          <SelectField
-            label="How did you hear about us?"
-            value={values.howDidHear ?? ""}
-            error={errors.howDidHear}
-            options={[
-              ["Yellow Messenger/Whatsapp Enquiry", "Yellow Messenger/Whatsapp Enquiry"],
-              ["Instagram", "Instagram"],
-              ["Google Search", "Google Search"],
-              ["Friend/Family", "Friend/Family"],
-              ["Existing Member", "Existing Member"],
-              ["Walk-in", "Walk-in"],
-              ["Other", "Other"],
-            ]}
-            onChange={(value) => onChange("howDidHear", value)}
-          />
+            <SuggestionChips
+              label="Fitness goal suggestions"
+              options={FITNESS_GOAL_SUGGESTIONS}
+              onSelect={(value) => onChange("fitnessGoal", value)}
+            />
+          </FieldSection>
+
+          <FieldSection icon={<ShieldCheck className="h-4 w-4" />} title="Health & safety">
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextField
+                label="Emergency Contact Info"
+                value={values.emergencyContactInfo ?? ""}
+                error={errors.emergencyContactInfo}
+                required
+                icon={<Phone className="h-4 w-4" />}
+                inputMode="tel"
+                pattern="[0-9]*"
+                maxLength={15}
+                helperText="Numbers only. Include country code if needed."
+                onChange={(value) => onChange("emergencyContactInfo", sanitizePhoneNumber(value))}
+              />
+              <SelectField
+                label="Are you currently pregnant?"
+                value={values.pregnancyStatus ?? ""}
+                error={errors.pregnancyStatus}
+                required
+                icon={<HeartPulse className="h-4 w-4" />}
+                options={[
+                  ["No ", "No"],
+                  ["Yes", "Yes"],
+                ]}
+                onChange={(value) => onChange("pregnancyStatus", value)}
+              />
+              <SelectField
+                label="Post Natal"
+                value={values.postNatalStatus ?? ""}
+                error={errors.postNatalStatus}
+                required
+                icon={<ShieldCheck className="h-4 w-4" />}
+                options={[
+                  ["No", "No"],
+                  ["Yes", "Yes"],
+                ]}
+                onChange={(value) => onChange("postNatalStatus", value)}
+              />
+              <div className="md:col-span-2">
+                <TextField
+                  label="Medical History"
+                  value={values.medicalHistory ?? ""}
+                  error={errors.medicalHistory}
+                  required
+                  multiline
+                  icon={<Stethoscope className="h-4 w-4" />}
+                  placeholder="Add relevant injuries, restrictions, or 'No concerns'"
+                  onChange={(value) => onChange("medicalHistory", value)}
+                />
+                <SuggestionChips
+                  label="Medical history suggestions"
+                  options={MEDICAL_HISTORY_SUGGESTIONS}
+                  onSelect={(value) => onChange("medicalHistory", value)}
+                />
+              </div>
+            </div>
+          </FieldSection>
+
+          <FieldSection icon={<UserRound className="h-4 w-4" />} title="Profile">
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextField
+                label="FNF"
+                value={values.fnf ?? ""}
+                error={errors.fnf}
+                icon={<BadgeCheck className="h-4 w-4" />}
+                placeholder="Friend or family referral details"
+                onChange={(value) => onChange("fnf", value)}
+              />
+              <SelectField
+                label="Gender"
+                value={values.gender ?? ""}
+                error={errors.gender}
+                icon={<UserRound className="h-4 w-4" />}
+                options={[
+                  ["Male", "Male"],
+                  ["Female", "Female"],
+                  ["Non-binary", "Non-binary"],
+                  ["Prefer not to say", "Prefer not to say"],
+                ]}
+                onChange={(value) => onChange("gender", value)}
+              />
+              <SelectField
+                label="EU Shoe Size"
+                value={values.euShoeSize ?? ""}
+                error={errors.euShoeSize}
+                required={requiresShoeSize}
+                icon={<Footprints className="h-4 w-4" />}
+                helperText={requiresShoeSize ? "Required for powerCycle classes." : undefined}
+                options={EU_SHOE_SIZE_OPTIONS}
+                onChange={(value) => onChange("euShoeSize", value)}
+              />
+              <SelectField
+                label="How did you hear about us?"
+                value={values.howDidHear ?? ""}
+                error={errors.howDidHear}
+                icon={<Sparkles className="h-4 w-4" />}
+                options={[
+                  ["Yellow Messenger/Whatsapp Enquiry", "Yellow Messenger/Whatsapp Enquiry"],
+                  ["Instagram", "Instagram"],
+                  ["Google Search", "Google Search"],
+                  ["Friend/Family", "Friend/Family"],
+                  ["Existing Member", "Existing Member"],
+                  ["Walk-in", "Walk-in"],
+                  ["Other", "Other"],
+                ]}
+                onChange={(value) => onChange("howDidHear", value)}
+              />
+            </div>
+          </FieldSection>
         </div>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -1000,6 +1265,54 @@ function CustomerFieldsModal({
   );
 }
 
+function FieldSection({
+  icon,
+  title,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-t border-[#ece9f4] pt-5 first:border-t-0 first:pt-0">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f2edff] text-[#6732f5] ring-1 ring-[#dfd4ff]">
+          {icon}
+        </span>
+        <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#4b4858]">{title}</h3>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function SuggestionChips({
+  label,
+  options,
+  onSelect,
+}: {
+  label: string;
+  options: readonly string[];
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-2" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onSelect(option)}
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ded8f1] bg-[#fbfaff] px-3 text-xs font-bold text-[#564a72] transition hover:border-[#6732f5] hover:bg-white hover:text-[#6732f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5]/30"
+        >
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TextField({
   label,
   value,
@@ -1007,6 +1320,11 @@ function TextField({
   required,
   multiline,
   inputMode,
+  icon,
+  placeholder,
+  pattern,
+  maxLength,
+  helperText,
   onChange,
 }: {
   label: string;
@@ -1015,6 +1333,11 @@ function TextField({
   required?: boolean;
   multiline?: boolean;
   inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
+  icon?: ReactNode;
+  placeholder?: string;
+  pattern?: string;
+  maxLength?: number;
+  helperText?: string;
   onChange: (value: string) => void;
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -1023,12 +1346,18 @@ function TextField({
 
   return (
     <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
-      {label}
-      {required && <span className="text-red-600"> *</span>}
+      <span className="inline-flex items-center gap-1.5">
+        {icon && <span className="text-[#6732f5]">{icon}</span>}
+        <span>
+          {label}
+          {required && <span className="text-red-600"> *</span>}
+        </span>
+      </span>
       {multiline ? (
         <textarea
           id={id}
           value={value}
+          placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
           rows={4}
           className={`${baseClass} ${error ? "border-red-500" : "border-[#dedee5]"}`}
@@ -1038,9 +1367,15 @@ function TextField({
           id={id}
           value={value}
           inputMode={inputMode}
+          pattern={pattern}
+          maxLength={maxLength}
+          placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
           className={`${baseClass} ${error ? "border-red-500" : "border-[#dedee5]"}`}
         />
+      )}
+      {helperText && !error && (
+        <span className="mt-1 block text-xs font-semibold text-[#77757f]">{helperText}</span>
       )}
       {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
     </label>
@@ -1053,6 +1388,8 @@ function SelectField({
   error,
   required,
   options,
+  icon,
+  helperText,
   onChange,
 }: {
   label: string;
@@ -1060,14 +1397,21 @@ function SelectField({
   error?: string;
   required?: boolean;
   options: Array<[string, string]>;
+  icon?: ReactNode;
+  helperText?: string;
   onChange: (value: string) => void;
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   return (
     <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
-      {label}
-      {required && <span className="text-red-600"> *</span>}
+      <span className="inline-flex items-center gap-1.5">
+        {icon && <span className="text-[#6732f5]">{icon}</span>}
+        <span>
+          {label}
+          {required && <span className="text-red-600"> *</span>}
+        </span>
+      </span>
       <select
         id={id}
         value={value}
@@ -1083,6 +1427,9 @@ function SelectField({
           </option>
         ))}
       </select>
+      {helperText && !error && (
+        <span className="mt-1 block text-xs font-semibold text-[#77757f]">{helperText}</span>
+      )}
       {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
     </label>
   );
@@ -1150,14 +1497,19 @@ function SessionCard({
         </div>
 
         <p className="mt-4 max-w-[45rem] text-base font-semibold leading-snug text-[#5f5d66]">
-          {format.level} - {format.teaser}
+          {format.teaser}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#5a5862]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2edff] px-3 py-1.5 text-[#6732f5] ring-1 ring-[#e3d9ff]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#efeaff] px-3 py-1.5 text-[#6732f5] ring-1 ring-[#dcd1ff]">
+            {format.levelIcon}
+            {format.level}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f8f5ff] px-3 py-1.5 text-[#54446f] ring-1 ring-[#e8e1f7]">
             {format.icon}
             {format.family}
           </span>
-          <span className="rounded-full bg-[#f7f7fa] px-3 py-1.5 text-[#62606a]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f7fa] px-3 py-1.5 text-[#62606a] ring-1 ring-[#e8e8ee]">
+            <BadgeCheck className="h-4 w-4" aria-hidden="true" />
             {format.bestFor}
           </span>
         </div>
@@ -1288,10 +1640,49 @@ function ScheduleSkeleton() {
   );
 }
 
+function MonthCalendarSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-[28px] border border-[#e0ddea] bg-white shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
+      <div className="overflow-x-auto">
+        <div className="min-w-[920px]">
+          <div className="grid grid-cols-7 border-b border-[#e4e1ec] bg-[#fbfaff]">
+            {WEEKDAY_LABELS.map((day) => (
+              <div
+                key={day}
+                className="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[#77757f]"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid animate-pulse grid-cols-7">
+            {Array.from({ length: 35 }).map((_, index) => (
+              <div
+                key={index}
+                className="min-h-[178px] border-b border-r border-[#ece9f4] p-3 [&:nth-child(7n)]:border-r-0"
+              >
+                <div className="h-7 w-7 rounded-full bg-[#eeeeF3]" />
+                <div className="mt-3 space-y-2">
+                  <div className="h-9 rounded-[10px] bg-[#eeeeF3]" />
+                  <div className="h-9 rounded-[10px] bg-[#eeeeF3]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function addDays(date: Date, days: number): Date {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function daysUntilDate(date: Date): number {
+  return Math.ceil((date.getTime() - Date.now()) / 86_400_000);
 }
 
 function dateKey(value: string | Date): string {
@@ -1355,6 +1746,25 @@ function groupByDay(sessions: SessionDTO[]): Array<{
   }));
 }
 
+function groupSessionsByDate(sessions: SessionDTO[]): Map<string, SessionDTO[]> {
+  const buckets = new Map<string, SessionDTO[]>();
+  const sorted = [...sessions].sort(
+    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+  );
+
+  for (const session of sorted) {
+    const key = dateKey(session.startsAt);
+    const bucket = buckets.get(key);
+    if (bucket) {
+      bucket.push(session);
+    } else {
+      buckets.set(key, [session]);
+    }
+  }
+
+  return buckets;
+}
+
 function bookingLocationForId(locationId: number): BookedClass["location"] {
   const location = LOCATIONS.find((l) => l.id === locationId) ?? LOCATIONS[0];
   const mapsQ =
@@ -1398,6 +1808,7 @@ function classPolicy(name: string): { entryMin: number; cancelHrs: number; famil
 
 function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () => void }) {
   const policy = classPolicy(booked.session.name);
+  const whatsappPhone = whatsappPhoneForLocationId(booked.location.id);
   const start = new Date(booked.session.startsAt);
   const dateStr = start.toLocaleDateString("en-IN", {
     weekday: "long",
@@ -1517,7 +1928,7 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
             Book another class
           </button>
           <a
-            href={`https://wa.me/919004001057?text=${encodeURIComponent(`Hi! I just booked ${booked.session.name} at ${booked.location.name}.`)}`}
+            href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(`Hi! I just booked ${booked.session.name} at ${booked.location.name}.`)}`}
             target="_blank"
             rel="noreferrer"
             className="h-12 px-6 rounded-full bg-[#25D366] text-white text-xs uppercase tracking-[0.2em] font-bold flex items-center"
@@ -1528,7 +1939,7 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
       </main>
 
       <Footer />
-      <WhatsAppFloat />
+      <WhatsAppFloat phone={whatsappPhone} />
     </div>
   );
 }
@@ -1562,21 +1973,22 @@ function PolicyCard({
   const dark = tone === "dark";
   return (
     <div
-      className={`rounded-2xl p-6 border ${
+      className={`policy-card-animate relative overflow-hidden rounded-2xl p-6 border ${
         dark
           ? "bg-foreground text-background border-foreground"
           : "bg-gradient-to-br from-primary/30 to-primary/10 border-primary/40"
       }`}
+      style={{ animationDelay: dark ? "140ms" : "0ms" }}
     >
       <div className="flex items-start gap-4">
         <div
-          className={`h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${dark ? "bg-primary text-foreground" : "bg-foreground text-background"}`}
+          className={`policy-card-icon h-12 w-12 rounded-full flex items-center justify-center shrink-0 ${dark ? "bg-primary text-foreground" : "bg-foreground text-background"}`}
         >
           {icon}
         </div>
         <div className="flex-1">
           <p
-            className={`text-[10px] uppercase tracking-[0.25em] font-bold ${dark ? "text-primary" : "text-primary-deep"}`}
+            className={`policy-card-label inline-flex rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.25em] font-bold ${dark ? "text-primary" : "text-primary-deep"}`}
           >
             {family} · {title}
           </p>

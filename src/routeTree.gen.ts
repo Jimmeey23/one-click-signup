@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WaiverRouteImport } from './routes/waiver'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SkipLeadRouteImport } from './routes/skip-lead'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -27,6 +28,11 @@ const WaiverRoute = WaiverRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkipLeadRoute = SkipLeadRouteImport.update({
+  id: '/skip-lead',
+  path: '/skip-lead',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/privacy'
+    | '/skip-lead'
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/privacy'
+    | '/skip-lead'
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/privacy'
+    | '/skip-lead'
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   PrivacyRoute: typeof PrivacyRoute
+  SkipLeadRoute: typeof SkipLeadRoute
   TermsRoute: typeof TermsRoute
   WaiverRoute: typeof WaiverRoute
   ClassesMemberIdRoute: typeof ClassesMemberIdRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skip-lead': {
+      id: '/skip-lead'
+      path: '/skip-lead'
+      fullPath: '/skip-lead'
+      preLoaderRoute: typeof SkipLeadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   PrivacyRoute: PrivacyRoute,
+  SkipLeadRoute: SkipLeadRoute,
   TermsRoute: TermsRoute,
   WaiverRoute: WaiverRoute,
   ClassesMemberIdRoute: ClassesMemberIdRoute,

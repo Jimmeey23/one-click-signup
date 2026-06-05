@@ -65,7 +65,7 @@
   --popover-foreground: oklch(0.16 0.01 240);
 
   /* Physique 57 cyan ~ #7FD3F7 */
-  --primary: oklch(0.84 0.10 220);
+  --primary: oklch(0.84 0.1 220);
   --primary-foreground: oklch(0.16 0.01 240);
   --primary-glow: oklch(0.92 0.07 220);
   --primary-deep: oklch(0.55 0.13 230);
@@ -84,9 +84,9 @@
 
   --border: oklch(0.92 0.01 240);
   --input: oklch(0.92 0.01 240);
-  --ring: oklch(0.84 0.10 220);
+  --ring: oklch(0.84 0.1 220);
 
-  --chart-1: oklch(0.84 0.10 220);
+  --chart-1: oklch(0.84 0.1 220);
   --chart-2: oklch(0.55 0.13 230);
   --chart-3: oklch(0.92 0.07 220);
   --chart-4: oklch(0.45 0.02 240);
@@ -94,36 +94,36 @@
 
   --sidebar: oklch(0.99 0.003 220);
   --sidebar-foreground: oklch(0.16 0.01 240);
-  --sidebar-primary: oklch(0.84 0.10 220);
+  --sidebar-primary: oklch(0.84 0.1 220);
   --sidebar-primary-foreground: oklch(0.16 0.01 240);
   --sidebar-accent: oklch(0.94 0.04 220);
   --sidebar-accent-foreground: oklch(0.16 0.01 240);
   --sidebar-border: oklch(0.92 0.01 240);
-  --sidebar-ring: oklch(0.84 0.10 220);
+  --sidebar-ring: oklch(0.84 0.1 220);
 
   --gradient-hero: linear-gradient(
     135deg,
     oklch(0.08 0.01 240) 0%,
     oklch(0.18 0.03 230) 60%,
-    oklch(0.30 0.08 225) 100%
+    oklch(0.3 0.08 225) 100%
   );
   --gradient-primary: linear-gradient(135deg, var(--primary-deep), var(--primary));
   --shadow-elegant: 0 30px 80px -30px color-mix(in oklab, var(--primary) 35%, transparent);
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.10);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.1);
 }
 
 .dark {
-  --background: oklch(0.10 0.01 240);
+  --background: oklch(0.1 0.01 240);
   --foreground: oklch(0.98 0.005 220);
   --card: oklch(0.15 0.02 240);
   --card-foreground: oklch(0.98 0.005 220);
   --popover: oklch(0.15 0.02 240);
   --popover-foreground: oklch(0.98 0.005 220);
-  --primary: oklch(0.84 0.10 220);
-  --primary-foreground: oklch(0.10 0.01 240);
-  --secondary: oklch(0.20 0.02 240);
+  --primary: oklch(0.84 0.1 220);
+  --primary-foreground: oklch(0.1 0.01 240);
+  --secondary: oklch(0.2 0.02 240);
   --secondary-foreground: oklch(0.98 0.005 220);
-  --muted: oklch(0.20 0.02 240);
+  --muted: oklch(0.2 0.02 240);
   --muted-foreground: oklch(0.72 0.02 230);
   --accent: oklch(0.25 0.04 225);
   --accent-foreground: oklch(0.98 0.005 220);
@@ -131,15 +131,15 @@
   --destructive-foreground: oklch(0.98 0.005 220);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.84 0.10 220);
+  --ring: oklch(0.84 0.1 220);
   --sidebar: oklch(0.15 0.02 240);
   --sidebar-foreground: oklch(0.98 0.005 220);
-  --sidebar-primary: oklch(0.84 0.10 220);
-  --sidebar-primary-foreground: oklch(0.10 0.01 240);
+  --sidebar-primary: oklch(0.84 0.1 220);
+  --sidebar-primary-foreground: oklch(0.1 0.01 240);
   --sidebar-accent: oklch(0.25 0.04 225);
   --sidebar-accent-foreground: oklch(0.98 0.005 220);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.84 0.10 220);
+  --sidebar-ring: oklch(0.84 0.1 220);
 }
 
 @layer base {
@@ -163,11 +163,97 @@
 
 /* Marquee */
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 .animate-marquee {
   animation: marquee 40s linear infinite;
+}
+
+@keyframes policy-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes policy-card-sweep {
+  0% {
+    transform: translateX(-130%);
+  }
+  65%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@keyframes policy-icon-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 30%, transparent);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--primary) 0%, transparent);
+  }
+}
+
+.policy-card-animate {
+  animation: policy-card-enter 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.policy-card-animate::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgb(255 255 255 / 0) 34%,
+    rgb(255 255 255 / 0.22) 46%,
+    rgb(255 255 255 / 0) 58%,
+    transparent 100%
+  );
+  animation: policy-card-sweep 2.8s ease-out 480ms both;
+}
+
+.policy-card-icon {
+  animation: policy-icon-breathe 2.6s ease-in-out 900ms infinite;
+}
+
+.policy-card-label {
+  position: relative;
+  overflow: hidden;
+}
+
+.policy-card-label::after {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 34%;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.42), transparent);
+  transform: translateX(-130%);
+  animation: policy-card-sweep 2.6s ease-out 620ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .policy-card-animate,
+  .policy-card-animate::after,
+  .policy-card-icon,
+  .policy-card-label::after {
+    animation: none;
+  }
 }
 
 /* Momence widget overrides — brand the embedded schedule & reviews. */
@@ -176,11 +262,11 @@
   --momenceReviewColorBackground: var(--color-card);
   --momenceBorder: 1px solid var(--color-border);
   --momenceBorderRadius: 12px;
-  --momenceBoxShadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.10);
-  --momenceColorPrimary: #7FD3F7;
-  --momenceColorPrimaryDark: #2A8DBF;
-  --momenceColorTextPrimary: #0F1419;
-  --momenceColorTextSecondary: #5A6573;
+  --momenceBoxShadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.1);
+  --momenceColorPrimary: #7fd3f7;
+  --momenceColorPrimaryDark: #2a8dbf;
+  --momenceColorTextPrimary: #0f1419;
+  --momenceColorTextSecondary: #5a6573;
   --momenceFontFamily: "Inter", ui-sans-serif, system-ui, sans-serif;
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   color: var(--color-foreground);

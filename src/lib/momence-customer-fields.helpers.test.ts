@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildCustomerFieldsDataRequest,
+  sanitizePhoneNumber,
   validateCustomerFieldValues,
   type CustomerFieldValues,
 } from "./momence-customer-fields.helpers.ts";
@@ -63,6 +64,18 @@ describe("Momence customer field helpers", () => {
         { requiresShoeSize: true },
       ),
       { euShoeSize: "EU Shoe Size is required for powerCycle classes." },
+    );
+  });
+
+  it("keeps emergency contact values numeric and rejects non-phone values", () => {
+    assert.equal(sanitizePhoneNumber("+91 97690-72866"), "919769072866");
+
+    assert.deepEqual(
+      validateCustomerFieldValues(
+        { ...completeValues, emergencyContactInfo: "call the member" },
+        { requiresShoeSize: false },
+      ),
+      { emergencyContactInfo: "Emergency Contact Info must be a phone number." },
     );
   });
 });
