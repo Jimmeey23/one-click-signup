@@ -5,8 +5,9 @@ export type CompatibleMembershipsRequest = {
 };
 
 export const OPEN_BARRE_MEMBERSHIP_ID = 33609;
-export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 675444;
-export const NEWCOMERS_2_FOR_1_PRICE_INR = "1";
+export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 240932;
+export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
+export const MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 4578;
 
 export type CompatibleBoughtMembership = {
   id: number;
@@ -27,12 +28,22 @@ export type MembershipCheckoutRequest = {
   homeLocationId: number;
   membershipId: number;
   attemptedPriceInCurrency: string;
-  paymentMethodType: "free" | "custom";
-};
+} & (
+  | {
+      paymentMethodType: "free";
+    }
+  | {
+      paymentMethodType: "custom";
+      customPaymentMethodId: number;
+      customPaymentNote?: string;
+    }
+);
 
 export type NewcomersMembershipCheckoutRequest = {
   memberId: number;
   homeLocationId: number;
+  customPaymentMethodId?: number;
+  customPaymentNote?: string;
 };
 
 function normalizeClassName(value: string): string {
@@ -85,7 +96,7 @@ export function buildMembershipCheckoutRequest({
   homeLocationId,
   membershipId,
   attemptedPriceInCurrency,
-  paymentMethodType,
+  ...paymentMethod
 }: MembershipCheckoutRequest) {
   return {
     path: "/host/checkout",
@@ -100,7 +111,16 @@ export function buildMembershipCheckoutRequest({
           attemptedPriceInCurrency,
         },
       ],
-      paymentMethods: [{ id: "1", type: paymentMethodType }],
+      paymentMethods: [
+        paymentMethod.paymentMethodType === "custom"
+          ? {
+              id: "1",
+              type: "custom",
+              customPaymentMethodId: paymentMethod.customPaymentMethodId,
+              ...(paymentMethod.customPaymentNote ? { note: paymentMethod.customPaymentNote } : {}),
+            }
+          : { id: "1", type: "free" },
+      ],
     },
   } as const;
 }
@@ -108,6 +128,8 @@ export function buildMembershipCheckoutRequest({
 export function buildNewcomersMembershipCheckoutRequest({
   memberId,
   homeLocationId,
+  customPaymentMethodId,
+  customPaymentNote,
 }: NewcomersMembershipCheckoutRequest) {
   return buildMembershipCheckoutRequest({
     memberId,
@@ -115,6 +137,8 @@ export function buildNewcomersMembershipCheckoutRequest({
     membershipId: NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
     attemptedPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
     paymentMethodType: "custom",
+    customPaymentMethodId: customPaymentMethodId ?? MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
+    customPaymentNote,
   });
 }
 

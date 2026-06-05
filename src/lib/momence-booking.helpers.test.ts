@@ -7,6 +7,7 @@ import {
   findCompatibleBoughtMembershipId,
   isPaidNewcomersClassName,
   membershipIdForClassName,
+  MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
   NEWCOMERS_2_FOR_1_PRICE_INR,
 } from "./momence-booking.helpers.ts";
 
@@ -57,27 +58,28 @@ describe("Momence booking helpers", () => {
     assert.equal(boughtMembershipId, 333);
   });
 
-  it("detects powerCycle and StrengthLab classes that require the paid test membership", () => {
+  it("detects powerCycle and StrengthLab classes that require the newcomers membership", () => {
     assert.equal(isPaidNewcomersClassName("powerCycle"), true);
     assert.equal(isPaidNewcomersClassName("45 Min Spin Express"), true);
     assert.equal(isPaidNewcomersClassName("StrengthLab"), true);
     assert.equal(isPaidNewcomersClassName("Strength Lab Push"), true);
     assert.equal(isPaidNewcomersClassName("Barre 57"), false);
     assert.equal(isPaidNewcomersClassName("Studio FIT"), false);
-    assert.equal(membershipIdForClassName("powerCycle"), 675444);
-    assert.equal(membershipIdForClassName("Strength Lab Push"), 675444);
+    assert.equal(membershipIdForClassName("powerCycle"), 240932);
+    assert.equal(membershipIdForClassName("Strength Lab Push"), 240932);
     assert.equal(membershipIdForClassName("Barre 57"), 33609);
   });
 
-  it("builds the paid test membership checkout request using Momence custom payment", () => {
-    assert.equal(NEWCOMERS_2_FOR_1_PRICE_INR, "1");
+  it("builds the paid membership checkout request using Momence custom payment", () => {
+    assert.equal(NEWCOMERS_2_FOR_1_PRICE_INR, "1750");
 
     const request = buildMembershipCheckoutRequest({
       memberId: 27473761,
       homeLocationId: 9030,
-      membershipId: 675444,
+      membershipId: 240932,
       attemptedPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
       paymentMethodType: "custom",
+      customPaymentMethodId: 9876,
     });
 
     assert.equal(request.path, "/host/checkout");
@@ -88,11 +90,11 @@ describe("Momence booking helpers", () => {
         {
           id: "1",
           type: "subscription",
-          membershipId: 675444,
-          attemptedPriceInCurrency: "1",
+          membershipId: 240932,
+          attemptedPriceInCurrency: "1750",
         },
       ],
-      paymentMethods: [{ id: "1", type: "custom" }],
+      paymentMethods: [{ id: "1", type: "custom", customPaymentMethodId: 9876 }],
     });
   });
 
@@ -102,6 +104,7 @@ describe("Momence booking helpers", () => {
       homeLocationId: 9030,
     });
 
+    assert.equal(MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID, 4578);
     assert.equal(request.path, "/host/checkout");
     assert.deepEqual(request.body, {
       memberId: 27473761,
@@ -110,15 +113,15 @@ describe("Momence booking helpers", () => {
         {
           id: "1",
           type: "subscription",
-          membershipId: 675444,
-          attemptedPriceInCurrency: "1",
+          membershipId: 240932,
+          attemptedPriceInCurrency: "1750",
         },
       ],
-      paymentMethods: [{ id: "1", type: "custom" }],
+      paymentMethods: [{ id: "1", type: "custom", customPaymentMethodId: 4578 }],
     });
   });
 
-  it("finds a compatible bought paid test membership from the nested response shape", () => {
+  it("finds a compatible bought paid newcomers membership from the nested response shape", () => {
     const boughtMembershipId = findCompatibleBoughtMembershipId(
       {
         items: [
@@ -131,19 +134,19 @@ describe("Momence booking helpers", () => {
           {
             boughtMembership: {
               id: 222,
-              membership: { id: 675444 },
+              membership: { id: 240932 },
             },
             incompatibility: "session-bought-membership-usage-limit-reached",
           },
           {
             boughtMembership: {
               id: 333,
-              membership: { id: 675444 },
+              membership: { id: 240932 },
             },
           },
         ],
       },
-      675444,
+      240932,
     );
 
     assert.equal(boughtMembershipId, 333);

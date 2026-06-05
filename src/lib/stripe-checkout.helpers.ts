@@ -65,8 +65,8 @@ export function buildNewcomersCheckoutSessionParams(
           currency: "inr",
           unit_amount: Number(NEWCOMERS_2_FOR_1_PRICE_INR) * 100,
           product_data: {
-            name: `${input.className} Test Booking`,
-            description: "Test Stripe payment for a Physique 57 India paid class booking.",
+            name: `${input.className} Newcomers 2 For 1`,
+            description: "Physique 57 India Newcomers 2 For 1 membership.",
           },
         },
       },

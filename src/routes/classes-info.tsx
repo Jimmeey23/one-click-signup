@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 
-import barre from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.jpg";
-import fit from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A3173.jpg";
-import strength from "@/assets/2007 _ Physique57 _ Trainer Shots _ _56A2318.jpg";
-import sculpt from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.jpg";
-import cardio from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.jpg";
-import cycle from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
+import barre from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2140 _ Physique57 _ Trainer Shots _ _56A2072.jpg";
+import fit from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
+import strength from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2094 _ Physique57 _ Trainer Shots _ _04A1305.jpg";
+import sculpt from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
+import cardio from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
+import cycle from "/Users/jimmeeygondaa/remix-of-remix-of-physique-57-flow/src/assets/107 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1196.jpg";
 
 const logoUrl = "/Physique57-800x600-1.jpg";
 

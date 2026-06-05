@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
@@ -30,6 +30,13 @@ import {
   isPaidNewcomersClassName,
   NEWCOMERS_2_FOR_1_PRICE_INR,
 } from "@/lib/momence-booking.helpers";
+import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
+import { saveCustomerFieldsForMember } from "@/lib/momence-customer-fields.functions";
+import {
+  validateCustomerFieldValues,
+  type CustomerFieldErrors,
+  type CustomerFieldValues,
+} from "@/lib/momence-customer-fields.helpers";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { Footer } from "@/components/Footer";
 import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
@@ -96,8 +103,29 @@ type FormatInfo = {
 };
 
 const ACCENT = "#6732f5";
-const DROP_IN_PRICE = "₹1,750";
-const PAID_TEST_PRICE = `₹${NEWCOMERS_2_FOR_1_PRICE_INR}`;
+
+function formatInr(amountInRupees: string | number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(Number(amountInRupees));
+}
+
+const DROP_IN_PRICE = formatInr(1750);
+const PAID_BOOKING_PRICE = formatInr(NEWCOMERS_2_FOR_1_PRICE_INR);
+
+const emptyCustomerFieldValues: CustomerFieldValues = {
+  fitnessGoal: "",
+  emergencyContactInfo: "",
+  pregnancyStatus: "",
+  medicalHistory: "",
+  postNatalStatus: "",
+  fnf: "",
+  gender: "",
+  euShoeSize: "",
+  howDidHear: "",
+};
 
 const TRAINER_THUMBNAILS: Array<[string, string]> = [
   ["karan bhatia", karanBhatiaThumb],
@@ -260,6 +288,11 @@ function formatInfoForSession(session: SessionDTO): FormatInfo {
   };
 }
 
+function requiresCycleShoeSize(session: SessionDTO): boolean {
+  const name = session.name.toLowerCase();
+  return name.includes("cycle") || name.includes("spin");
+}
+
 function ClassesPage() {
   const { memberId: memberIdStr } = Route.useParams();
   const {
@@ -275,13 +308,22 @@ function ClassesPage() {
   const bookFn = useServerFn(bookWithMembership);
   const createCheckoutFn = useServerFn(createNewcomersCheckoutSession);
   const completeCheckoutFn = useServerFn(completeNewcomersCheckoutBooking);
+  const saveCustomerFieldsFn = useServerFn(saveCustomerFieldsForMember);
   const completedCheckoutRef = useRef<string | null>(null);
+  const activeCheckoutRef = useRef<string | null>(null);
+  const mountedRef = useRef(false);
 
   const [sessions, setSessions] = useState<SessionDTO[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<number | null>(null);
   const [booked, setBooked] = useState<BookedClass | null>(null);
   const [bookErr, setBookErr] = useState<string | null>(null);
+  const [customFieldsSession, setCustomFieldsSession] = useState<SessionDTO | null>(null);
+  const [customFieldValues, setCustomFieldValues] =
+    useState<CustomerFieldValues>(emptyCustomerFieldValues);
+  const [customFieldErrors, setCustomFieldErrors] = useState<CustomerFieldErrors>({});
+  const [customFieldSubmitError, setCustomFieldSubmitError] = useState<string | null>(null);
+  const [customFieldSaving, setCustomFieldSaving] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [dateOffsetDays, setDateOffsetDays] = useState(0);
@@ -294,6 +336,13 @@ function ClassesPage() {
     viewMode === "day" ? dateKey(addDays(new Date(), dateOffsetDays)) : selectedDateKey;
   const windowStartKey = dateKey(addDays(new Date(), dateOffsetDays));
   const windowEndKey = dateKey(addDays(new Date(), dateOffsetDays + pageSpanDays));
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancel = false;
@@ -314,6 +363,7 @@ function ClassesPage() {
   useEffect(() => {
     if (!checkoutSessionId || !paidSessionId) return;
     if (completedCheckoutRef.current === checkoutSessionId) return;
+    if (activeCheckoutRef.current === checkoutSessionId) return;
 
     const checkoutLocationId = paidLocationId ?? locationId;
     const paidSession =
@@ -322,8 +372,7 @@ function ClassesPage() {
 
     if (!paidSession) return;
 
-    let cancel = false;
-    completedCheckoutRef.current = checkoutSessionId;
+    activeCheckoutRef.current = checkoutSessionId;
     setBookErr(null);
     setBookingId(paidSessionId);
 
@@ -336,38 +385,91 @@ function ClassesPage() {
       },
     })
       .then(() => {
-        if (cancel) return;
+        if (!mountedRef.current || activeCheckoutRef.current !== checkoutSessionId) return;
+        completedCheckoutRef.current = checkoutSessionId;
         clearStoredPaidCheckoutSession();
         setBooked({
           session: paidSession,
           location: bookingLocationForId(checkoutLocationId),
         });
-        navigate({ search: { locationId: checkoutLocationId }, replace: true });
+        window.history.replaceState(
+          window.history.state,
+          "",
+          buildClearedPaidCheckoutUrl(window.location.href, checkoutLocationId),
+        );
       })
       .catch((e) => {
-        if (!cancel) {
-          setBookErr(e instanceof Error ? e.message : "Paid booking failed");
-        }
+        if (!mountedRef.current || activeCheckoutRef.current !== checkoutSessionId) return;
+        setBookErr(e instanceof Error ? e.message : "Paid booking failed");
       })
       .finally(() => {
-        if (!cancel) setBookingId(null);
+        if (!mountedRef.current || activeCheckoutRef.current !== checkoutSessionId) return;
+        activeCheckoutRef.current = null;
+        setBookingId(null);
       });
-
-    return () => {
-      cancel = true;
-    };
   }, [
     checkoutSessionId,
     completeCheckoutFn,
     locationId,
     memberId,
-    navigate,
     paidLocationId,
     paidSessionId,
     sessions,
   ]);
 
-  async function onBook(s: SessionDTO) {
+  function openCustomerFields(session: SessionDTO) {
+    setBookErr(null);
+    setCustomFieldSubmitError(null);
+    setCustomFieldErrors({});
+    setCustomFieldValues(emptyCustomerFieldValues);
+    setCustomFieldsSession(session);
+  }
+
+  function updateCustomerFieldValue(field: keyof CustomerFieldValues, value: string) {
+    setCustomFieldValues((current) => ({ ...current, [field]: value }));
+    setCustomFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  async function onCustomerFieldsSubmit() {
+    const session = customFieldsSession;
+    if (!session) return;
+
+    const errors = validateCustomerFieldValues(customFieldValues, {
+      requiresShoeSize: requiresCycleShoeSize(session),
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setCustomFieldErrors(errors);
+      return;
+    }
+
+    setCustomFieldSaving(true);
+    setCustomFieldSubmitError(null);
+    try {
+      await saveCustomerFieldsFn({
+        data: {
+          memberId,
+          requiresShoeSize: requiresCycleShoeSize(session),
+          values: customFieldValues,
+        },
+      });
+      setCustomFieldsSession(null);
+      await continueBooking(session);
+    } catch (e) {
+      setCustomFieldSubmitError(
+        e instanceof Error ? e.message : "Could not save profile details before booking.",
+      );
+    } finally {
+      setCustomFieldSaving(false);
+    }
+  }
+
+  async function continueBooking(s: SessionDTO) {
     setBookErr(null);
     setBookingId(s.id);
     try {
@@ -634,7 +736,7 @@ function ClassesPage() {
                       s={s}
                       loading={bookingId === s.id}
                       requiresPayment={isPaidNewcomersClassName(s.name)}
-                      onBook={() => onBook(s)}
+                      onBook={() => openCustomerFields(s)}
                     />
                   ))}
                 </div>
@@ -644,9 +746,283 @@ function ClassesPage() {
         )}
       </main>
 
+      {customFieldsSession && (
+        <CustomerFieldsModal
+          session={customFieldsSession}
+          values={customFieldValues}
+          errors={customFieldErrors}
+          submitError={customFieldSubmitError}
+          saving={customFieldSaving}
+          requiresShoeSize={requiresCycleShoeSize(customFieldsSession)}
+          onChange={updateCustomerFieldValue}
+          onCancel={() => {
+            if (customFieldSaving) return;
+            setCustomFieldsSession(null);
+            setCustomFieldSubmitError(null);
+            setCustomFieldErrors({});
+          }}
+          onSubmit={onCustomerFieldsSubmit}
+        />
+      )}
+
       <Footer />
       <WhatsAppFloat />
     </div>
+  );
+}
+
+function CustomerFieldsModal({
+  session,
+  values,
+  errors,
+  submitError,
+  saving,
+  requiresShoeSize,
+  onChange,
+  onCancel,
+  onSubmit,
+}: {
+  session: SessionDTO;
+  values: CustomerFieldValues;
+  errors: CustomerFieldErrors;
+  submitError: string | null;
+  saving: boolean;
+  requiresShoeSize: boolean;
+  onChange: (field: keyof CustomerFieldValues, value: string) => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+}) {
+  const requiresPayment = isPaidNewcomersClassName(session.name);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-4 py-6 backdrop-blur-sm sm:items-center">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[18px] bg-white p-5 shadow-[0_30px_90px_rgb(20_20_35/0.24)] sm:p-7"
+      >
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6732f5]">
+              Profile details
+            </p>
+            <h2 className="mt-1 text-2xl font-bold tracking-[-0.03em] text-[#202024]">
+              {session.name}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={saving}
+            className="h-10 rounded-full border border-[#e1e1e7] px-4 text-xs font-bold uppercase tracking-[0.14em] text-[#5f5d66] disabled:opacity-50"
+          >
+            Close
+          </button>
+        </div>
+
+        {submitError && (
+          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{submitError}</p>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <TextField
+            label="Fitness Goal"
+            value={values.fitnessGoal ?? ""}
+            error={errors.fitnessGoal}
+            onChange={(value) => onChange("fitnessGoal", value)}
+          />
+          <TextField
+            label="Emergency Contact Info"
+            value={values.emergencyContactInfo ?? ""}
+            error={errors.emergencyContactInfo}
+            required
+            inputMode="numeric"
+            onChange={(value) => onChange("emergencyContactInfo", value)}
+          />
+          <SelectField
+            label="Are you currently pregnant?"
+            value={values.pregnancyStatus ?? ""}
+            error={errors.pregnancyStatus}
+            required
+            options={[
+              ["No ", "No"],
+              ["Yes", "Yes"],
+            ]}
+            onChange={(value) => onChange("pregnancyStatus", value)}
+          />
+          <SelectField
+            label="Post Natal"
+            value={values.postNatalStatus ?? ""}
+            error={errors.postNatalStatus}
+            required
+            options={[
+              ["No", "No"],
+              ["Yes", "Yes"],
+            ]}
+            onChange={(value) => onChange("postNatalStatus", value)}
+          />
+          <div className="md:col-span-2">
+            <TextField
+              label="Medical History"
+              value={values.medicalHistory ?? ""}
+              error={errors.medicalHistory}
+              required
+              multiline
+              onChange={(value) => onChange("medicalHistory", value)}
+            />
+          </div>
+          <TextField
+            label="FNF"
+            value={values.fnf ?? ""}
+            error={errors.fnf}
+            onChange={(value) => onChange("fnf", value)}
+          />
+          <SelectField
+            label="Gender"
+            value={values.gender ?? ""}
+            error={errors.gender}
+            options={[
+              ["Male", "Male"],
+              ["Female", "Female"],
+              ["Non-binary", "Non-binary"],
+              ["Prefer not to say", "Prefer not to say"],
+            ]}
+            onChange={(value) => onChange("gender", value)}
+          />
+          <TextField
+            label="EU Shoe Size"
+            value={values.euShoeSize ?? ""}
+            error={errors.euShoeSize}
+            required={requiresShoeSize}
+            inputMode="numeric"
+            onChange={(value) => onChange("euShoeSize", value)}
+          />
+          <SelectField
+            label="How did you hear about us?"
+            value={values.howDidHear ?? ""}
+            error={errors.howDidHear}
+            options={[
+              ["Yellow Messenger/Whatsapp Enquiry", "Yellow Messenger/Whatsapp Enquiry"],
+              ["Instagram", "Instagram"],
+              ["Google Search", "Google Search"],
+              ["Friend/Family", "Friend/Family"],
+              ["Existing Member", "Existing Member"],
+              ["Walk-in", "Walk-in"],
+              ["Other", "Other"],
+            ]}
+            onChange={(value) => onChange("howDidHear", value)}
+          />
+        </div>
+
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={saving}
+            className="h-12 rounded-[11px] border border-[#dedee5] px-6 text-sm font-bold text-[#4e4d55] disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="h-12 rounded-[11px] bg-[#6732f5] px-6 text-sm font-bold text-white transition hover:bg-[#5424d8] disabled:opacity-50"
+          >
+            {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  error,
+  required,
+  multiline,
+  inputMode,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  error?: string;
+  required?: boolean;
+  multiline?: boolean;
+  inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
+  onChange: (value: string) => void;
+}) {
+  const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const baseClass =
+    "mt-1 w-full rounded-[11px] border bg-white px-3 py-2.5 text-sm font-medium text-[#202024] outline-none transition focus:border-[#6732f5] focus:ring-2 focus:ring-[#6732f5]/15";
+
+  return (
+    <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
+      {label}
+      {required && <span className="text-red-600"> *</span>}
+      {multiline ? (
+        <textarea
+          id={id}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          rows={4}
+          className={`${baseClass} ${error ? "border-red-500" : "border-[#dedee5]"}`}
+        />
+      ) : (
+        <input
+          id={id}
+          value={value}
+          inputMode={inputMode}
+          onChange={(event) => onChange(event.target.value)}
+          className={`${baseClass} ${error ? "border-red-500" : "border-[#dedee5]"}`}
+        />
+      )}
+      {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  error,
+  required,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  error?: string;
+  required?: boolean;
+  options: Array<[string, string]>;
+  onChange: (value: string) => void;
+}) {
+  const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+  return (
+    <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
+      {label}
+      {required && <span className="text-red-600"> *</span>}
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={`mt-1 h-11 w-full rounded-[11px] border bg-white px-3 text-sm font-medium text-[#202024] outline-none transition focus:border-[#6732f5] focus:ring-2 focus:ring-[#6732f5]/15 ${
+          error ? "border-red-500" : "border-[#dedee5]"
+        }`}
+      >
+        <option value="">Select</option>
+        {options.map(([optionValue, label]) => (
+          <option key={optionValue} value={optionValue}>
+            {label}
+          </option>
+        ))}
+      </select>
+      {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
+    </label>
   );
 }
 
@@ -735,11 +1111,11 @@ function SessionCard({
       <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:border-l md:border-t-0 md:pl-7 md:pt-0">
         <div className="text-right">
           <p className="text-3xl font-bold tracking-[-0.05em] text-[#202024]">
-            {requiresPayment ? PAID_TEST_PRICE : DROP_IN_PRICE}
+            {requiresPayment ? PAID_BOOKING_PRICE : DROP_IN_PRICE}
           </p>
           {requiresPayment && (
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6732f5]">
-              Test paid booking
+              Newcomers 2 for 1
             </p>
           )}
           {s.spotsLeft != null && (
@@ -949,9 +1325,9 @@ function clearStoredPaidCheckoutSession() {
 function classPolicy(name: string): { entryMin: number; cancelHrs: number; family: string } {
   const n = name.toLowerCase();
   if (n.includes("cycle") || n.includes("spin")) {
-    return { entryMin: 5, cancelHrs: 6, family: "powerCycle" };
+    return { entryMin: 5, cancelHrs: 12, family: "powerCycle" };
   }
-  return { entryMin: 10, cancelHrs: 4, family: "Barre" };
+  return { entryMin: 10, cancelHrs: 12, family: "Barre" };
 }
 
 function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () => void }) {

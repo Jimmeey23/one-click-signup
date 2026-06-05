@@ -144,7 +144,7 @@ export const signupAndEnroll = createServerFn({ method: "POST" })
     const center = LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India";
     const signatureRealSignature = data.signatureRealSignature?.trim();
     if (!signatureRealSignature) {
-      throw new Error("Please draw your signature before submitting the waiver.");
+      throw new Error("Please sign the waiver before submitting it.");
     }
 
     // 1. Create member

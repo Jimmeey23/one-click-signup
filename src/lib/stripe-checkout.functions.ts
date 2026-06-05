@@ -17,7 +17,7 @@ import {
 } from "./stripe-checkout.helpers";
 
 const STRIPE_API_VERSION = "2026-05-27.dahlia";
-const NEWCOMERS_MEMBERSHIP_LABEL = "Paid Test Booking";
+const NEWCOMERS_MEMBERSHIP_LABEL = "Newcomers 2 For 1";
 
 const CheckoutSessionInput = z.object({
   memberId: z.number().int().positive(),
@@ -67,7 +67,7 @@ function assertCheckoutMatchesExpected(
   expected?: z.infer<typeof CompleteCheckoutInput>,
 ) {
   if (metadata.membershipId !== NEWCOMERS_2_FOR_1_MEMBERSHIP_ID) {
-    throw new Error("Stripe Checkout session is not for the paid test membership.");
+    throw new Error("Stripe Checkout session is not for the Newcomers 2 For 1 membership.");
   }
   if (!isPaidNewcomersClassName(metadata.className)) {
     throw new Error("Stripe Checkout session is not for a paid class format.");
@@ -121,6 +121,7 @@ async function ensureNewcomersMembership({
   const purchaseRequest = buildNewcomersMembershipCheckoutRequest({
     memberId,
     homeLocationId,
+    customPaymentNote: "Paid via Stripe Checkout",
   });
 
   await momenceFetch(purchaseRequest.path, {

@@ -98,7 +98,7 @@ function Landing() {
     e.preventDefault();
     if (!valid) return;
     if (!sigRef.current || sigRef.current.isEmpty()) {
-      setError("Please draw your signature in the box above to consent to the waiver.");
+      setError("Please add your signature in the box above to consent to the waiver.");
       return;
     }
     setLoading(true);
@@ -106,7 +106,7 @@ function Landing() {
     const params = new URLSearchParams(window.location.search);
     const signatureRealSignature = sigRef.current.toRealSignature() ?? undefined;
     if (!signatureRealSignature) {
-      setError("Please draw your signature in the box above to consent to the waiver.");
+      setError("Please add your signature in the box above to consent to the waiver.");
       setLoading(false);
       return;
     }
@@ -521,7 +521,7 @@ function SignupCard({
             aria-label="Full legal name"
           />
           <div onPointerUp={() => onSignChange(!(sigRef.current?.isEmpty() ?? true))}>
-            <SignaturePad ref={sigRef} label="Draw your signature *" />
+            <SignaturePad ref={sigRef} label=" signature *" />
           </div>
           <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-border bg-background p-3 transition hover:border-primary/50">
             <input
