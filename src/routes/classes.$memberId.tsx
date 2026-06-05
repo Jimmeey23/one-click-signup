@@ -36,10 +36,7 @@ import {
   completeNewcomersCheckoutBooking,
   createNewcomersCheckoutSession,
 } from "@/lib/stripe-checkout.functions";
-import {
-  isPaidNewcomersClassName,
-  NEWCOMERS_2_FOR_1_PRICE_INR,
-} from "@/lib/momence-booking.helpers";
+import { getSchedulePriceDisplay, isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
 import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
 import { saveCustomerFieldsForMember } from "@/lib/momence-customer-fields.functions";
 import {
@@ -125,9 +122,6 @@ function formatInr(amountInRupees: string | number): string {
     maximumFractionDigits: 0,
   }).format(Number(amountInRupees));
 }
-
-const DROP_IN_PRICE = formatInr(1750);
-const PAID_BOOKING_PRICE = formatInr(NEWCOMERS_2_FOR_1_PRICE_INR);
 
 const emptyCustomerFieldValues: CustomerFieldValues = {
   fitnessGoal: "",
@@ -1459,6 +1453,7 @@ function SessionCard({
   const isFull = s.spotsLeft === 0;
   const format = formatInfoForSession(s);
   const teacherImage = trainerImageForName(s.teacherName) ?? s.bannerImageUrl ?? trainerPortrait;
+  const priceDisplay = getSchedulePriceDisplay(s.name);
 
   return (
     <article className="relative grid gap-5 overflow-visible rounded-[28px] border border-[#e0ddea] bg-white p-4 shadow-[0_18px_55px_rgb(30_24_70/0.06)] transition hover:-translate-y-0.5 hover:border-[#c8bef4] hover:shadow-[0_26px_70px_rgb(30_24_70/0.11)] md:grid-cols-[170px_minmax(0,1fr)_205px] md:p-5">
@@ -1526,14 +1521,23 @@ function SessionCard({
 
       <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:justify-between md:border-l md:border-t-0 md:pl-6 md:pt-1">
         <div className="text-right">
-          <p className="text-4xl font-bold tracking-[-0.055em] text-[#202024]">
-            {requiresPayment ? PAID_BOOKING_PRICE : DROP_IN_PRICE}
-          </p>
-          {requiresPayment && (
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6732f5]">
-              Newcomers 2 for 1
+          {priceDisplay.originalPriceInCurrency && (
+            <p
+              className={`relative inline-block text-sm font-bold text-[#8a8791] ${
+                priceDisplay.slashOriginalPrice
+                  ? "after:absolute after:left-[-5px] after:right-[-5px] after:top-1/2 after:h-[2px] after:-rotate-12 after:rounded-full after:bg-red-500 after:content-['']"
+                  : ""
+              }`}
+            >
+              {formatInr(priceDisplay.originalPriceInCurrency)}
             </p>
           )}
+          <p className="mt-0.5 text-4xl font-bold tracking-[-0.055em] text-[#202024]">
+            {formatInr(priceDisplay.bookingPriceInCurrency)}
+          </p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6732f5]">
+            {priceDisplay.label}
+          </p>
           {s.spotsLeft != null && (
             <p
               className={`mt-2 text-[11px] font-bold uppercase tracking-[0.16em] ${

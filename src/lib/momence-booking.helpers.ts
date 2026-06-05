@@ -6,6 +6,7 @@ export type CompatibleMembershipsRequest = {
 
 export const OPEN_BARRE_MEMBERSHIP_ID = 33609;
 export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 240932;
+export const STANDARD_CLASS_PRICE_INR = "1750";
 export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
 export const MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 4578;
 
@@ -74,6 +75,29 @@ export function membershipIdForClassName(className: string): number {
   return isPaidNewcomersClassName(className)
     ? NEWCOMERS_2_FOR_1_MEMBERSHIP_ID
     : OPEN_BARRE_MEMBERSHIP_ID;
+}
+
+export function getSchedulePriceDisplay(className: string): {
+  originalPriceInCurrency: string | null;
+  bookingPriceInCurrency: string;
+  label: string;
+  slashOriginalPrice: boolean;
+} {
+  if (isPaidNewcomersClassName(className)) {
+    return {
+      originalPriceInCurrency: null,
+      bookingPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
+      label: "Newcomers 2 for 1",
+      slashOriginalPrice: false,
+    };
+  }
+
+  return {
+    originalPriceInCurrency: STANDARD_CLASS_PRICE_INR,
+    bookingPriceInCurrency: "0",
+    label: "Open Barre trial",
+    slashOriginalPrice: true,
+  };
 }
 
 export function buildCompatibleMembershipsRequest({

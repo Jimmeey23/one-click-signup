@@ -5,6 +5,7 @@ import {
   buildNewcomersMembershipCheckoutRequest,
   buildCompatibleMembershipsRequest,
   findCompatibleBoughtMembershipId,
+  getSchedulePriceDisplay,
   isPaidNewcomersClassName,
   membershipIdForClassName,
   MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
@@ -68,6 +69,29 @@ describe("Momence booking helpers", () => {
     assert.equal(membershipIdForClassName("powerCycle"), 240932);
     assert.equal(membershipIdForClassName("Strength Lab Push"), 240932);
     assert.equal(membershipIdForClassName("Barre 57"), 33609);
+  });
+
+  it("builds schedule price display with free Open Barre and half-off newcomers pricing", () => {
+    assert.deepEqual(getSchedulePriceDisplay("Barre 57"), {
+      originalPriceInCurrency: "1750",
+      bookingPriceInCurrency: "0",
+      label: "Open Barre trial",
+      slashOriginalPrice: true,
+    });
+
+    assert.deepEqual(getSchedulePriceDisplay("powerCycle"), {
+      originalPriceInCurrency: null,
+      bookingPriceInCurrency: "1750",
+      label: "Newcomers 2 for 1",
+      slashOriginalPrice: false,
+    });
+
+    assert.deepEqual(getSchedulePriceDisplay("Strength Lab Push"), {
+      originalPriceInCurrency: null,
+      bookingPriceInCurrency: "1750",
+      label: "Newcomers 2 for 1",
+      slashOriginalPrice: false,
+    });
   });
 
   it("builds the paid membership checkout request using Momence custom payment", () => {
