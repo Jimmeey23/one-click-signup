@@ -49,7 +49,7 @@
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
 }
 
-/* Physique 57 India — brand palette
+/* Physique 57 India - brand palette
  * Signature light cyan #7FD3F7 on near-black canvas with crisp white text.
  */
 :root {
@@ -256,7 +256,7 @@
   }
 }
 
-/* Momence widget overrides — brand the embedded schedule & reviews. */
+/* Momence widget overrides - brand the embedded schedule & reviews. */
 #ribbon-schedule,
 #momence-plugin-reviews {
   --momenceReviewColorBackground: var(--color-card);

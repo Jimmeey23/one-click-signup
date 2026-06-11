@@ -7,13 +7,13 @@ const logoUrl = "/Physique57-800x600-1.jpg";
 export const Route = createFileRoute("/classes-info")({
   head: () => ({
     meta: [
-      { title: "Classes — Physique 57 India" },
+      { title: "Classes - Physique 57 India" },
       {
         name: "description",
         content:
-          "Barre 57, powerCycle, StrengthLab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more — explore our 57-minute class formats.",
+          "Barre 57, powerCycle, StrengthLab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more - explore our 57-minute class formats.",
       },
-      { property: "og:title", content: "Classes — Physique 57 India" },
+      { property: "og:title", content: "Classes - Physique 57 India" },
       {
         property: "og:description",
         content:

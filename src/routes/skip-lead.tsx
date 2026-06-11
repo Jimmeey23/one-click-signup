@@ -4,7 +4,7 @@ import { OpenBarreLanding } from "./index";
 export const Route = createFileRoute("/skip-lead")({
   head: () => ({
     meta: [
-      { title: "Physique 57 India — Discover the workout everyone talks about." },
+      { title: "Physique 57 India - Discover the workout everyone talks about." },
       {
         name: "description",
         content:
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/skip-lead")({
       },
       {
         property: "og:title",
-        content: "Physique 57 India — Discover the workout everyone talks about.",
+        content: "Physique 57 India - Discover the workout everyone talks about.",
       },
       {
         property: "og:description",

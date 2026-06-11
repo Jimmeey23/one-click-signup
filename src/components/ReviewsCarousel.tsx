@@ -12,13 +12,13 @@ const REVIEWS: Review[] = [
     name: "Aanya M.",
     meta: "Barre 57 · Kemps Corner",
     rating: 5,
-    text: "57 minutes flies by and yet I feel every muscle I didn't know existed. The instructors push you with real precision — this is the most addictive workout in Mumbai.",
+    text: "57 minutes flies by and yet I feel every muscle I didn't know existed. The instructors push you with real precision - this is the most addictive workout in Mumbai.",
   },
   {
     name: "Karan S.",
     meta: "powerCycle · Bandra",
     rating: 5,
-    text: "I've tried every studio in town — nothing comes close to the energy here. The music, the lighting, the trainers — it feels like a club and a workout at once.",
+    text: "I've tried every studio in town - nothing comes close to the energy here. The music, the lighting, the trainers - it feels like a club and a workout at once.",
   },
   {
     name: "Priya R.",
@@ -42,7 +42,7 @@ const REVIEWS: Review[] = [
     name: "Tanya G.",
     meta: "Barre 57 · Bandra",
     rating: 5,
-    text: "Open Barre changed my mornings. I show up sleepy, I leave glowing. Sign your friends up — they'll thank you.",
+    text: "Open Barre changed my mornings. I show up sleepy, I leave glowing. Sign your friends up - they'll thank you.",
   },
 ];
 

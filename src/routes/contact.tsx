@@ -6,9 +6,9 @@ const logoUrl = "/Physique57-800x600-1.jpg";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Physique 57 India" },
+      { title: "Contact - Physique 57 India" },
       { name: "description", content: "Visit Kemps Corner or Bandra, or reach us by phone, email or WhatsApp." },
-      { property: "og:title", content: "Contact — Physique 57 India" },
+      { property: "og:title", content: "Contact - Physique 57 India" },
       { property: "og:description", content: "Visit Kemps Corner or Bandra, or reach us by phone, email or WhatsApp." },
     ],
   }),

@@ -90,7 +90,7 @@ const logoUrl = "/Physique57-800x600-1.jpg";
 
 export const Route = createFileRoute("/classes/$memberId")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Your Classes — Physique 57 India" }] }),
+  head: () => ({ meta: [{ title: "Your Classes - Physique 57 India" }] }),
   component: ClassesPage,
 });
 

@@ -27,7 +27,7 @@ const logoUrl = "/Physique57-800x600-1.jpg";
 
 const landingHead = () => ({
   meta: [
-    { title: "Physique 57 India — Discover the workout everyone talks about." },
+    { title: "Physique 57 India - Discover the workout everyone talks about." },
     {
       name: "description",
       content:
@@ -35,7 +35,7 @@ const landingHead = () => ({
     },
     {
       property: "og:title",
-      content: "Physique 57 India — Discover the workout everyone talks about.",
+      content: "Physique 57 India - Discover the workout everyone talks about.",
     },
     {
       property: "og:description",
@@ -244,7 +244,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             img={trainerLunge}
             tag="Sculpt"
             title="Isometric holds + dynamic reps"
-            body="Tiny, precise movements that sculpt deep muscle — the Physique 57 signature."
+            body="Tiny, precise movements that sculpt deep muscle - the Physique 57 signature."
           />
           <Feature
             img={lunge}
@@ -256,7 +256,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             img={trainerArm}
             tag="Recover"
             title="Stretch to lengthen, every class"
-            body="We finish long and lean — every session ends with deep stretching to reset."
+            body="We finish long and lean - every session ends with deep stretching to reset."
           />
         </div>
       </section>

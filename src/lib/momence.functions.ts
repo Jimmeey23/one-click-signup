@@ -44,7 +44,7 @@ const SignupInput = z.object({
 async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
   const token = process.env.MOMENCE_API_TOKEN;
   if (!token) {
-    console.warn("MOMENCE_API_TOKEN not set — skipping lead capture");
+    console.warn("MOMENCE_API_TOKEN not set - skipping lead capture");
     return { ok: false, error: "Lead webhook token not configured" };
   }
   try {

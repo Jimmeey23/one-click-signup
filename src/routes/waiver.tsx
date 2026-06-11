@@ -8,7 +8,7 @@ const logoUrl = "/Physique57-800x600-1.jpg";
 export const Route = createFileRoute("/waiver")({
   head: () => ({
     meta: [
-      { title: "Waiver — Physique 57 India" },
+      { title: "Waiver - Physique 57 India" },
       {
         name: "description",
         content: "Waiver and membership waiver terms for Physique 57 India.",

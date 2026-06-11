@@ -5,7 +5,7 @@ import { privacyDocument } from "@/lib/legal-content";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Physique 57 India" },
+      { title: "Privacy Policy - Physique 57 India" },
       {
         name: "description",
         content: "Privacy Policy and personal information consent terms for Physique 57 India.",

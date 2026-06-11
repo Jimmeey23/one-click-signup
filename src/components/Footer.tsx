@@ -10,7 +10,7 @@ export function Footer() {
           <div>
             <img src={logoUrl} alt="Physique 57" className="h-12 w-auto" />
             <p className="mt-4 text-sm text-background/60 max-w-xs leading-relaxed">
-              The legendary 57-minute barre-based workout — now in Mumbai.
+              The legendary 57-minute barre-based workout - now in Mumbai.
             </p>
             <div className="mt-5 flex gap-3">
               <Social href="https://www.instagram.com/physique57india/" label="Instagram">

@@ -1,5 +1,5 @@
 
-# Physique 57 India — Trial Landing Upgrade
+# Physique 57 India - Trial Landing Upgrade
 
 A focused pass that brings the trial site fully on-brand, replaces the custom class list with the official Momence schedule widget, adds waiver consent at signup, and pushes every lead into the Momence customer-leads webhook.
 
@@ -33,7 +33,7 @@ A focused pass that brings the trial site fully on-brand, replaces the custom cl
 Server functions hitting the Momence member endpoints listed by the user:
 - `listSignableDocuments({ memberId })` → `/member/host/signable-documents`
 - `signDocument({ memberId, documentId, signatureText })` → POST `/member/host/signable-documents/:id/sign`
-- `listMemberLocations`, `listMemberMemberships`, `listMemberSessions`, `listMemberBookings`, `cancelBooking` — thin wrappers for future use.
+- `listMemberLocations`, `listMemberMemberships`, `listMemberSessions`, `listMemberBookings`, `cancelBooking` - thin wrappers for future use.
 
 All go through the existing `momenceFetch` helper (host token already cached server-side).
 
@@ -51,13 +51,13 @@ New secret required: `MOMENCE_API_TOKEN` (request via add_secret before the lead
 
 ## 6. Technical notes
 
-- Country code list: ship a small static `src/lib/country-codes.ts` (top ~60 countries, flag emoji + dial code) — avoids a heavy dep.
+- Country code list: ship a small static `src/lib/country-codes.ts` (top ~60 countries, flag emoji + dial code) - avoids a heavy dep.
 - Momence widget scripts are loaded by appending a `<script type="module" async src="...">` element inside the target container in a `useEffect`, and removed on unmount to avoid duplicates on re-render.
-- All new colors live as semantic tokens in `styles.css`; components use `bg-background`, `text-primary`, etc. — no hardcoded hex in TSX.
+- All new colors live as semantic tokens in `styles.css`; components use `bg-background`, `text-primary`, etc. - no hardcoded hex in TSX.
 - Lead-capture call lives server-side so the token never reaches the browser.
 - UTM / referrer / landing_page captured client-side from `document.referrer` and `window.location` and forwarded to the server fn.
 
 ## Out of scope (ask if wanted)
-- Saved payment methods UI (the endpoints are wrapped but no UI built — Open Barre is free).
+- Saved payment methods UI (the endpoints are wrapped but no UI built - Open Barre is free).
 - Member dashboard for cancelling bookings (wrapper exists, no page yet).
 

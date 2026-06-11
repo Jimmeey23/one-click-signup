@@ -9,10 +9,10 @@ const logoUrl = "/Physique57-800x600-1.jpg";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Physique 57 India" },
-      { name: "description", content: "The story of Physique 57 India — the legendary 57-minute barre method now in Mumbai." },
-      { property: "og:title", content: "About — Physique 57 India" },
-      { property: "og:description", content: "The story of Physique 57 India — the legendary 57-minute barre method now in Mumbai." },
+      { title: "About - Physique 57 India" },
+      { name: "description", content: "The story of Physique 57 India - the legendary 57-minute barre method now in Mumbai." },
+      { property: "og:title", content: "About - Physique 57 India" },
+      { property: "og:description", content: "The story of Physique 57 India - the legendary 57-minute barre method now in Mumbai." },
     ],
   }),
   component: AboutPage,
@@ -42,7 +42,7 @@ function AboutPage() {
 
       <section className="max-w-4xl mx-auto px-6 py-20 space-y-6 text-lg leading-relaxed">
         <p>Physique 57 was born in New York in 2006, founded by Tanya Becker and Jennifer Maanavi as a science-backed reinvention of the classic barre workout. The result: a 57-minute, full-body, interval-style class that sculpts, lengthens and strengthens like nothing else.</p>
-        <p>Today, our studios in Mumbai bring that same uncompromising standard to India — same choreography, same teacher certification, same obsession with form and progression.</p>
+        <p>Today, our studios in Mumbai bring that same uncompromising standard to India - same choreography, same teacher certification, same obsession with form and progression.</p>
         <div className="grid md:grid-cols-3 gap-6 pt-6">
           {[
             { n: "10M+", l: "classes taught globally" },
@@ -63,7 +63,7 @@ function AboutPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">Our promise</p>
             <h2 className="font-display text-4xl md:text-5xl tracking-tight">Show up. We'll change how you move.</h2>
-            <p className="text-muted-foreground mt-5 leading-relaxed">Whether your goal is to feel stronger, lose weight, build flexibility, or simply find a community that makes you smile — you'll find it in 57 minutes a day.</p>
+            <p className="text-muted-foreground mt-5 leading-relaxed">Whether your goal is to feel stronger, lose weight, build flexibility, or simply find a community that makes you smile - you'll find it in 57 minutes a day.</p>
             <Link to="/" className="inline-block mt-7 px-6 h-12 rounded-full bg-foreground text-background text-xs uppercase tracking-[0.2em] font-bold leading-[3rem]">Claim your free class</Link>
           </div>
         </div>
