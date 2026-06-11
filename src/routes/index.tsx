@@ -194,7 +194,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             </p>
             <div className="mt-10 grid grid-cols-3 gap-6 max-w-md">
               <Stat n="57" label="minutes" />
-              <Stat n="2" label="studios" />
+              <Stat n="3" label="studios" />
               <Stat n="∞" label="energy" />
             </div>
           </div>
