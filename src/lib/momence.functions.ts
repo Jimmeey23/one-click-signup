@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
+import { buildMembershipCheckoutRequest, OPEN_BARRE_MEMBERSHIP_ID } from "./momence-booking.helpers";
+import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
   type DashboardWaiver,
@@ -33,6 +35,26 @@ const SignupInput = z.object({
   signatureRealSignature: z.string().min(2).max(300000).optional(),
   signatureDataUrl: z.string().max(300000).optional(),
   signatures: z.array(SignatureSchema).max(20).optional().default([]),
+  // Tracking
+  utmSource: z.string().max(200).optional(),
+  utmMedium: z.string().max(200).optional(),
+  utmCampaign: z.string().max(200).optional(),
+  referrer: z.string().max(500).optional(),
+  landingPage: z.string().max(500).optional(),
+});
+
+const LeadAndOpenBarreInput = z.object({
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(150),
+  countryCode: z.string().regex(/^\+\d{1,4}$/),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(5)
+    .max(20)
+    .regex(/^[0-9 -]+$/),
+  homeLocationId: z.number().int().positive(),
   // Tracking
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
@@ -151,6 +173,60 @@ export const signupAndEnrollWithoutLead = createServerFn({ method: "POST" })
   .handler(async ({ data }) =>
     runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: false }),
   );
+
+export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => LeadAndOpenBarreInput.parse(input))
+  .handler(async ({ data }) => {
+    const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
+
+    const memberRequest = buildHostMemberCreateRequest({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phoneNumber: phoneE164,
+      homeLocationId: data.homeLocationId,
+    });
+
+    const created = await momenceFetch<{ memberId: number }>(memberRequest.path, {
+      method: memberRequest.method,
+      body: JSON.stringify(memberRequest.body),
+    });
+
+    const checkoutRequest = buildMembershipCheckoutRequest({
+      memberId: created.memberId,
+      homeLocationId: data.homeLocationId,
+      membershipId: OPEN_BARRE_MEMBERSHIP_ID,
+      attemptedPriceInCurrency: "0",
+      paymentMethodType: "free",
+    });
+
+    await momenceFetch(checkoutRequest.path, {
+      method: "POST",
+      body: JSON.stringify(checkoutRequest.body),
+    });
+
+    const lead = await captureLead({
+      firstName: memberRequest.body.firstName,
+      lastName: memberRequest.body.lastName,
+      email: data.email,
+      phoneE164,
+      center: LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India",
+      waiverAccepted: true,
+      utmSource: data.utmSource,
+      utmMedium: data.utmMedium,
+      utmCampaign: data.utmCampaign,
+      referrer: data.referrer,
+      landingPage: data.landingPage,
+      memberId: created.memberId,
+    });
+
+    return {
+      memberId: created.memberId,
+      openBarreAssigned: true,
+      leadCaptured: lead.ok,
+      leadError: lead.error ?? null,
+    };
+  });
 
 // Kept for backwards compatibility; the classes page now uses the Momence widget.
 const ListSessionsInput = z.object({

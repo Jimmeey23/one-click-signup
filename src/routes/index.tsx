@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, FileText } from "lucide-react";
 import { signupAndEnroll, signupAndEnrollWithoutLead } from "@/lib/momence.functions";
@@ -84,6 +84,74 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
     waiverAccepted: false,
     signatureName: "",
   });
+
+  // Parse URL parameters and autofill form on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const updates: Partial<FormState> = {};
+
+    // Parse firstName
+    const firstName = params.get("firstName") || params.get("first_name") || params.get("fname");
+    if (firstName) updates.firstName = firstName;
+
+    // Parse lastName
+    const lastName = params.get("lastName") || params.get("last_name") || params.get("lname");
+    if (lastName) updates.lastName = lastName;
+
+    // Parse email
+    const email = params.get("email");
+    if (email) updates.email = email;
+
+    // Parse phone number (handle multiple param names)
+    const phoneNumber = params.get("phoneNumber") || params.get("phone_number") || params.get("phone");
+    if (phoneNumber) updates.phoneNumber = phoneNumber;
+
+    // Parse country code/iso (handles dial code or ISO 2-letter code)
+    const countryCode = params.get("countryCode") || params.get("country_code");
+    const countryIso = params.get("countryIso") || params.get("country_iso") || params.get("country");
+    const dial = params.get("dial");
+
+    if (dial) {
+      updates.countryCode = dial.startsWith("+") ? dial : `+${dial}`;
+    } else if (countryCode) {
+      updates.countryCode = countryCode.startsWith("+") ? countryCode : `+${countryCode}`;
+    }
+
+    if (countryIso) {
+      const found = COUNTRY_CODES.find((c) => c.iso === countryIso.toUpperCase());
+      if (found) {
+        updates.countryIso = found.iso;
+        if (!countryCode && !dial) {
+          updates.countryCode = found.dial;
+        }
+      }
+    }
+
+    // Parse location/studio
+    const locationId = params.get("homeLocationId") || params.get("location_id") || params.get("locationId");
+    if (locationId) {
+      const locId = Number(locationId);
+      if (Number.isFinite(locId)) {
+        updates.homeLocationId = locId;
+      }
+    }
+
+    // Parse signature name
+    const signatureName = params.get("signatureName") || params.get("signature_name");
+    if (signatureName) updates.signatureName = signatureName;
+
+    // Parse waiver acceptance (handles: true, "true", "1", "yes")
+    const waiverAccepted = params.get("waiverAccepted") || params.get("waiver_accepted");
+    if (waiverAccepted !== null) {
+      updates.waiverAccepted = ["true", "1", "yes"].includes(waiverAccepted.toLowerCase());
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setForm((prev) => ({ ...prev, ...updates }));
+    }
+  }, []);
 
   const valid = useMemo(
     () =>
