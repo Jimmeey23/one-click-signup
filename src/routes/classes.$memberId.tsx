@@ -27,6 +27,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LOCATIONS } from "@/lib/momence-locations";
+import { CLASS_FORMAT_KEYS, type ClassFormatKey } from "@/lib/class-format-matchers";
 import {
   listSessions,
   bookWithMembership,
@@ -84,6 +85,7 @@ const searchSchema = z.object({
   checkout_session_id: z.string().optional(),
   paidSessionId: z.coerce.number().int().positive().optional(),
   paidLocationId: z.coerce.number().int().positive().optional(),
+  classType: z.enum(CLASS_FORMAT_KEYS).optional(),
 });
 
 const logoUrl = "/Physique57-800x600-1.jpg";

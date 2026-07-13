@@ -5,6 +5,7 @@ import { Check, FileText } from "lucide-react";
 import { signupAndEnroll, signupAndEnrollWithoutLead } from "@/lib/momence.functions";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
+import { CLASS_FORMAT_KEYS, classFormatKeyForSessionName, type ClassFormatKey } from "@/lib/class-format-matchers";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
@@ -62,6 +63,7 @@ type FormState = {
   homeLocationId: number;
   waiverAccepted: boolean;
   signatureName: string;
+  classType: ClassFormatKey;
 };
 
 export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean }) {
@@ -83,6 +85,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
     homeLocationId: LOCATIONS[0].id as number,
     waiverAccepted: false,
     signatureName: "",
+    classType: "barre-57",
   });
 
   // Parse URL parameters and autofill form on mount
@@ -138,14 +141,44 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
       }
     }
 
+    // Parse center/location by name
+    const center = params.get("center");
+    if (center && !locationId) {
+      // Fuzzy match: normalize both strings and find best match
+      const normalized = center.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const matched = LOCATIONS.find((loc) =>
+        loc.name.toLowerCase().replace(/[^a-z0-9]/g, "").includes(normalized)
+      );
+      if (matched) {
+        updates.homeLocationId = matched.id as number;
+      }
+    }
+
     // Parse signature name
     const signatureName = params.get("signatureName") || params.get("signature_name");
     if (signatureName) updates.signatureName = signatureName;
+
+    // Auto-populate signature name from first + last name if not explicitly provided
+    if (!signatureName && (firstName || lastName)) {
+      const fullName = `${firstName || ""} ${lastName || ""}`.trim();
+      if (fullName.length >= 2) {
+        updates.signatureName = fullName;
+      }
+    }
 
     // Parse waiver acceptance (handles: true, "true", "1", "yes")
     const waiverAccepted = params.get("waiverAccepted") || params.get("waiver_accepted");
     if (waiverAccepted !== null) {
       updates.waiverAccepted = ["true", "1", "yes"].includes(waiverAccepted.toLowerCase());
+    }
+
+    // Parse class type (handles various formats like "barre-57", "Barre 57", "barre57")
+    const classType = params.get("classType") || params.get("class_type") || params.get("class");
+    if (classType) {
+      const detected = classFormatKeyForSessionName(classType);
+      if (detected && CLASS_FORMAT_KEYS.includes(detected)) {
+        updates.classType = detected;
+      }
     }
 
     if (Object.keys(updates).length > 0) {
@@ -216,7 +249,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
       navigate({
         to: "/classes/$memberId",
         params: { memberId: String(result.memberId) },
-        search: { locationId: result.homeLocationId },
+        search: { locationId: result.homeLocationId, classType: form.classType },
       });
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : "Signup failed");
