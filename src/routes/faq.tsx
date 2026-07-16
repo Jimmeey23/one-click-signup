@@ -39,7 +39,7 @@ export const Route = createFileRoute("/faq")({
 const FAQS = [
   {
     q: "What is Barre 57?",
-    a: "Barre 57 is the cornerstone Physique 57 format. It uses the Interval Overload method with ballet-inspired movements, isometric holds, targeted strength work, sculpting, toning, lengthening, upbeat music, and instructor-led precision.",
+    a: "The signature Physique 57 workout combines precise, controlled movements, isometric holds and targeted strength exercises to sculpt, tone and strengthen the entire body, all set to energising music.",
     icon: Sparkles,
   },
   {

@@ -31,7 +31,7 @@ export const CLASS_FORMATS: ClassFormat[] = [
     intensity: "Moderate to high, with modifications",
     bestFor: "All fitness levels",
     description:
-      "The signature Physique 57 format: ballet-inspired movement, isometric holds, targeted strength work, sculpting, toning, lengthening, and upbeat music.",
+      "The signature Physique 57 workout combines precise, controlled movements, isometric holds and targeted strength exercises to sculpt, tone and strengthen the entire body, all set to energising music.",
   },
   {
     key: "power-cycle",

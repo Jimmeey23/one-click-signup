@@ -341,7 +341,7 @@ function formatInfoForSession(session: SessionDTO): FormatInfo {
         family: classFormat.name,
         level: "BEGINNER FRIENDLY",
         teaser:
-          "The signature Physique 57 method: ballet-inspired movement, isometric holds, and targeted strength.",
+          "The signature Physique 57 workout combines precise, controlled movements, isometric holds and targeted strength exercises to sculpt, tone and strengthen the entire body, all set to energising music.",
         detail:
           "Barre 57 is the cornerstone format, rooted in Interval Overload with sculpting, toning, lengthening, upbeat music, and instructor-led precision.",
         bestFor: "All fitness levels, from newcomers to experienced practitioners.",
