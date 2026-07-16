@@ -154,18 +154,6 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
       }
     }
 
-    // Parse signature name
-    const signatureName = params.get("signatureName") || params.get("signature_name");
-    if (signatureName) updates.signatureName = signatureName;
-
-    // Auto-populate signature name from first + last name if not explicitly provided
-    if (!signatureName && (firstName || lastName)) {
-      const fullName = `${firstName || ""} ${lastName || ""}`.trim();
-      if (fullName.length >= 2) {
-        updates.signatureName = fullName;
-      }
-    }
-
     // Parse waiver acceptance (handles: true, "true", "1", "yes")
     const waiverAccepted = params.get("waiverAccepted") || params.get("waiver_accepted");
     if (waiverAccepted !== null) {
@@ -185,6 +173,11 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
       setForm((prev) => ({ ...prev, ...updates }));
     }
   }, []);
+
+  useEffect(() => {
+    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+    setForm((prev) => (prev.signatureName === fullName ? prev : { ...prev, signatureName: fullName }));
+  }, [form.firstName, form.lastName]);
 
   const valid = useMemo(
     () =>
@@ -419,7 +412,7 @@ function Header() {
           href="#signup"
           className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-white/10 text-white border border-white/25 backdrop-blur-md text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition"
         >
-          Claim Open Barre
+          Claim Your Free Class
         </a>
       </div>
     </header>
@@ -656,7 +649,7 @@ function SignupCard({
           disabled={loading || !valid}
           className="w-full h-12 rounded-md bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? "Activating membership…" : "Activate Open Barre"}
+          {loading ? "Activating membership…" : "Activate Your Trial"}
         </button>
       </form>
     </div>

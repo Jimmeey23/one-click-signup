@@ -24,7 +24,7 @@ function AboutPage() {
       <header className="absolute top-0 inset-x-0 z-20">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3"><img src={logoUrl} alt="Physique 57" className="h-10 w-auto" /></Link>
-          <Link to="/" className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-white/10 text-white border border-white/25 backdrop-blur-md text-xs font-bold uppercase tracking-widest">Claim Open Barre</Link>
+          <Link to="/" className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-white/10 text-white border border-white/25 backdrop-blur-md text-xs font-bold uppercase tracking-widest">Claim Your Free Class</Link>
         </div>
       </header>
       <section className="relative h-[55vh] min-h-[420px] overflow-hidden">

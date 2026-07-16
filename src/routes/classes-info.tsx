@@ -36,7 +36,7 @@ function ClassesInfoPage() {
             to="/"
             className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-foreground text-background text-xs font-bold uppercase tracking-widest"
           >
-            Claim Open Barre
+            Claim Your Free Class
           </Link>
         </div>
       </header>
