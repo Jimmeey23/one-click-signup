@@ -412,7 +412,7 @@ function Header() {
           href="#signup"
           className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-white/10 text-white border border-white/25 backdrop-blur-md text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition"
         >
-          Claim Your Free Class
+          Claim Your Trial Class
         </a>
       </div>
     </header>

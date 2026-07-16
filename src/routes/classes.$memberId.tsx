@@ -359,6 +359,13 @@ function requiresCycleShoeSize(session: SessionDTO): boolean {
   return name.includes("cycle") || name.includes("spin");
 }
 
+const EXCLUDED_CLASS_NAME_KEYWORDS = ["hosted", "physique 57", "p57"];
+
+function isExcludedClassName(name: string): boolean {
+  const lower = name.toLowerCase();
+  return EXCLUDED_CLASS_NAME_KEYWORDS.some((keyword) => lower.includes(keyword));
+}
+
 function ClassesPage() {
   const { memberId: memberIdStr } = Route.useParams();
   const {
@@ -441,7 +448,7 @@ function ClassesPage() {
     setLoadError(null);
     listFn({ data: { locationId, daysAhead: fetchDaysAhead } })
       .then((r) => {
-        if (!cancel) setSessions(r.sessions);
+        if (!cancel) setSessions(r.sessions.filter((s) => !isExcludedClassName(s.name)));
       })
       .catch((e) => {
         if (!cancel) setLoadError(e instanceof Error ? e.message : "Failed to load schedule");
