@@ -68,7 +68,7 @@ describe("Momence customer field helpers", () => {
   });
 
   it("keeps emergency contact values numeric and rejects non-phone values", () => {
-    assert.equal(sanitizePhoneNumber("+91 97690-72866"), "919769072866");
+    assert.equal(sanitizePhoneNumber("+91 97690-72866"), "919769665757");
 
     assert.deepEqual(
       validateCustomerFieldValues(

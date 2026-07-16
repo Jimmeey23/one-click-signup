@@ -12,6 +12,6 @@ describe("WhatsApp contact helpers", () => {
     assert.equal(SUPREME_HQ_BANDRA_WHATSAPP_PHONE, "919769570037");
 
     assert.equal(whatsappPhoneForLocationId(9030), DEFAULT_WHATSAPP_PHONE);
-    assert.equal(DEFAULT_WHATSAPP_PHONE, "919769072866");
+    assert.equal(DEFAULT_WHATSAPP_PHONE, "919769665757");
   });
 });
