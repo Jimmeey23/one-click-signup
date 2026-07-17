@@ -207,7 +207,7 @@ function formatInfoForSession(session: SessionDTO): FormatInfo {
     case "power-cycle":
       return {
         family: classFormat.name,
-        level: "OPEN LEVEL CARDIO",
+        level: "ALL LEVELS",
         teaser:
           "Rhythm-driven indoor cycling that builds cardiovascular capacity and lower-body endurance.",
         detail:
