@@ -26,25 +26,13 @@ export function classFormatKeyForSessionName(value: string): ClassFormatKey {
   const name = normalizeClassFormatName(value);
   const compactName = name.replace(/\s+/g, "");
 
-  if (name.includes("cycle") || name.includes("spin")) return "power-cycle";
-  if (name.includes("fit") || name.includes("functional")) return "studio-fit";
-  if (name.includes("recovery") || name.includes("restore") || name.includes("stretch")) {
-    return "recovery";
+  if (name.includes("powercycle") || name.includes("power cycle") || name.includes("spin")) {
+    return "power-cycle";
   }
-  if (name.includes("hiit")) return "hiit";
-  if (name.includes("cardio") && name.includes("plus")) return "cardio-barre-plus";
-  if (name.includes("cardio")) return "cardio-barre";
-  if (name.includes("back body") || name.includes("blaze")) return "back-body-blaze";
-  if (
-    name.includes("strength") ||
-    compactName.includes("strengthlab") ||
-    name.includes("lab") ||
-    name.includes("pull") ||
-    name.includes("push")
-  ) {
+
+  if (name.includes("strength lab") || compactName.includes("strengthlab")) {
     return "strength-lab";
   }
-  if (name.includes("mat")) return "mat-57";
 
   return "barre-57";
 }

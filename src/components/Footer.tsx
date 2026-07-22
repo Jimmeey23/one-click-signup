@@ -73,7 +73,7 @@ export function Footer() {
                 href="tel:+919769665757"
                 className="text-sm text-background/70 hover:text-primary transition"
               >
-                +91 +91 9769072866
+                +91 +91 9769665757
               </a>
             </li>
             <li>

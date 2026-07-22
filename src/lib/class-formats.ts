@@ -26,7 +26,7 @@ export type ClassFormat = {
 export const CLASS_FORMATS: ClassFormat[] = [
   {
     key: "barre-57",
-    name: "Barre 57",
+    name: "Barre",
     image: barreImage,
     intensity: "Moderate to high, with modifications",
     bestFor: "All fitness levels",
@@ -130,6 +130,15 @@ export function classFormatForKey(key: ClassFormatKey): ClassFormat {
 
 export function classFormatForSessionName(sessionName: string): ClassFormat {
   return classFormatForKey(classFormatKeyForSessionName(sessionName));
+}
+
+const STUDIO_CLASS_TYPES: Record<number, ClassFormatKey[]> = {
+  9030: ["barre-57", "power-cycle", "strength-lab"], // Kwality House, Kemps Corner
+  29821: ["barre-57", "power-cycle"], // Supreme HQ, Bandra
+};
+
+export function classTypeOptionsForLocation(locationId: number): ClassFormatKey[] {
+  return STUDIO_CLASS_TYPES[locationId] ?? ["barre-57"];
 }
 
 for (const key of CLASS_FORMAT_KEYS) {

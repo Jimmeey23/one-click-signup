@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OpenBarreLanding } from "./index";
+import { OpenBarreLanding } from "@/components/OpenBarreLanding";
 
 export const Route = createFileRoute("/skip-lead")({
   head: () => ({

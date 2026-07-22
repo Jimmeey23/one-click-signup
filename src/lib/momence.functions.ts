@@ -70,36 +70,228 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
     return { ok: false, error: "Lead webhook token not configured" };
   }
   try {
+    const leadBody = {
+      token,
+      sourceId: "8082",
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      email: payload.email,
+      phoneNumber: payload.phoneE164,
+      time: "Flexible / Needs Recommendation",
+      center: payload.center,
+      type: "Barre 57",
+      waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
+      event_id: `signup_${payload.memberId}_${Date.now()}`,
+      utm_source: payload.utmSource ?? "website",
+      utm_medium: payload.utmMedium ?? "trial-landing",
+      utm_campaign: payload.utmCampaign ?? "open-barre-trial",
+      landing_page: payload.landingPage ?? "https://trial.physique57india.com/",
+      referrer: payload.referrer ?? "",
+    };
+
     const res = await fetch("https://api.momence.com/integrations/customer-leads/13752/collect", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        token,
-        sourceId: "8082",
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        email: payload.email,
-        phoneNumber: payload.phoneE164,
-        time: "Flexible / Needs Recommendation",
-        center: payload.center,
-        type: "Barre 57",
-        waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
-        event_id: `signup_${payload.memberId}_${Date.now()}`,
-        utm_source: payload.utmSource ?? "website",
-        utm_medium: payload.utmMedium ?? "trial-landing",
-        utm_campaign: payload.utmCampaign ?? "open-barre-trial",
-        landing_page: payload.landingPage ?? "https://trial.physique57india.com/",
-        referrer: payload.referrer ?? "",
-      }),
+      body: JSON.stringify(leadBody),
     });
     if (!res.ok) {
       const t = await res.text();
       console.error("Lead capture failed:", res.status, t);
       return { ok: false, error: `Lead capture ${res.status}` };
     }
+
+    const additionalWebhookUrl = process.env.MOMENCE_LEADS_WEBHOOK_URL?.trim();
+    if (additionalWebhookUrl) {
+      try {
+        const webhookRes = await fetch(additionalWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(leadBody),
+        });
+
+
+      await syncRespondIoContactAndConversation(payload);
+
+        if (!webhookRes.ok) {
+          const body = await webhookRes.text();
+          console.error("Additional Momence leads webhook failed:", webhookRes.status, body);
+        }
+      } catch (webhookError) {
+        const webhookMsg =
+          webhookError instanceof Error ? webhookError.message : "Additional webhook failed";
+
+  type RespondAttempt = {
+    path: string;
+    method?: "POST" | "PUT";
+    body: Record<string, unknown>;
+  };
+
+  async function callRespondIo(
+    baseUrl: string,
+    apiKey: string,
+    attempt: RespondAttempt,
+  ): Promise<{ ok: boolean; status: number; data: unknown; text: string }> {
+    const response = await fetch(`${baseUrl}${attempt.path}`, {
+      method: attempt.method ?? "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        "X-API-KEY": apiKey,
+      },
+      body: JSON.stringify(attempt.body),
+    });
+
+    const text = await response.text();
+    let data: unknown = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = null;
+    }
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      data,
+      text,
+    };
+  }
+
+  function readContactId(value: unknown): string | null {
+    if (!value || typeof value !== "object") return null;
+    const record = value as Record<string, unknown>;
+
+    const direct = record.id ?? record.contactId;
+    if (typeof direct === "string" || typeof direct === "number") return String(direct);
+
+    const contact = record.contact;
+    if (contact && typeof contact === "object") {
+      const nested = (contact as Record<string, unknown>).id;
+      if (typeof nested === "string" || typeof nested === "number") return String(nested);
+    }
+
+    const data = record.data;
+    if (data && typeof data === "object") {
+      const nested = (data as Record<string, unknown>).id;
+      if (typeof nested === "string" || typeof nested === "number") return String(nested);
+    }
+
+    return null;
+  }
+
+  async function syncRespondIoContactAndConversation(payload: LeadCapturePayload): Promise<void> {
+    const apiKey = process.env.RESPONDIO_API_KEY?.trim();
+    if (!apiKey) {
+      console.warn("RESPONDIO_API_KEY not set - skipping Respond.io contact sync");
+      return;
+    }
+
+    const baseUrl = (process.env.RESPONDIO_BASE_URL?.trim() || "https://api.respond.io/v2").replace(
+      /\/$/,
+      "",
+    );
+    const channelId = process.env.RESPONDIO_CHANNEL_ID?.trim();
+
+    const contactAttempts: RespondAttempt[] = [
+      {
+        path: "/contact",
+        body: {
+          name: `${payload.firstName} ${payload.lastName}`.trim(),
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          email: payload.email,
+          phone: payload.phoneE164,
+          phoneNumber: payload.phoneE164,
+          type: "phone",
+        },
+      },
+      {
+        path: "/contact/phone",
+        body: {
+          name: `${payload.firstName} ${payload.lastName}`.trim(),
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          email: payload.email,
+          phone: payload.phoneE164,
+          phoneNumber: payload.phoneE164,
+          type: "phone",
+        },
+      },
+    ];
+
+    let contactId: string | null = null;
+    let lastContactError = "";
+
+    for (const attempt of contactAttempts) {
+      try {
+        const response = await callRespondIo(baseUrl, apiKey, attempt);
+        if (response.ok) {
+          contactId = readContactId(response.data);
+          if (contactId) break;
+        } else {
+          lastContactError = `${attempt.path} -> ${response.status} ${response.text}`;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+        lastContactError = `${attempt.path} -> ${message}`;
+      }
+    }
+
+    if (!contactId) {
+      console.error("Respond.io contact creation failed", lastContactError);
+      return;
+    }
+
+    const conversationAttempts: RespondAttempt[] = [
+      {
+        path: "/conversation",
+        body: {
+          contactId,
+          ...(channelId ? { channelId: Number(channelId) } : {}),
+        },
+      },
+      {
+        path: `/contact/${contactId}/conversation`,
+        body: {
+          ...(channelId ? { channelId: Number(channelId) } : {}),
+        },
+      },
+      {
+        path: `/contact/${contactId}/openConversation`,
+        body: {
+          ...(channelId ? { channelId: Number(channelId) } : {}),
+        },
+      },
+    ];
+
+    let conversationOpened = false;
+    let lastConversationError = "";
+
+    for (const attempt of conversationAttempts) {
+      try {
+        const response = await callRespondIo(baseUrl, apiKey, attempt);
+        if (response.ok) {
+          conversationOpened = true;
+          break;
+        }
+        lastConversationError = `${attempt.path} -> ${response.status} ${response.text}`;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+        lastConversationError = `${attempt.path} -> ${message}`;
+      }
+    }
+
+    if (!conversationOpened) {
+      console.error("Respond.io conversation open failed", lastConversationError);
+    }
+  }
+        console.error(webhookMsg);
+      }
+    }
+
     return { ok: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Lead capture failed";

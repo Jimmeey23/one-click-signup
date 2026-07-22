@@ -26,6 +26,7 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { CLASS_FORMAT_KEYS, type ClassFormatKey } from "@/lib/class-format-matchers";
 import {
@@ -46,7 +47,11 @@ import {
   type CustomerFieldErrors,
   type CustomerFieldValues,
 } from "@/lib/momence-customer-fields.helpers";
-import { classFormatForSessionName } from "@/lib/class-formats";
+import {
+  classFormatForSessionName,
+  classFormatForKey,
+  classTypeOptionsForLocation,
+} from "@/lib/class-formats";
 import {
   addCalendarMonths,
   buildMonthCalendarWeeks,
@@ -115,7 +120,7 @@ type FormatInfo = {
   image: string;
 };
 
-const ACCENT = "#6732f5";
+const ACCENT = "#1d7cf2";
 
 function formatInr(amountInRupees: string | number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -201,7 +206,11 @@ function trainerImageForName(name?: string | null): string | null {
 }
 
 function formatInfoForSession(session: SessionDTO): FormatInfo {
-  const classFormat = classFormatForSessionName(session.name);
+  return formatInfoForKey(classFormatForSessionName(session.name).key);
+}
+
+function formatInfoForKey(key: ClassFormatKey): FormatInfo {
+  const classFormat = classFormatForKey(key);
 
   switch (classFormat.key) {
     case "power-cycle":
@@ -359,7 +368,7 @@ function requiresCycleShoeSize(session: SessionDTO): boolean {
   return name.includes("cycle") || name.includes("spin");
 }
 
-const EXCLUDED_CLASS_NAME_KEYWORDS = ["hosted", "physique 57", "p57"];
+const EXCLUDED_CLASS_NAME_KEYWORDS = ["hosted", "physique 57", "p57", "studio juniors"];
 
 function isExcludedClassName(name: string): boolean {
   const lower = name.toLowerCase();
@@ -373,6 +382,7 @@ function ClassesPage() {
     checkout_session_id: checkoutSessionId,
     paidSessionId,
     paidLocationId,
+    classType: initialClassType,
   } = Route.useSearch();
   const navigate = Route.useNavigate();
   const memberId = Number(memberIdStr);
@@ -397,6 +407,10 @@ function ClassesPage() {
   const [customFieldErrors, setCustomFieldErrors] = useState<CustomerFieldErrors>({});
   const [customFieldSubmitError, setCustomFieldSubmitError] = useState<string | null>(null);
   const [customFieldSaving, setCustomFieldSaving] = useState(false);
+  const [activeClassType, setActiveClassType] = useState<ClassFormatKey>(() => {
+    const allowed = classTypeOptionsForLocation(locationId);
+    return initialClassType && allowed.includes(initialClassType) ? initialClassType : allowed[0];
+  });
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [dateOffsetDays, setDateOffsetDays] = useState(0);
@@ -441,6 +455,14 @@ function ClassesPage() {
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    const allowed = classTypeOptionsForLocation(locationId);
+    if (!allowed.includes(activeClassType)) {
+      setActiveClassType(allowed[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationId]);
 
   useEffect(() => {
     let cancel = false;
@@ -609,13 +631,23 @@ function ClassesPage() {
   const visibleSessions = useMemo(() => {
     const items = sessions ?? [];
     return items.filter((session) => {
+      if (classFormatForSessionName(session.name).key !== activeClassType) return false;
       const sessionKey = dateKey(session.startsAt);
       if (activeDateKey) return sessionKey === activeDateKey;
       return sessionKey >= windowStartKey && sessionKey < windowEndKey;
     });
-  }, [activeDateKey, sessions, windowEndKey, windowStartKey]);
+  }, [activeClassType, activeDateKey, sessions, windowEndKey, windowStartKey]);
   const grouped = useMemo(() => groupByDay(visibleSessions), [visibleSessions]);
   const sessionsByDay = useMemo(() => groupSessionsByDate(visibleSessions), [visibleSessions]);
+  const filterClassTypes = useMemo(() => {
+    const available = classTypeOptionsForLocation(locationId);
+    const priority: ClassFormatKey[] = ["barre-57", "power-cycle"];
+    const ordered = [
+      ...priority.filter((key) => available.includes(key)),
+      ...available.filter((key) => !priority.includes(key)),
+    ];
+    return ordered;
+  }, [locationId]);
 
   function switchViewMode(mode: ViewMode) {
     setViewMode(mode);
@@ -660,38 +692,38 @@ function ClassesPage() {
   if (booked) return <ThankYou booked={booked} onAnother={() => setBooked(null)} />;
 
   return (
-    <div className="min-h-screen bg-[#f7f7fb] text-[#1f1f22]">
-      <header className="sticky top-0 z-30 border-b border-[#e7e4ee] bg-white/90 shadow-[0_1px_0_rgb(30_24_70/0.02)] backdrop-blur">
+    <div className="min-h-screen bg-[#f4f8ff] text-[#172033]">
+      <header className="sticky top-0 z-30 border-b border-[#d9e7fb] bg-white/90 shadow-[0_1px_0_rgb(29_124_242/0.06)] backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-3">
             <img src={logoUrl} alt="Physique 57" className="h-9 w-auto" />
           </Link>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#77757f]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#63708a]">
             Member #{memberId}
           </span>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
-        <section className="mb-8 rounded-[28px] border border-[#e2dfea] bg-white p-4 shadow-[0_24px_70px_rgb(36_31_70/0.07)] md:p-5">
+        <section className="mb-8 rounded-[24px] border border-[#d9e7fb] bg-white p-4 shadow-[0_16px_42px_rgb(29_124_242/0.08)] md:p-5">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#7a7783]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#6e7c96]">
                 {currentLoc.name.split(",")[0]}
               </p>
-              <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.03em] text-[#202024]">
+              <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.03em] text-[#172033]">
                 Class schedule
               </h1>
               <div className="mt-1 h-0.5 w-5 rounded-full" style={{ backgroundColor: ACCENT }} />
             </div>
-            <div className="flex shrink-0 overflow-hidden rounded-full border border-[#ddd8ea] bg-[#f7f5fb] p-1 shadow-inner shadow-white">
+            <div className="flex shrink-0 overflow-hidden rounded-full border border-[#d3e3fb] bg-[#f5f9ff] p-1 shadow-inner shadow-white">
               <button
                 type="button"
                 onClick={() => switchViewMode("day")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "day"
-                    ? "bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.22)]"
-                    : "text-[#4e4d55] hover:bg-white"
+                    ? "bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
+                    : "text-[#42526b] hover:bg-white"
                 }`}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
@@ -702,8 +734,8 @@ function ClassesPage() {
                 onClick={() => switchViewMode("week")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "week"
-                    ? "bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.22)]"
-                    : "text-[#4e4d55] hover:bg-white"
+                    ? "bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
+                    : "text-[#42526b] hover:bg-white"
                 }`}
               >
                 <List className="h-4 w-4" aria-hidden="true" />
@@ -714,8 +746,8 @@ function ClassesPage() {
                 onClick={() => switchViewMode("month")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "month"
-                    ? "bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.22)]"
-                    : "text-[#4e4d55] hover:bg-white"
+                    ? "bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
+                    : "text-[#42526b] hover:bg-white"
                 }`}
               >
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
@@ -724,11 +756,11 @@ function ClassesPage() {
             </div>
           </div>
 
-          <div className="mt-5 flex items-center gap-3 rounded-[22px] border border-[#ece9f4] bg-[#fbfaff] p-2">
+          <div className="mt-5 flex items-center gap-3 rounded-[20px] border border-[#d9e7fb] bg-[#f7faff] p-2">
             <button
               type="button"
               onClick={goPreviousRange}
-              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded9eb] bg-white text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#d3e3fb] bg-white text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2] sm:flex"
               aria-label={`Previous ${viewMode}`}
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
@@ -741,16 +773,16 @@ function ClassesPage() {
               }
             >
               {viewMode === "month" ? (
-                <div className="flex min-h-[64px] items-center justify-between gap-4 rounded-[18px] bg-white px-5 shadow-[0_12px_26px_rgb(30_24_70/0.08)] ring-1 ring-[#e7e2f4]">
+                <div className="flex min-h-[64px] items-center justify-between gap-4 rounded-[16px] bg-white px-5 shadow-[0_10px_22px_rgb(29_124_242/0.1)] ring-1 ring-[#deebfd]">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#77757f]">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#6f7f99]">
                       Calendar month
                     </span>
-                    <span className="mt-1 block text-2xl font-bold tracking-[-0.04em] text-[#202024]">
+                    <span className="mt-1 block text-2xl font-bold tracking-[-0.04em] text-[#172033]">
                       {monthLabel}
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-[#f2edff] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#6732f5] ring-1 ring-[#e3d9ff]">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[#ebf3ff] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#1d7cf2] ring-1 ring-[#d8e8ff]">
                     <CalendarDays className="h-4 w-4" aria-hidden="true" />
                     {visibleSessions.length} {visibleSessions.length === 1 ? "class" : "classes"}
                   </span>
@@ -767,8 +799,8 @@ function ClassesPage() {
                       }}
                       className={`min-h-[64px] rounded-[18px] px-2 text-center transition ${
                         selected
-                          ? "bg-white text-[#6732f5] shadow-[0_12px_26px_rgb(30_24_70/0.08)] ring-1 ring-[#d9d0ff]"
-                          : "text-[#77757f] hover:bg-white/70"
+                          ? "bg-white text-[#1d7cf2] shadow-[0_10px_22px_rgb(29_124_242/0.12)] ring-1 ring-[#d7e8ff]"
+                          : "text-[#6f7f99] hover:bg-white/70"
                       }`}
                     >
                       <span className="block text-[11px] font-semibold uppercase leading-none">
@@ -776,14 +808,14 @@ function ClassesPage() {
                       </span>
                       <span
                         className={`mt-1 block text-lg font-semibold leading-none ${
-                          selected ? "text-[#6732f5]" : "text-[#4e4d55]"
+                          selected ? "text-[#1d7cf2]" : "text-[#42526b]"
                         }`}
                       >
                         {item.day}
                       </span>
                       <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
                         <span
-                          className={`h-1 w-5 rounded-full ${selected ? "bg-[#6732f5]" : "bg-[#c8c5d0]"}`}
+                          className={`h-1 w-5 rounded-full ${selected ? "bg-[#1d7cf2]" : "bg-[#d0d9e8]"}`}
                         />
                       </span>
                     </button>
@@ -794,7 +826,7 @@ function ClassesPage() {
             <button
               type="button"
               onClick={goNextRange}
-              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#ded9eb] bg-white text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#6732f5] hover:text-[#6732f5] sm:flex"
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#d3e3fb] bg-white text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2] sm:flex"
               aria-label={`Next ${viewMode}`}
             >
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
@@ -805,45 +837,89 @@ function ClassesPage() {
             <button
               type="button"
               onClick={showAllClasses}
-              className="h-11 rounded-full border border-[#ded9eb] bg-white px-4 text-sm font-semibold uppercase text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#6732f5] hover:text-[#6732f5]"
+              className="h-11 rounded-full border border-[#d3e3fb] bg-white px-4 text-sm font-semibold uppercase text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
             >
               Show all
             </button>
             <button
               type="button"
               onClick={jumpToToday}
-              className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 text-sm font-semibold uppercase text-[#1f1f22] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#6732f5] hover:text-[#6732f5]"
+              className="h-11 rounded-full border border-[#d3e3fb] bg-white px-5 text-sm font-semibold uppercase text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
             >
               Today
             </button>
-            <div className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
-              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold">
+            <div className="h-11 rounded-full border border-[#d3e3fb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
+              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold text-[#2a3b57]">
                 <span>Instructors</span>
                 <ChevronDown className="h-5 w-5" aria-hidden="true" />
               </div>
             </div>
-            <div className="h-11 rounded-full border border-[#ded9eb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
-              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold">
+            <div className="h-11 rounded-full border border-[#d3e3fb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
+              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold text-[#2a3b57]">
                 <span>{currentLoc.name.split(",")[0]}</span>
                 <ChevronDown className="h-5 w-5" aria-hidden="true" />
               </div>
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#5f6f88]">
+              Studio
+            </span>
             {LOCATIONS.map((l) => (
               <button
                 key={l.id}
                 onClick={() => navigate({ search: { locationId: l.id }, replace: true })}
                 className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
                   l.id === locationId
-                    ? "border-[#6732f5] bg-[#6732f5] text-white shadow-[0_10px_24px_rgb(103_50_245/0.2)]"
-                    : "border-[#e0ddea] bg-white text-[#5f5d66] hover:border-[#6732f5] hover:text-[#6732f5]"
+                    ? "border-[#1d7cf2] bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
+                    : "border-[#d9e7fb] bg-white text-[#52617a] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
                 }`}
               >
                 {l.name.split(",")[0]}
               </button>
             ))}
+
+            <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#5f6f88]">
+              Class type
+            </span>
+            {filterClassTypes.map((key) => {
+              const classFormat = classFormatForKey(key);
+              const info = formatInfoForKey(key);
+              const selected = key === activeClassType;
+              return (
+                <div key={key} className="group/tab relative">
+                  <button
+                    type="button"
+                    onClick={() => setActiveClassType(key)}
+                    aria-pressed={selected}
+                    className={`flex items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-4 text-left transition duration-150 active:scale-95 ${
+                      selected
+                        ? "border-[#1d7cf2] bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
+                        : "border-[#d9e7fb] bg-white text-[#3a4b66] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
+                    }`}
+                  >
+                    <img
+                      src={classFormat.image}
+                      alt=""
+                      className="h-8 w-8 rounded-full object-cover object-top"
+                    />
+                    <span className="text-xs font-semibold uppercase tracking-[0.1em]">
+                      {classFormat.name}
+                    </span>
+                  </button>
+                  <div
+                    role="tooltip"
+                    className="pointer-events-none absolute left-0 top-[calc(100%+8px)] z-30 hidden w-64 rounded-[14px] border border-[#d9e7fb] bg-white p-3 text-left shadow-[0_18px_40px_rgb(29_124_242/0.15)] group-hover/tab:block"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1d7cf2]">
+                      {info.level}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-[#4d4b55]">{info.teaser}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -885,15 +961,15 @@ function ClassesPage() {
             {grouped.map(({ day, items, relative }) => (
               <section key={day} className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="shrink-0 text-sm font-bold uppercase tracking-[0.12em] text-[#5f5d66]">
+                  <h2 className="shrink-0 text-sm font-semibold uppercase tracking-[0.12em] text-[#4a5a74]">
                     {relative}
                   </h2>
-                  <span className="h-px flex-1 bg-[#dedce8]" />
-                  <span className="rounded-full border border-[#ded9eb] bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#77757f]">
+                  <span className="h-px flex-1 bg-[#dbe7f9]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6f7f99]">
                     {items.length} {items.length === 1 ? "class" : "classes"}
                   </span>
                 </div>
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {items.map((s) => (
                     <SessionCard
                       key={s.id}
@@ -953,11 +1029,11 @@ function MonthCalendar({
   return (
     <section
       aria-label="Monthly class calendar"
-      className="overflow-hidden rounded-[28px] border border-[#e0ddea] bg-white shadow-[0_20px_55px_rgb(30_24_70/0.06)]"
+      className="overflow-hidden rounded-[28px] border border-[#d7e6ee] bg-white shadow-[0_20px_55px_rgb(30_24_70/0.06)]"
     >
       <div className="overflow-x-auto">
         <div className="min-w-[920px]">
-          <div className="grid grid-cols-7 border-b border-[#e4e1ec] bg-[#fbfaff]">
+          <div className="grid grid-cols-7 border-b border-[#d9e6ee] bg-[#f5fafd]">
             {WEEKDAY_LABELS.map((day) => (
               <div
                 key={day}
@@ -977,7 +1053,7 @@ function MonthCalendar({
               return (
                 <div
                   key={dayKey}
-                  className={`min-h-[178px] border-b border-r border-[#ece9f4] p-3 [&:nth-child(7n)]:border-r-0 ${
+                  className={`min-h-[178px] border-b border-r border-[#e2eff5] p-3 [&:nth-child(7n)]:border-r-0 ${
                     calendarDay.inCurrentMonth ? "bg-white" : "bg-[#faf9fc] text-[#aaa6b3]"
                   }`}
                 >
@@ -985,7 +1061,7 @@ function MonthCalendar({
                     <span
                       className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
                         isToday
-                          ? "bg-[#6732f5] text-white"
+                          ? "bg-[#1d7cf2] text-white"
                           : calendarDay.inCurrentMonth
                             ? "text-[#202024]"
                             : "text-[#aaa6b3]"
@@ -997,7 +1073,7 @@ function MonthCalendar({
                       })}
                     </span>
                     {daySessions.length > 0 && (
-                      <span className="rounded-full bg-[#f2edff] px-2 py-0.5 text-[10px] font-bold text-[#6732f5]">
+                      <span className="rounded-full bg-[#ebf3ff] px-2 py-0.5 text-[10px] font-bold text-[#1d7cf2]">
                         {daySessions.length}
                       </span>
                     )}
@@ -1041,16 +1117,16 @@ function MonthCalendarClassChip({
       type="button"
       onClick={onBook}
       disabled={loading || isFull}
-      className={`block w-full rounded-[10px] border px-2 py-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5] ${
+      className={`block w-full rounded-[10px] border px-2 py-1.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2] ${
         isFull
           ? "border-[#ead7dc] bg-[#fff6f7] text-[#9b5767]"
-          : "border-[#e2dcf7] bg-[#f8f5ff] text-[#322b48] hover:border-[#6732f5] hover:bg-white"
+          : "border-[#d6eaf3] bg-[#f0fafd] text-[#1c3a4a] hover:border-[#1d7cf2] hover:bg-white"
       }`}
       aria-label={`${isFull ? "Full" : "Book"} ${session.name} at ${formatTime(start)}`}
     >
       <span className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-bold text-[#6732f5]">{formatTime(start)}</span>
-        <span className="inline-flex min-w-0 items-center gap-1 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-[#6a617e] [&_svg]:h-3 [&_svg]:w-3">
+        <span className="text-[11px] font-bold text-[#1d7cf2]">{formatTime(start)}</span>
+        <span className="inline-flex min-w-0 items-center gap-1 truncate text-[10px] font-bold uppercase tracking-[0.08em] text-[#5c6b78] [&_svg]:h-3 [&_svg]:w-3">
           {format.icon}
           <span className="truncate">{format.family}</span>
         </span>
@@ -1097,7 +1173,7 @@ function CustomerFieldsModal({
       >
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6732f5]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1d7cf2]">
               Profile details
             </p>
             <h2 className="mt-1 text-2xl font-bold tracking-[-0.03em] text-[#202024]">
@@ -1258,7 +1334,7 @@ function CustomerFieldsModal({
           <button
             type="submit"
             disabled={saving}
-            className="h-12 rounded-[11px] bg-[#6732f5] px-6 text-sm font-bold text-white transition hover:bg-[#5424d8] disabled:opacity-50"
+            className="h-12 rounded-[11px] bg-[#1d7cf2] px-6 text-sm font-bold text-white transition hover:bg-[#1669cf] disabled:opacity-50"
           >
             {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
           </button>
@@ -1278,9 +1354,9 @@ function FieldSection({
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-[#ece9f4] pt-5 first:border-t-0 first:pt-0">
+    <section className="border-t border-[#e2eff5] pt-5 first:border-t-0 first:pt-0">
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f2edff] text-[#6732f5] ring-1 ring-[#dfd4ff]">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ebf3ff] text-[#1d7cf2] ring-1 ring-[#d8e8ff]">
           {icon}
         </span>
         <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#4b4858]">{title}</h3>
@@ -1306,7 +1382,7 @@ function SuggestionChips({
           key={option}
           type="button"
           onClick={() => onSelect(option)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#ded8f1] bg-[#fbfaff] px-3 text-xs font-bold text-[#564a72] transition hover:border-[#6732f5] hover:bg-white hover:text-[#6732f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5]/30"
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#cfe6f0] bg-[#f5fafd] px-3 text-xs font-bold text-[#1f6f96] transition hover:border-[#1d7cf2] hover:bg-white hover:text-[#1d7cf2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2]/30"
         >
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           {option}
@@ -1345,12 +1421,12 @@ function TextField({
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const baseClass =
-    "mt-1 w-full rounded-[11px] border bg-white px-3 py-2.5 text-sm font-medium text-[#202024] outline-none transition focus:border-[#6732f5] focus:ring-2 focus:ring-[#6732f5]/15";
+    "mt-1 w-full rounded-[11px] border bg-white px-3 py-2.5 text-sm font-medium text-[#202024] outline-none transition focus:border-[#1d7cf2] focus:ring-2 focus:ring-[#1d7cf2]/15";
 
   return (
     <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
       <span className="inline-flex items-center gap-1.5">
-        {icon && <span className="text-[#6732f5]">{icon}</span>}
+        {icon && <span className="text-[#1d7cf2]">{icon}</span>}
         <span>
           {label}
           {required && <span className="text-red-600"> *</span>}
@@ -1409,7 +1485,7 @@ function SelectField({
   return (
     <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
       <span className="inline-flex items-center gap-1.5">
-        {icon && <span className="text-[#6732f5]">{icon}</span>}
+        {icon && <span className="text-[#1d7cf2]">{icon}</span>}
         <span>
           {label}
           {required && <span className="text-red-600"> *</span>}
@@ -1419,7 +1495,7 @@ function SelectField({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`mt-1 h-11 w-full rounded-[11px] border bg-white px-3 text-sm font-medium text-[#202024] outline-none transition focus:border-[#6732f5] focus:ring-2 focus:ring-[#6732f5]/15 ${
+        className={`mt-1 h-11 w-full rounded-[11px] border bg-white px-3 text-sm font-medium text-[#202024] outline-none transition focus:border-[#1d7cf2] focus:ring-2 focus:ring-[#1d7cf2]/15 ${
           error ? "border-red-500" : "border-[#dedee5]"
         }`}
       >
@@ -1465,60 +1541,41 @@ function SessionCard({
   const priceDisplay = getSchedulePriceDisplay(s.name);
 
   return (
-    <article className="relative grid gap-5 overflow-visible rounded-[28px] border border-[#e0ddea] bg-white p-4 shadow-[0_18px_55px_rgb(30_24_70/0.06)] transition hover:-translate-y-0.5 hover:border-[#c8bef4] hover:shadow-[0_26px_70px_rgb(30_24_70/0.11)] md:grid-cols-[170px_minmax(0,1fr)_205px] md:p-5">
+    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-[#d9e7fb] bg-white p-4 shadow-[0_10px_28px_rgb(29_124_242/0.08)] transition hover:-translate-y-0.5 hover:border-[#b7d3fa] hover:shadow-[0_18px_40px_rgb(29_124_242/0.12)] md:grid-cols-[154px_minmax(0,1fr)_188px]">
       <div className="flex items-start gap-4 md:block">
-        <img
-          src={format.image}
-          alt={`${format.family} class format`}
-          className="h-28 w-28 shrink-0 rounded-[22px] object-cover object-top shadow-[0_16px_36px_rgb(30_24_70/0.12)] md:h-full md:min-h-[172px] md:w-full"
-        />
+        <ClassImageInfoTrigger format={format} durationInMinutes={s.durationInMinutes} />
         <div className="md:hidden">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#77757f]">Class</p>
-          <h3 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-[#202024]">{s.name}</h3>
+          <h3 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[#172033]">{s.name}</h3>
         </div>
       </div>
 
       <div className="min-w-0">
-        <p className="hidden text-[10px] font-bold uppercase tracking-[0.22em] text-[#77757f] md:block">
-          Class
-        </p>
-        <h3 className="hidden text-[32px] font-bold leading-[1.05] tracking-[-0.045em] text-[#202024] md:block">
+        <h3 className="hidden text-[31px] font-semibold leading-[1.08] tracking-[-0.04em] text-[#172033] md:block">
           {s.name}
         </h3>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           <img
             src={teacherImage}
             alt={s.teacherName ? `${s.teacherName} instructor thumbnail` : ""}
-            className="h-8 w-8 rounded-full border border-white object-cover object-top shadow-[0_8px_18px_rgb(30_24_70/0.12)]"
+            className="h-8 w-8 rounded-full border border-white object-cover object-top shadow-[0_6px_14px_rgb(29_124_242/0.16)]"
             aria-hidden={!s.teacherName}
           />
-          <span className="font-medium text-[#232329]">{s.teacherName ?? "Studio Instructor"}</span>
-          <span className="text-[#c5c3ca]" aria-hidden="true">
-            •
-          </span>
-          <FormatTrigger format={format} />
+          <span className="font-medium text-[#22314a]">{s.teacherName ?? "Studio Instructor"}</span>
         </div>
 
-        <p className="mt-4 max-w-[45rem] text-base font-semibold leading-snug text-[#5f5d66]">
-          {format.teaser}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#5a5862]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#efeaff] px-3 py-1.5 text-[#6732f5] ring-1 ring-[#dcd1ff]">
-            {format.levelIcon}
-            {format.level}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f8f5ff] px-3 py-1.5 text-[#54446f] ring-1 ring-[#e8e1f7]">
+        <div className="mt-3 flex flex-wrap items-center gap-2.5 text-xs font-medium text-[#5b6c86]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef5ff] px-3 py-1.5 text-[#1d7cf2] ring-1 ring-[#d9e8ff]">
             {format.icon}
             {format.family}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f7f7fa] px-3 py-1.5 text-[#62606a] ring-1 ring-[#e8e8ee]">
-            <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-            {format.bestFor}
+          <span className="inline-flex items-center gap-1.5 text-[#5b6c86] [&_svg]:text-[#1d7cf2]">
+            {format.levelIcon}
+            <span>{format.level}</span>
           </span>
         </div>
 
-        <div className="mt-4 grid gap-2.5 text-[14px] font-medium text-[#55535d] lg:grid-cols-3">
+        <div className="mt-4 grid gap-2 text-[14px] font-medium text-[#596a86] lg:grid-cols-3">
           <ScheduleMeta icon={<CalendarDays className="h-4 w-4" />} text={dateLabel} />
           <ScheduleMeta
             icon={<Clock3 className="h-4 w-4" />}
@@ -1528,7 +1585,7 @@ function SessionCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-[#e4e4ea] pt-5 md:flex-col md:items-end md:justify-between md:border-l md:border-t-0 md:pl-6 md:pt-1">
+      <div className="flex items-center justify-between gap-4 border-t border-[#e8eef8] pt-4 md:flex-col md:items-end md:justify-between md:border-l md:border-t-0 md:border-l-[#e8eef8] md:pl-5 md:pt-1">
         <div className="text-right">
           {priceDisplay.originalPriceInCurrency && (
             <p
@@ -1541,16 +1598,16 @@ function SessionCard({
               {formatInr(priceDisplay.originalPriceInCurrency)}
             </p>
           )}
-          <p className="mt-0.5 text-4xl font-bold tracking-[-0.055em] text-[#202024]">
+          <p className="mt-0.5 text-4xl font-semibold tracking-[-0.05em] text-[#172033]">
             {formatInr(priceDisplay.bookingPriceInCurrency)}
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#6732f5]">
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1d7cf2]">
             {priceDisplay.label}
           </p>
           {s.spotsLeft != null && (
             <p
               className={`mt-2 text-[11px] font-bold uppercase tracking-[0.16em] ${
-                isFull ? "text-red-600" : s.spotsLeft <= 3 ? "text-[#6732f5]" : "text-[#77757f]"
+                isFull ? "text-red-600" : s.spotsLeft <= 3 ? "text-[#1d7cf2]" : "text-[#75839b]"
               }`}
             >
               {isFull ? "Full" : `${s.spotsLeft} spots left`}
@@ -1560,7 +1617,7 @@ function SessionCard({
         <button
           onClick={onBook}
           disabled={loading || isFull}
-          className="h-[52px] min-w-[140px] rounded-[13px] bg-[#6732f5] px-7 text-base font-bold text-white shadow-[0_14px_30px_rgb(103_50_245/0.24)] transition hover:bg-[#5424d8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6732f5] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
+          className="h-[50px] min-w-[138px] rounded-[12px] bg-[#1d7cf2] px-6 text-base font-semibold text-white shadow-[0_12px_26px_rgb(29_124_242/0.28)] transition hover:bg-[#1669cf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
         >
           {loading
             ? requiresPayment
@@ -1577,50 +1634,91 @@ function SessionCard({
   );
 }
 
-function FormatTrigger({ format }: { format: FormatInfo }) {
+function ClassImageInfoTrigger({
+  format,
+  durationInMinutes,
+}: {
+  format: FormatInfo;
+  durationInMinutes: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function openNow() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+
+  function closeSoon() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 120);
+  }
+
   return (
-    <span className="group/format relative inline-flex">
-      <button
-        type="button"
-        className="inline-flex items-center gap-1.5 text-[#5f5d66] outline-none transition hover:text-[#6732f5] focus-visible:text-[#6732f5]"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onMouseEnter={openNow}
+          onMouseLeave={closeSoon}
+          onClick={() => setOpen((prev) => !prev)}
+          aria-label={`${format.family} class details`}
+          className="group/img relative h-28 w-28 shrink-0 overflow-hidden rounded-[18px] shadow-[0_10px_24px_rgb(29_124_242/0.16)] outline-none transition focus-visible:ring-2 focus-visible:ring-[#1d7cf2] md:h-full md:min-h-[164px] md:w-full"
+        >
+          <img
+            src={format.image}
+            alt={`${format.family} class format`}
+            className="h-full w-full object-cover object-top transition duration-300 group-hover/img:scale-105"
+          />
+          <span className="pointer-events-none absolute inset-0 bg-[#0a1c26]/0 transition group-hover/img:bg-[#0a1c26]/12" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        onMouseEnter={openNow}
+        onMouseLeave={closeSoon}
+        align="start"
+        className="w-[320px] rounded-[16px] border border-[#d9e7fb] bg-white p-4 text-left shadow-[0_18px_40px_rgb(29_124_242/0.16)]"
       >
-        {format.icon}
-        Show format
-      </button>
-      <span
-        role="tooltip"
-        className="pointer-events-none absolute left-0 top-8 z-30 hidden w-[340px] rounded-[18px] border border-[#dedce8] bg-white p-3 text-left shadow-[0_24px_60px_rgb(25_20_45/0.16)] group-hover/format:block group-focus-within/format:block md:left-1/2 md:-translate-x-1/2"
-      >
-        <img
-          src={format.image}
-          alt={`${format.family} format preview`}
-          className="h-36 w-full rounded-[12px] object-cover"
-        />
-        <span className="mt-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#6732f5]">
+        <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1d7cf2]">
           {format.icon}
           {format.family}
         </span>
-        <span className="mt-1 block text-sm leading-relaxed text-[#4d4b55]">{format.detail}</span>
-        <span className="mt-3 grid gap-2 rounded-[12px] bg-[#f8f8fb] p-3 text-xs leading-relaxed text-[#4d4b55]">
+
+        <div className="mt-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8b8992]">
+            Results
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-[#4d4b55]">{format.bestFor}</p>
+        </div>
+
+        <div className="mt-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8b8992]">USPs</p>
+          <p className="mt-1 text-sm leading-relaxed text-[#4d4b55]">
+            {format.teaser} {format.detail}
+          </p>
+        </div>
+
+        <div className="mt-3 grid gap-1.5 rounded-[12px] bg-[#f5f9ff] p-3 text-xs leading-relaxed text-[#4d4b55]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8b8992]">Info</p>
           <span>
             <strong className="text-[#232329]">Intensity:</strong> {format.level}
           </span>
           <span>
-            <strong className="text-[#232329]">Best for:</strong> {format.bestFor}
+            <strong className="text-[#232329]">Duration:</strong> {durationInMinutes} min
           </span>
           <span>
             <strong className="text-[#232329]">What to expect:</strong> {format.expect}
           </span>
-        </span>
-      </span>
-    </span>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
 function ScheduleMeta({ icon, text }: { icon: ReactNode; text: string }) {
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-full bg-[#f7f7fb] px-3 py-2">
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-[#8b8992]">
+    <div className="flex min-w-0 items-center gap-1.5 px-0.5 py-1">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-[#1d7cf2]">
         {icon}
       </span>
       <span className="truncate">{text}</span>
@@ -1634,7 +1732,7 @@ function ScheduleSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="grid animate-pulse gap-5 rounded-[28px] border border-[#e0ddea] bg-white p-4 shadow-[0_18px_55px_rgb(30_24_70/0.05)] md:grid-cols-[170px_minmax(0,1fr)_205px] md:p-5"
+          className="grid animate-pulse gap-5 rounded-[28px] border border-[#d7e6ee] bg-white p-4 shadow-[0_18px_55px_rgb(30_24_70/0.05)] md:grid-cols-[170px_minmax(0,1fr)_205px] md:p-5"
         >
           <div className="h-28 w-28 rounded-[22px] bg-[#eeeeF3] md:h-full md:min-h-[172px] md:w-full" />
           <div>
@@ -1655,10 +1753,10 @@ function ScheduleSkeleton() {
 
 function MonthCalendarSkeleton() {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#e0ddea] bg-white shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
+    <div className="overflow-hidden rounded-[28px] border border-[#d7e6ee] bg-white shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
       <div className="overflow-x-auto">
         <div className="min-w-[920px]">
-          <div className="grid grid-cols-7 border-b border-[#e4e1ec] bg-[#fbfaff]">
+          <div className="grid grid-cols-7 border-b border-[#d9e6ee] bg-[#f5fafd]">
             {WEEKDAY_LABELS.map((day) => (
               <div
                 key={day}
@@ -1672,7 +1770,7 @@ function MonthCalendarSkeleton() {
             {Array.from({ length: 35 }).map((_, index) => (
               <div
                 key={index}
-                className="min-h-[178px] border-b border-r border-[#ece9f4] p-3 [&:nth-child(7n)]:border-r-0"
+                className="min-h-[178px] border-b border-r border-[#e2eff5] p-3 [&:nth-child(7n)]:border-r-0"
               >
                 <div className="h-7 w-7 rounded-full bg-[#eeeeF3]" />
                 <div className="mt-3 space-y-2">
