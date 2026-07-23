@@ -69,7 +69,7 @@ const LeadAndOpenBarreInput = z.object({
 type RespondAttempt = {
   path: string;
   method?: "POST" | "PUT";
-  body: Record<string, unknown>;
+  body: unknown;
 };
 
 async function callRespondIo(
@@ -103,27 +103,8 @@ async function callRespondIo(
   };
 }
 
-function readContactId(value: unknown): string | null {
-  if (!value || typeof value !== "object") return null;
-  const record = value as Record<string, unknown>;
-
-  const direct = record.id ?? record.contactId;
-  if (typeof direct === "string" || typeof direct === "number") return String(direct);
-
-  const contact = record.contact;
-  if (contact && typeof contact === "object") {
-    const nested = (contact as Record<string, unknown>).id;
-    if (typeof nested === "string" || typeof nested === "number") return String(nested);
-  }
-
-  const data = record.data;
-  if (data && typeof data === "object") {
-    const nested = (data as Record<string, unknown>).id;
-    if (typeof nested === "string" || typeof nested === "number") return String(nested);
-  }
-
-  return null;
-}
+const RESPONDIO_LIFECYCLE_STAGE = "New Enquiry";
+const RESPONDIO_TAG = "Website";
 
 async function syncRespondIoContactAndConversation(payload: LeadCapturePayload): Promise<void> {
   const apiKey = process.env.RESPONDIO_API_KEY?.trim();
@@ -136,99 +117,62 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
     /\/$/,
     "",
   );
-  const channelId = process.env.RESPONDIO_CHANNEL_ID?.trim();
 
-  const contactAttempts: RespondAttempt[] = [
-    {
-      path: "/contact",
+  // Identifier format per respond.io API v2: "phone:+<e164 digits>" (no URL-encoding needed,
+  // phoneE164 is already restricted to '+' and digits by upstream validation).
+  const identifier = `phone:${payload.phoneE164}`;
+
+  try {
+    const created = await callRespondIo(baseUrl, apiKey, {
+      path: `/contact/create_or_update/${identifier}`,
       body: {
-        name: `${payload.firstName} ${payload.lastName}`.trim(),
         firstName: payload.firstName,
         lastName: payload.lastName,
         email: payload.email,
         phone: payload.phoneE164,
-        phoneNumber: payload.phoneE164,
-        type: "phone",
       },
-    },
-    {
-      path: "/contact/phone",
-      body: {
-        name: `${payload.firstName} ${payload.lastName}`.trim(),
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        email: payload.email,
-        phone: payload.phoneE164,
-        phoneNumber: payload.phoneE164,
-        type: "phone",
-      },
-    },
-  ];
-
-  let contactId: string | null = null;
-  let lastContactError = "";
-
-  for (const attempt of contactAttempts) {
-    try {
-      const response = await callRespondIo(baseUrl, apiKey, attempt);
-      if (response.ok) {
-        contactId = readContactId(response.data);
-        if (contactId) break;
-      } else {
-        lastContactError = `${attempt.path} -> ${response.status} ${response.text}`;
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown Respond.io error";
-      lastContactError = `${attempt.path} -> ${message}`;
+    });
+    if (!created.ok) {
+      console.error(
+        "Respond.io contact creation failed",
+        `${created.status} ${created.text}`,
+      );
+      return;
     }
-  }
-
-  if (!contactId) {
-    console.error("Respond.io contact creation failed", lastContactError);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+    console.error("Respond.io contact creation failed", message);
     return;
   }
 
-  const conversationAttempts: RespondAttempt[] = [
+  const followUps: RespondAttempt[] = [
     {
-      path: "/conversation",
-      body: {
-        contactId,
-        ...(channelId ? { channelId: Number(channelId) } : {}),
-      },
+      path: `/contact/${identifier}/lifecycle/update`,
+      body: { name: RESPONDIO_LIFECYCLE_STAGE },
     },
     {
-      path: `/contact/${contactId}/conversation`,
-      body: {
-        ...(channelId ? { channelId: Number(channelId) } : {}),
-      },
+      path: `/contact/${identifier}/tag`,
+      body: [RESPONDIO_TAG],
     },
     {
-      path: `/contact/${contactId}/openConversation`,
-      body: {
-        ...(channelId ? { channelId: Number(channelId) } : {}),
-      },
+      path: `/contact/${identifier}/conversation/status`,
+      body: { status: "open" },
     },
   ];
 
-  let conversationOpened = false;
-  let lastConversationError = "";
-
-  for (const attempt of conversationAttempts) {
+  for (const attempt of followUps) {
     try {
       const response = await callRespondIo(baseUrl, apiKey, attempt);
-      if (response.ok) {
-        conversationOpened = true;
-        break;
+      if (!response.ok) {
+        console.error(
+          `Respond.io ${attempt.path} failed`,
+          `${response.status} ${response.text}`,
+        );
       }
-      lastConversationError = `${attempt.path} -> ${response.status} ${response.text}`;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown Respond.io error";
-      lastConversationError = `${attempt.path} -> ${message}`;
+      console.error(`Respond.io ${attempt.path} failed`, message);
     }
-  }
-
-  if (!conversationOpened) {
-    console.error("Respond.io conversation open failed", lastConversationError);
   }
 }
 
