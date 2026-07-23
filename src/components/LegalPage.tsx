@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import type { LegalDocument } from "@/lib/legal-content";
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 export function LegalPage({ document }: { document: LegalDocument }) {
   return (

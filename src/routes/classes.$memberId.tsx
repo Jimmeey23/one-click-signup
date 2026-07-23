@@ -24,6 +24,7 @@ import {
   Stethoscope,
   Target,
   UserRound,
+  X,
   Zap,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -59,9 +60,9 @@ import {
   type MonthCalendarWeek,
 } from "@/lib/schedule-calendar.helpers";
 import { whatsappPhoneForLocationId } from "@/lib/whatsapp-contact.helpers";
-import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { Footer } from "@/components/Footer";
 import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
+import profileHeroPortrait from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
 import anishaThumb from "@/assets/images/001-1_Anisha-1-e1590837044475.jpg";
 import atulanThumb from "@/assets/images/002-Atulan-Image-1.jpg";
 import cauveriThumb from "@/assets/images/003-Cauveri-1.jpg";
@@ -93,7 +94,7 @@ const searchSchema = z.object({
   classType: z.enum(CLASS_FORMAT_KEYS).optional(),
 });
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 export const Route = createFileRoute("/classes/$memberId")({
   validateSearch: searchSchema,
@@ -417,7 +418,6 @@ function ClassesPage() {
   const [monthOffsetMonths, setMonthOffsetMonths] = useState(0);
 
   const currentLoc = LOCATIONS.find((l) => l.id === locationId) ?? LOCATIONS[0];
-  const whatsappPhone = whatsappPhoneForLocationId(currentLoc.id);
   const monthStart = useMemo(
     () => startOfCalendarMonth(addCalendarMonths(new Date(), monthOffsetMonths)),
     [monthOffsetMonths],
@@ -561,6 +561,7 @@ function ClassesPage() {
 
     const errors = validateCustomerFieldValues(customFieldValues, {
       requiresShoeSize: requiresCycleShoeSize(session),
+      gender: customFieldValues.gender,
     });
 
     if (Object.keys(errors).length > 0) {
@@ -692,8 +693,8 @@ function ClassesPage() {
   if (booked) return <ThankYou booked={booked} onAnother={() => setBooked(null)} />;
 
   return (
-    <div className="min-h-screen bg-[#f4f8ff] text-[#172033]">
-      <header className="sticky top-0 z-30 border-b border-[#d9e7fb] bg-white/90 shadow-[0_1px_0_rgb(29_124_242/0.06)] backdrop-blur">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,#e7f0ff_0%,#f4f8ff_45%,#f4f8ff_100%)] text-[#172033]">
+      <header className="sticky top-0 z-30 border-b border-[#d9e7fb] bg-white/85 shadow-[0_1px_0_rgb(29_124_242/0.06)] backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-3">
             <img src={logoUrl} alt="Physique 57" className="h-9 w-auto" />
@@ -705,16 +706,16 @@ function ClassesPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
-        <section className="mb-8 rounded-[24px] border border-[#d9e7fb] bg-white p-4 shadow-[0_16px_42px_rgb(29_124_242/0.08)] md:p-5">
+        <section className="mb-8 rounded-[28px] border border-[#d9e7fb] bg-white/90 p-4 shadow-[0_24px_60px_rgb(29_124_242/0.1)] backdrop-blur-sm md:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#6e7c96]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#1d7cf2]">
                 {currentLoc.name.split(",")[0]}
               </p>
-              <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.03em] text-[#172033]">
+              <h1 className="font-display mt-0.5 text-[34px] italic leading-none tracking-[-0.01em] text-[#101828]">
                 Class schedule
               </h1>
-              <div className="mt-1 h-0.5 w-5 rounded-full" style={{ backgroundColor: ACCENT }} />
+              <div className="mt-2 h-[3px] w-8 rounded-full bg-gradient-to-r from-[#123f7a] to-[#7db8ff]" />
             </div>
             <div className="flex shrink-0 overflow-hidden rounded-full border border-[#d3e3fb] bg-[#f5f9ff] p-1 shadow-inner shadow-white">
               <button
@@ -722,7 +723,7 @@ function ClassesPage() {
                 onClick={() => switchViewMode("day")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "day"
-                    ? "bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
+                    ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
                     : "text-[#42526b] hover:bg-white"
                 }`}
               >
@@ -734,7 +735,7 @@ function ClassesPage() {
                 onClick={() => switchViewMode("week")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "week"
-                    ? "bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
+                    ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
                     : "text-[#42526b] hover:bg-white"
                 }`}
               >
@@ -746,7 +747,7 @@ function ClassesPage() {
                 onClick={() => switchViewMode("month")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "month"
-                    ? "bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
+                    ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
                     : "text-[#42526b] hover:bg-white"
                 }`}
               >
@@ -756,7 +757,7 @@ function ClassesPage() {
             </div>
           </div>
 
-          <div className="mt-5 flex items-center gap-3 rounded-[20px] border border-[#d9e7fb] bg-[#f7faff] p-2">
+          <div className="mt-5 flex items-center gap-3 rounded-[20px] border border-[#d9e7fb] bg-gradient-to-b from-[#f7faff] to-[#f2f7ff] p-2 shadow-[inset_0_1px_0_rgb(255_255_255/0.8)]">
             <button
               type="button"
               onClick={goPreviousRange}
@@ -778,11 +779,11 @@ function ClassesPage() {
                     <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#6f7f99]">
                       Calendar month
                     </span>
-                    <span className="mt-1 block text-2xl font-bold tracking-[-0.04em] text-[#172033]">
+                    <span className="font-display mt-0.5 block text-2xl italic tracking-[-0.01em] text-[#101828]">
                       {monthLabel}
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-[#ebf3ff] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#1d7cf2] ring-1 ring-[#d8e8ff]">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_14px_rgb(29_124_242/0.22)]">
                     <CalendarDays className="h-4 w-4" aria-hidden="true" />
                     {visibleSessions.length} {visibleSessions.length === 1 ? "class" : "classes"}
                   </span>
@@ -797,10 +798,10 @@ function ClassesPage() {
                       onClick={() => {
                         if (viewMode !== "day") setSelectedDateKey(selected ? null : item.key);
                       }}
-                      className={`min-h-[64px] rounded-[18px] px-2 text-center transition ${
+                      className={`min-h-[64px] rounded-[18px] px-2 text-center transition duration-150 ${
                         selected
-                          ? "bg-white text-[#1d7cf2] shadow-[0_10px_22px_rgb(29_124_242/0.12)] ring-1 ring-[#d7e8ff]"
-                          : "text-[#6f7f99] hover:bg-white/70"
+                          ? "bg-white text-[#1d7cf2] shadow-[0_10px_24px_rgb(29_124_242/0.16)] ring-1 ring-[#d7e8ff]"
+                          : "text-[#6f7f99] hover:bg-white/70 hover:text-[#42526b]"
                       }`}
                     >
                       <span className="block text-[11px] font-semibold uppercase leading-none">
@@ -815,7 +816,7 @@ function ClassesPage() {
                       </span>
                       <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
                         <span
-                          className={`h-1 w-5 rounded-full ${selected ? "bg-[#1d7cf2]" : "bg-[#d0d9e8]"}`}
+                          className={`h-1 w-5 rounded-full transition ${selected ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2]" : "bg-[#d0d9e8]"}`}
                         />
                       </span>
                     </button>
@@ -833,93 +834,70 @@ function ClassesPage() {
             </button>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-[auto_auto_1fr_1fr]">
-            <button
-              type="button"
-              onClick={showAllClasses}
-              className="h-11 rounded-full border border-[#d3e3fb] bg-white px-4 text-sm font-semibold uppercase text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
-            >
-              Show all
-            </button>
-            <button
-              type="button"
-              onClick={jumpToToday}
-              className="h-11 rounded-full border border-[#d3e3fb] bg-white px-5 text-sm font-semibold uppercase text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.04)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
-            >
-              Today
-            </button>
-            <div className="h-11 rounded-full border border-[#d3e3fb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
-              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold text-[#2a3b57]">
-                <span>Instructors</span>
-                <ChevronDown className="h-5 w-5" aria-hidden="true" />
+          <div className="mt-5 rounded-[18px] border border-[#e3ebf7] bg-[#fbfcff] p-3.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b98b0]">
+                Studio
+              </span>
+              {LOCATIONS.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => navigate({ search: { locationId: l.id }, replace: true })}
+                  className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
+                    l.id === locationId
+                      ? "border-[#1d7cf2] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
+                      : "border-[#d9e7fb] bg-white text-[#52617a] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
+                  }`}
+                >
+                  {l.name.split(",")[0]}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#e8eef6] pt-3">
+              <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b98b0]">
+                Class type
+              </span>
+              <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                {filterClassTypes.map((key) => {
+                  const classFormat = classFormatForKey(key);
+                  const info = formatInfoForKey(key);
+                  const selected = key === activeClassType;
+                  return (
+                    <div key={key} className="group/tab relative">
+                      <button
+                        type="button"
+                        onClick={() => setActiveClassType(key)}
+                        aria-pressed={selected}
+                        className={`flex items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-4 text-left transition duration-150 active:scale-95 ${
+                          selected
+                            ? "border-[#1d7cf2] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
+                            : "border-[#d9e7fb] bg-white text-[#3a4b66] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
+                        }`}
+                      >
+                        <img
+                          src={classFormat.image}
+                          alt=""
+                          className="h-8 w-8 rounded-full object-cover object-top"
+                        />
+                        <span className="text-xs font-semibold uppercase tracking-[0.1em]">
+                          {classFormat.name}
+                        </span>
+                      </button>
+                      <div
+                        role="tooltip"
+                        className="pointer-events-none absolute right-0 top-[calc(100%+8px)] z-30 hidden w-64 rounded-[14px] border border-[#d9e7fb] bg-white p-3 text-left shadow-[0_18px_40px_rgb(29_124_242/0.15)] group-hover/tab:block"
+                      >
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1d7cf2]">
+                          {info.level}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-[#4d4b55]">{info.teaser}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="h-11 rounded-full border border-[#d3e3fb] bg-white px-5 shadow-[0_8px_18px_rgb(30_24_70/0.04)]">
-              <div className="flex h-full items-center justify-between gap-3 text-sm font-semibold text-[#2a3b57]">
-                <span>{currentLoc.name.split(",")[0]}</span>
-                <ChevronDown className="h-5 w-5" aria-hidden="true" />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#5f6f88]">
-              Studio
-            </span>
-            {LOCATIONS.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => navigate({ search: { locationId: l.id }, replace: true })}
-                className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
-                  l.id === locationId
-                    ? "border-[#1d7cf2] bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
-                    : "border-[#d9e7fb] bg-white text-[#52617a] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
-                }`}
-              >
-                {l.name.split(",")[0]}
-              </button>
-            ))}
-
-            <span className="ml-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#5f6f88]">
-              Class type
-            </span>
-            {filterClassTypes.map((key) => {
-              const classFormat = classFormatForKey(key);
-              const info = formatInfoForKey(key);
-              const selected = key === activeClassType;
-              return (
-                <div key={key} className="group/tab relative">
-                  <button
-                    type="button"
-                    onClick={() => setActiveClassType(key)}
-                    aria-pressed={selected}
-                    className={`flex items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-4 text-left transition duration-150 active:scale-95 ${
-                      selected
-                        ? "border-[#1d7cf2] bg-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
-                        : "border-[#d9e7fb] bg-white text-[#3a4b66] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
-                    }`}
-                  >
-                    <img
-                      src={classFormat.image}
-                      alt=""
-                      className="h-8 w-8 rounded-full object-cover object-top"
-                    />
-                    <span className="text-xs font-semibold uppercase tracking-[0.1em]">
-                      {classFormat.name}
-                    </span>
-                  </button>
-                  <div
-                    role="tooltip"
-                    className="pointer-events-none absolute left-0 top-[calc(100%+8px)] z-30 hidden w-64 rounded-[14px] border border-[#d9e7fb] bg-white p-3 text-left shadow-[0_18px_40px_rgb(29_124_242/0.15)] group-hover/tab:block"
-                  >
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1d7cf2]">
-                      {info.level}
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-[#4d4b55]">{info.teaser}</p>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </section>
 
@@ -945,14 +923,18 @@ function ClassesPage() {
         )}
 
         {sessions && viewMode !== "month" && sessions.length === 0 && (
-          <div className="rounded-[26px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
-            No upcoming classes in this {viewMode} view at this studio.
+          <div className="rounded-[26px] border border-dashed border-[#d9e7fb] bg-white/60 p-12 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
+            <p className="font-display text-xl italic text-[#101828]">Nothing on the books yet</p>
+            <p className="mt-1.5 text-sm">
+              No upcoming classes in this {viewMode} view at this studio.
+            </p>
           </div>
         )}
 
         {sessions && viewMode !== "month" && sessions.length > 0 && grouped.length === 0 && (
-          <div className="rounded-[26px] border border-[#dedee5] bg-white p-10 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
-            No classes match this date. Show all classes to browse the full schedule.
+          <div className="rounded-[26px] border border-dashed border-[#d9e7fb] bg-white/60 p-12 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
+            <p className="font-display text-xl italic text-[#101828]">No classes on this date</p>
+            <p className="mt-1.5 text-sm">Show all classes to browse the full schedule.</p>
           </div>
         )}
 
@@ -961,7 +943,7 @@ function ClassesPage() {
             {grouped.map(({ day, items, relative }) => (
               <section key={day} className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="shrink-0 text-sm font-semibold uppercase tracking-[0.12em] text-[#4a5a74]">
+                  <h2 className="font-display shrink-0 text-2xl italic tracking-[-0.01em] text-[#101828]">
                     {relative}
                   </h2>
                   <span className="h-px flex-1 bg-[#dbe7f9]" />
@@ -1006,7 +988,6 @@ function ClassesPage() {
       )}
 
       <Footer />
-      <WhatsAppFloat phone={whatsappPhone} />
     </div>
   );
 }
@@ -1161,129 +1142,90 @@ function CustomerFieldsModal({
   onSubmit: () => void;
 }) {
   const requiresPayment = isPaidNewcomersClassName(session.name);
+  const isFemale = values.gender === "Female";
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && !saving) onCancel();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onCancel, saving]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-4 py-6 backdrop-blur-sm sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#050a14]/70 px-4 py-6 backdrop-blur-md sm:items-center">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           onSubmit();
         }}
-        className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[18px] bg-white p-5 shadow-[0_30px_90px_rgb(20_20_35/0.24)] sm:p-7"
+        className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-[#fcfdff] shadow-[0_40px_120px_rgb(8_17_31/0.45)] ring-1 ring-black/5"
       >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1d7cf2]">
-              Profile details
-            </p>
-            <h2 className="mt-1 text-2xl font-bold tracking-[-0.03em] text-[#202024]">
-              {session.name}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={saving}
-            className="h-10 rounded-full border border-[#e1e1e7] px-4 text-xs font-bold uppercase tracking-[0.14em] text-[#5f5d66] disabled:opacity-50"
-          >
-            Close
-          </button>
-        </div>
+        <div className="h-[5px] w-full shrink-0 bg-gradient-to-r from-[#123f7a] via-[#1d7cf2] to-[#7db8ff]" />
 
-        {submitError && (
-          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{submitError}</p>
-        )}
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={saving}
+          aria-label="Close profile details"
+          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#e2e9f2] bg-white/90 text-[#506176] shadow-sm transition hover:border-[#123f7a] hover:text-[#123f7a] disabled:opacity-50"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-        <div className="space-y-6">
-          <FieldSection icon={<Target className="h-4 w-4" />} title="Goals">
-            <TextField
-              label="Fitness Goal"
-              value={values.fitnessGoal ?? ""}
-              error={errors.fitnessGoal}
-              icon={<Target className="h-4 w-4" />}
-              placeholder="Add the member's primary goal"
-              onChange={(value) => onChange("fitnessGoal", value)}
+        <div className="grid min-h-0 flex-1 overflow-hidden lg:grid-cols-[0.85fr_1.15fr]">
+          <aside className="relative hidden overflow-hidden lg:block">
+            <img
+              src={profileHeroPortrait}
+              alt="Physique 57 member in a barre side-plank"
+              className="h-full w-full object-cover object-[center_20%]"
             />
-            <SuggestionChips
-              label="Fitness goal suggestions"
-              options={FITNESS_GOAL_SUGGESTIONS}
-              onSelect={(value) => onChange("fitnessGoal", value)}
-            />
-          </FieldSection>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#08111f] via-[#08111f]/35 to-[#08111f]/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#08111f]/30 via-transparent to-transparent" />
 
-          <FieldSection icon={<ShieldCheck className="h-4 w-4" />} title="Health & safety">
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextField
-                label="Emergency Contact Info"
-                value={values.emergencyContactInfo ?? ""}
-                error={errors.emergencyContactInfo}
-                required
-                icon={<Phone className="h-4 w-4" />}
-                inputMode="tel"
-                pattern="[0-9]*"
-                maxLength={15}
-                helperText="Numbers only. Include country code if needed."
-                onChange={(value) => onChange("emergencyContactInfo", sanitizePhoneNumber(value))}
-              />
-              <SelectField
-                label="Are you currently pregnant?"
-                value={values.pregnancyStatus ?? ""}
-                error={errors.pregnancyStatus}
-                required
-                icon={<HeartPulse className="h-4 w-4" />}
-                options={[
-                  ["No ", "No"],
-                  ["Yes", "Yes"],
-                ]}
-                onChange={(value) => onChange("pregnancyStatus", value)}
-              />
-              <SelectField
-                label="Post Natal"
-                value={values.postNatalStatus ?? ""}
-                error={errors.postNatalStatus}
-                required
-                icon={<ShieldCheck className="h-4 w-4" />}
-                options={[
-                  ["No", "No"],
-                  ["Yes", "Yes"],
-                ]}
-                onChange={(value) => onChange("postNatalStatus", value)}
-              />
-              <div className="md:col-span-2">
-                <TextField
-                  label="Medical History"
-                  value={values.medicalHistory ?? ""}
-                  error={errors.medicalHistory}
-                  required
-                  multiline
-                  icon={<Stethoscope className="h-4 w-4" />}
-                  placeholder="Add relevant injuries, restrictions, or 'No concerns'"
-                  onChange={(value) => onChange("medicalHistory", value)}
-                />
-                <SuggestionChips
-                  label="Medical history suggestions"
-                  options={MEDICAL_HISTORY_SUGGESTIONS}
-                  onSelect={(value) => onChange("medicalHistory", value)}
-                />
-              </div>
+            <span className="absolute left-6 top-7 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-white/90 ring-1 ring-white/25 backdrop-blur-sm">
+              <Sparkles className="h-3 w-3" />
+              Member profile
+            </span>
+
+            <div className="absolute inset-x-0 bottom-0 p-7">
+              <p className="font-display text-[15px] italic leading-snug text-white/85">
+                “Every detail helps your instructor coach you safer, stronger.”
+              </p>
+              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.28em] text-white/55">
+                Physique 57 India
+              </p>
+              <h2 className="font-display mt-1 text-[34px] italic leading-[1.05] text-white">
+                {session.name}
+              </h2>
             </div>
-          </FieldSection>
+          </aside>
 
-          <FieldSection icon={<UserRound className="h-4 w-4" />} title="Profile">
-            <div className="grid gap-4 md:grid-cols-2">
-              <TextField
-                label="FNF"
-                value={values.fnf ?? ""}
-                error={errors.fnf}
-                icon={<BadgeCheck className="h-4 w-4" />}
-                placeholder="Friend or family referral details"
-                onChange={(value) => onChange("fnf", value)}
-              />
+          <div className="flex min-h-0 flex-col overflow-hidden">
+            <div className="shrink-0 border-b border-[#e8eef6] px-6 pb-5 pt-7 sm:px-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#1d7cf2]">
+                Before you book
+              </p>
+              <h2 className="font-display mt-1 text-[28px] italic tracking-[-0.01em] text-[#101828] lg:hidden">
+                {session.name}
+              </h2>
+              <p className="mt-1.5 max-w-md text-sm leading-relaxed text-[#5c6b78]">
+                A few details our team needs to keep your session safe and personal to you.
+              </p>
+            </div>
+
+            {submitError && (
+              <p className="mx-6 mt-4 shrink-0 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-8">
+                {submitError}
+              </p>
+            )}
+
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-6 sm:px-8">
               <SelectField
                 label="Gender"
+                icon={<UserRound className="h-3.5 w-3.5" />}
                 value={values.gender ?? ""}
                 error={errors.gender}
-                icon={<UserRound className="h-4 w-4" />}
                 options={[
                   ["Male", "Male"],
                   ["Female", "Female"],
@@ -1292,102 +1234,103 @@ function CustomerFieldsModal({
                 ]}
                 onChange={(value) => onChange("gender", value)}
               />
-              <SelectField
-                label="EU Shoe Size"
-                value={values.euShoeSize ?? ""}
-                error={errors.euShoeSize}
-                required={requiresShoeSize}
-                icon={<Footprints className="h-4 w-4" />}
-                helperText={requiresShoeSize ? "Required for powerCycle classes." : undefined}
-                options={EU_SHOE_SIZE_OPTIONS}
-                onChange={(value) => onChange("euShoeSize", value)}
-              />
-              <SelectField
-                label="How did you hear about us?"
-                value={values.howDidHear ?? ""}
-                error={errors.howDidHear}
-                icon={<Sparkles className="h-4 w-4" />}
-                options={[
-                  ["Yellow Messenger/Whatsapp Enquiry", "Yellow Messenger/Whatsapp Enquiry"],
-                  ["Instagram", "Instagram"],
-                  ["Google Search", "Google Search"],
-                  ["Friend/Family", "Friend/Family"],
-                  ["Existing Member", "Existing Member"],
-                  ["Walk-in", "Walk-in"],
-                  ["Other", "Other"],
-                ]}
-                onChange={(value) => onChange("howDidHear", value)}
-              />
-            </div>
-          </FieldSection>
-        </div>
 
-        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={saving}
-            className="h-12 rounded-[11px] border border-[#dedee5] px-6 text-sm font-bold text-[#4e4d55] disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="h-12 rounded-[11px] bg-[#1d7cf2] px-6 text-sm font-bold text-white transition hover:bg-[#1669cf] disabled:opacity-50"
-          >
-            {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
-          </button>
+              {isFemale && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SelectField
+                    label="Are you currently pregnant?"
+                    value={values.pregnancyStatus ?? ""}
+                    error={errors.pregnancyStatus}
+                    required={isFemale}
+                    options={[
+                      ["No", "No"],
+                      ["Yes", "Yes"],
+                    ]}
+                    onChange={(value) => onChange("pregnancyStatus", value)}
+                  />
+                  <SelectField
+                    label="Post Natal"
+                    value={values.postNatalStatus ?? ""}
+                    error={errors.postNatalStatus}
+                    required={isFemale}
+                    options={[
+                      ["No", "No"],
+                      ["Yes", "Yes"],
+                    ]}
+                    onChange={(value) => onChange("postNatalStatus", value)}
+                  />
+                </div>
+              )}
+
+              <TextField
+                label="Fitness Goal"
+                icon={<Target className="h-3.5 w-3.5" />}
+                value={values.fitnessGoal ?? ""}
+                error={errors.fitnessGoal}
+                placeholder="Add the member's primary goal"
+                onChange={(value) => onChange("fitnessGoal", value)}
+                suggestions={{ options: FITNESS_GOAL_SUGGESTIONS }}
+              />
+
+              <TextField
+                label="Medical History"
+                value={values.medicalHistory ?? ""}
+                error={errors.medicalHistory}
+                required
+                multiline
+                icon={<Stethoscope className="h-3.5 w-3.5" />}
+                placeholder="Add relevant injuries, restrictions, or 'No concerns'"
+                onChange={(value) => onChange("medicalHistory", value)}
+                suggestions={{ options: MEDICAL_HISTORY_SUGGESTIONS }}
+              />
+
+              <TextField
+                label="Emergency Contact Info"
+                value={values.emergencyContactInfo ?? ""}
+                error={errors.emergencyContactInfo}
+                required
+                icon={<Phone className="h-3.5 w-3.5" />}
+                inputMode="tel"
+                pattern="[0-9]*"
+                maxLength={15}
+                helperText="Numbers only. Include country code if needed."
+                onChange={(value) => onChange("emergencyContactInfo", sanitizePhoneNumber(value))}
+              />
+
+              {requiresShoeSize && (
+                <SelectField
+                  label="EU Shoe Size"
+                  icon={<Footprints className="h-3.5 w-3.5" />}
+                  value={values.euShoeSize ?? ""}
+                  error={errors.euShoeSize}
+                  required={requiresShoeSize}
+                  helperText="Required for powerCycle classes."
+                  options={EU_SHOE_SIZE_OPTIONS}
+                  onChange={(value) => onChange("euShoeSize", value)}
+                />
+              )}
+            </div>
+
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-[#e8eef6] bg-[#fbfcff] px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={saving}
+                className="h-12 rounded-[12px] border border-[#d7e0ec] bg-white px-6 text-sm font-semibold text-[#4e4d55] transition hover:border-[#123f7a] hover:text-[#123f7a] disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="h-12 rounded-[12px] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-6 text-sm font-semibold text-white shadow-[0_12px_26px_rgb(18_63_122/0.28)] transition hover:brightness-110 disabled:opacity-50"
+              >
+                {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
-    </div>
-  );
-}
-
-function FieldSection({
-  icon,
-  title,
-  children,
-}: {
-  icon: ReactNode;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="border-t border-[#e2eff5] pt-5 first:border-t-0 first:pt-0">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ebf3ff] text-[#1d7cf2] ring-1 ring-[#d8e8ff]">
-          {icon}
-        </span>
-        <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#4b4858]">{title}</h3>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function SuggestionChips({
-  label,
-  options,
-  onSelect,
-}: {
-  label: string;
-  options: readonly string[];
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <div className="mt-2 flex flex-wrap gap-2" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onSelect(option)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#cfe6f0] bg-[#f5fafd] px-3 text-xs font-bold text-[#1f6f96] transition hover:border-[#1d7cf2] hover:bg-white hover:text-[#1d7cf2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2]/30"
-        >
-          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-          {option}
-        </button>
-      ))}
     </div>
   );
 }
@@ -1404,6 +1347,7 @@ function TextField({
   pattern,
   maxLength,
   helperText,
+  suggestions,
   onChange,
 }: {
   label: string;
@@ -1417,14 +1361,18 @@ function TextField({
   pattern?: string;
   maxLength?: number;
   helperText?: string;
+  suggestions?: { options: readonly string[] };
   onChange: (value: string) => void;
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const baseClass =
-    "mt-1 w-full rounded-[11px] border bg-white px-3 py-2.5 text-sm font-medium text-[#202024] outline-none transition focus:border-[#1d7cf2] focus:ring-2 focus:ring-[#1d7cf2]/15";
+    "mt-1.5 w-full rounded-[12px] border bg-white px-3.5 py-2.5 text-sm font-medium text-[#101828] outline-none transition focus:border-[#123f7a] focus:ring-2 focus:ring-[#123f7a]/12";
 
   return (
-    <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
+    <label
+      htmlFor={id}
+      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#7d8aa0]"
+    >
       <span className="inline-flex items-center gap-1.5">
         {icon && <span className="text-[#1d7cf2]">{icon}</span>}
         <span>
@@ -1454,9 +1402,27 @@ function TextField({
         />
       )}
       {helperText && !error && (
-        <span className="mt-1 block text-xs font-semibold text-[#77757f]">{helperText}</span>
+        <span className="mt-1 block text-xs font-medium text-[#6f7d90]">{helperText}</span>
       )}
-      {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
+      {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
+      {suggestions && (
+        <span className="mt-2 flex flex-wrap items-center gap-1.5 normal-case">
+          {suggestions.options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                value === option
+                  ? "border-[#1d7cf2] bg-[#1d7cf2] text-white"
+                  : "border-[#dde5ee] bg-white text-[#5c6b78] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </span>
+      )}
     </label>
   );
 }
@@ -1483,7 +1449,10 @@ function SelectField({
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   return (
-    <label htmlFor={id} className="block text-sm font-bold text-[#33323a]">
+    <label
+      htmlFor={id}
+      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#7d8aa0]"
+    >
       <span className="inline-flex items-center gap-1.5">
         {icon && <span className="text-[#1d7cf2]">{icon}</span>}
         <span>
@@ -1495,7 +1464,7 @@ function SelectField({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`mt-1 h-11 w-full rounded-[11px] border bg-white px-3 text-sm font-medium text-[#202024] outline-none transition focus:border-[#1d7cf2] focus:ring-2 focus:ring-[#1d7cf2]/15 ${
+        className={`mt-1.5 h-11 w-full rounded-[12px] border bg-white px-3.5 text-sm font-medium text-[#101828] outline-none transition focus:border-[#123f7a] focus:ring-2 focus:ring-[#123f7a]/12 ${
           error ? "border-red-500" : "border-[#dedee5]"
         }`}
       >
@@ -1507,9 +1476,9 @@ function SelectField({
         ))}
       </select>
       {helperText && !error && (
-        <span className="mt-1 block text-xs font-semibold text-[#77757f]">{helperText}</span>
+        <span className="mt-1 block text-xs font-medium text-[#6f7d90]">{helperText}</span>
       )}
-      {error && <span className="mt-1 block text-xs font-semibold text-red-600">{error}</span>}
+      {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
     </label>
   );
 }
@@ -1541,18 +1510,24 @@ function SessionCard({
   const priceDisplay = getSchedulePriceDisplay(s.name);
 
   return (
-    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-[#d9e7fb] bg-white p-4 shadow-[0_10px_28px_rgb(29_124_242/0.08)] transition hover:-translate-y-0.5 hover:border-[#b7d3fa] hover:shadow-[0_18px_40px_rgb(29_124_242/0.12)] md:grid-cols-[154px_minmax(0,1fr)_188px]">
+    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-[#d9e7fb] bg-white p-4 shadow-[0_10px_28px_rgb(29_124_242/0.06)] transition duration-200 hover:-translate-y-0.5 hover:border-[#b7d3fa] hover:shadow-[0_20px_44px_rgb(29_124_242/0.14)] md:grid-cols-[154px_minmax(0,1fr)_188px]">
       <div className="flex items-start gap-4 md:block">
         <ClassImageInfoTrigger format={format} durationInMinutes={s.durationInMinutes} />
         <div className="md:hidden">
-          <h3 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[#172033]">{s.name}</h3>
+          <h3 className="font-display mt-1 text-[26px] italic leading-[1.05] tracking-[-0.01em] text-[#101828]">
+            {s.name}
+          </h3>
         </div>
       </div>
 
       <div className="min-w-0">
-        <h3 className="hidden text-[31px] font-semibold leading-[1.08] tracking-[-0.04em] text-[#172033] md:block">
+        <h3 className="font-display hidden text-[32px] italic leading-[1.05] tracking-[-0.01em] text-[#101828] md:block">
           {s.name}
         </h3>
+
+        <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-relaxed text-[#5c6b78]">
+          {format.teaser}
+        </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           <img
@@ -1564,14 +1539,14 @@ function SessionCard({
           <span className="font-medium text-[#22314a]">{s.teacherName ?? "Studio Instructor"}</span>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2.5 text-xs font-medium text-[#5b6c86]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef5ff] px-3 py-1.5 text-[#1d7cf2] ring-1 ring-[#d9e8ff]">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_6px_14px_rgb(29_124_242/0.22)] [&_svg]:h-3.5 [&_svg]:w-3.5">
             {format.icon}
             {format.family}
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[#5b6c86] [&_svg]:text-[#1d7cf2]">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e3e9f2] bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#5b6c86] [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-[#1d7cf2]">
             {format.levelIcon}
-            <span>{format.level}</span>
+            {format.level}
           </span>
         </div>
 
@@ -1606,10 +1581,19 @@ function SessionCard({
           </p>
           {s.spotsLeft != null && (
             <p
-              className={`mt-2 text-[11px] font-bold uppercase tracking-[0.16em] ${
-                isFull ? "text-red-600" : s.spotsLeft <= 3 ? "text-[#1d7cf2]" : "text-[#75839b]"
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
+                isFull
+                  ? "bg-red-50 text-red-600"
+                  : s.spotsLeft <= 3
+                    ? "bg-[#eef5ff] text-[#1d7cf2]"
+                    : "bg-[#f4f6fa] text-[#75839b]"
               }`}
             >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isFull ? "bg-red-500" : s.spotsLeft <= 3 ? "bg-[#1d7cf2]" : "bg-[#a3afc4]"
+                }`}
+              />
               {isFull ? "Full" : `${s.spotsLeft} spots left`}
             </p>
           )}
@@ -1617,7 +1601,7 @@ function SessionCard({
         <button
           onClick={onBook}
           disabled={loading || isFull}
-          className="h-[50px] min-w-[138px] rounded-[12px] bg-[#1d7cf2] px-6 text-base font-semibold text-white shadow-[0_12px_26px_rgb(29_124_242/0.28)] transition hover:bg-[#1669cf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
+          className="h-[50px] min-w-[138px] rounded-[12px] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-6 text-base font-semibold text-white shadow-[0_12px_26px_rgb(29_124_242/0.28)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
         >
           {loading
             ? requiresPayment
@@ -2050,7 +2034,6 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
       </main>
 
       <Footer />
-      <WhatsAppFloat phone={whatsappPhone} />
     </div>
   );
 }

@@ -84,6 +84,7 @@ export async function runSignupAndEnroll(
     homeLocationId: data.homeLocationId,
   });
   const created = await dependencies.createMember(createMemberRequest);
+  console.debug("[debug:signup] member created", { memberId: created.memberId });
 
   let signed = 0;
   let availableWaivers = 0;
@@ -94,6 +95,10 @@ export async function runSignupAndEnroll(
     });
     signed = consent.signedCount;
     availableWaivers = consent.availableCount;
+    console.debug("[debug:signup] waivers signed", { signed, availableWaivers });
+    if (signed === 0 || signed < availableWaivers) {
+      console.warn("[debug:signup] not all waivers signed", { signed, availableWaivers });
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Waiver consent failed";
     console.error("Waiver consent failed:", msg);
@@ -114,6 +119,7 @@ export async function runSignupAndEnroll(
     });
     await dependencies.enrollOpenBarre(checkoutRequest);
     enrolled = true;
+    console.debug("[debug:signup] open barre enrolled", { memberId: created.memberId });
   } catch (e) {
     enrollError = e instanceof Error ? e.message : "Enrollment failed";
     console.error("Membership enrollment failed:", enrollError);
@@ -138,6 +144,7 @@ export async function runSignupAndEnroll(
     });
     leadCaptured = lead.ok;
     leadError = lead.error ?? null;
+    console.debug("[debug:signup] lead capture", { leadCaptured, leadError });
   }
 
   return {

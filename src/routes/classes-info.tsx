@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { CLASS_FORMATS } from "@/lib/class-formats";
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 export const Route = createFileRoute("/classes-info")({
   head: () => ({

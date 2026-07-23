@@ -1,7 +1,21 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, FileText } from "lucide-react";
+import {
+  Check,
+  FileText,
+  TrendingUp,
+  Fingerprint,
+  Zap,
+  Star,
+  Trophy,
+  UserCheck,
+  ListChecks,
+  Users,
+  MapPin,
+  Phone,
+  Clock,
+} from "lucide-react";
 import { signupAndEnroll, signupAndEnrollWithoutLead } from "@/lib/momence.functions";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
@@ -29,9 +43,37 @@ import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.jpg"
 import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg";
 import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 const TEST_MEMBER_ID = import.meta.env.VITE_TEST_MEMBER_ID ?? "999999";
+
+const HERO_QUOTES = [
+  "Meet the workout your body will thank you for.",
+  "The class everyone recommends. The results everyone notices.",
+  "Where strength meets elegance.",
+  "The workout that changes more than your body.",
+  "Fall in love with movement again.",
+  "Strong never looked this graceful.",
+  "Find your strongest self.",
+  "The workout worth making time for.",
+  "Feel the burn. Love the results.",
+  "More than a workout. A transformation.",
+  "The barre everyone comes back to.",
+  "Confidence starts here.",
+  "Move beautifully. Feel incredibly strong.",
+  "Because ordinary workouts aren't your style.",
+  "Your strongest hour starts now.",
+  "Results you can feel. Confidence you can see.",
+  "The workout your future self will thank you for.",
+  "Elevate your fitness. Redefine your limits.",
+  "Train smarter. Stand taller. Shine brighter.",
+  "Every pulse. Every shake. Every victory.",
+  "Luxury fitness. Extraordinary results.",
+  "Discover what your body is capable of.",
+  "Join the movement everyone's obsessed with.",
+  "Where every class feels like your best one yet.",
+  "The workout you'll never want to skip.",
+];
 
 type FormState = {
   firstName: string;
@@ -57,6 +99,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
   const [testMode, setTestMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -69,6 +112,10 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
     signatureName: "",
     classType: "barre-57",
   });
+
+  useEffect(() => {
+    setHeroQuote(HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -175,7 +222,18 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid) return;
+    if (!valid) {
+      console.warn("[debug:signup] submit blocked - form invalid", {
+        firstName: form.firstName.trim().length > 0,
+        lastName: form.lastName.trim().length > 0,
+        email: /\S+@\S+\.\S+/.test(form.email),
+        countryCode: form.countryCode.trim().length > 0,
+        phoneNumber: form.phoneNumber.replace(/[^0-9]/g, "").length >= 6,
+        homeLocationId: LOCATIONS.some((l) => l.id === form.homeLocationId),
+        waiverAndSignature: testMode || (form.waiverAccepted && form.signatureName.trim().length >= 2),
+      });
+      return;
+    }
 
     if (testMode) {
       navigate({
@@ -210,6 +268,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             landingPage: typeof window !== "undefined" ? window.location.href : undefined,
           }
         : {};
+      console.debug("[debug:signup] calling signup server fn", { captureLead });
       const result = await signup({
         data: {
           firstName: form.firstName.trim(),
@@ -224,9 +283,15 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
           ...trackingPayload,
         },
       });
+      console.debug("[debug:signup] signup result", result);
+      if (result.leadError) {
+        console.warn("[debug:signup] lead capture failed silently:", result.leadError);
+      }
       if (!result.enrolled) {
+        console.error("[debug:signup] enrollment failed:", result.enrollError);
         setError(
-          "Open Barre membership could not be activated. Please contact the studio team before booking your first class.",
+          result.enrollError ??
+            "Open Barre membership could not be activated. Please contact the studio team before booking your first class.",
         );
         return;
       }
@@ -236,6 +301,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
         search: { locationId: result.homeLocationId, classType: form.classType },
       });
     } catch (e2) {
+      console.error("[debug:signup] signup threw:", e2);
       setError(e2 instanceof Error ? e2.message : "Signup failed");
     } finally {
       setLoading(false);
@@ -265,12 +331,8 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             <p className="text-[11px] uppercase tracking-[0.35em] text-primary font-bold mb-6">
               Mumbai · Bengaluru
             </p>
-            <h1 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.95] tracking-tight">
-              Discover the workout
-              <br />
-              <em className="italic text-primary">Everyone</em>
-              <br />
-              talks about.
+            <h1 className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.05] tracking-tight">
+              {heroQuote}
             </h1>
             <p className="mt-8 max-w-md text-base md:text-lg text-white/75 leading-relaxed">
               Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body
@@ -319,11 +381,15 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
       <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
         <div className="max-w-2xl mb-14">
           <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
-            The Physique 57 Method
+            The Physique 57 Method & Key Benefits
           </p>
           <h2 className="font-display text-4xl md:text-6xl leading-[1.05] tracking-tight">
             Engineered to <em className="italic">reshape</em> you in 57 minutes.
           </h2>
+          <p className="mt-5 text-base text-muted-foreground leading-relaxed">
+            The proven advantages that make Physique 57 India the preferred choice for fast,
+            visible results and sustainable transformation.
+          </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           <Feature
@@ -345,6 +411,8 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             body="We finish long and lean - every session ends with deep stretching to reset."
           />
         </div>
+
+        <KeyBenefitsGrid />
       </section>
 
       <FlippingGallery
@@ -355,6 +423,10 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
           [sculptSide, trainerArm, heroBike],
         ]}
       />
+
+      <WhatHappensNext />
+
+      <StudioLocations />
 
       <section className="bg-secondary py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
@@ -382,7 +454,7 @@ function Header() {
     <header className="absolute top-0 inset-x-0 z-20">
       <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logoUrl} alt="Physique 57" className="h-10 w-auto" />
+          <img src={logoUrl} alt="Physique 57" className="h-10 w-auto brightness-0 invert" />
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-[0.2em] text-white/70 font-bold">
           <Link to="/about" className="hover:text-primary transition">
@@ -448,6 +520,255 @@ function Feature({
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{body}</p>
       </div>
     </article>
+  );
+}
+
+const KEY_BENEFITS = [
+  {
+    icon: TrendingUp,
+    title: "Proven, Visible Results in Weeks",
+    body: "Physique 57 is known for delivering fast, visible transformation - leaner arms, lifted glutes, stronger core, and improved posture - within just a few weeks.",
+  },
+  {
+    icon: Fingerprint,
+    title: "Proprietary, Globally Proven Method",
+    body: "This signature method was developed in New York and refined over years, giving members a system that feels premium, polished, and internationally trusted.",
+  },
+  {
+    icon: Zap,
+    title: "High-Intensity Yet Low-Impact",
+    body: "The workout deeply fatigues muscles without putting stress on joints, making it intense enough for results and sustainable enough for long-term consistency.",
+  },
+  {
+    icon: Star,
+    title: "Celebrity-Endorsed and Loved",
+    body: "The brand's strong aspirational value comes from its premium reputation and longstanding association with visible, physique-focused results.",
+  },
+  {
+    icon: Trophy,
+    title: "Award-Winning Fitness Method",
+    body: "Global recognition and premium studio positioning reinforce the method's credibility, quality, and consistency across locations.",
+  },
+  {
+    icon: UserCheck,
+    title: "Expert-Led, Hands-On Coaching",
+    body: "Highly trained & certified instructors actively correct form, guide alignment, and ensure every movement is effective and safe.",
+  },
+  {
+    icon: ListChecks,
+    title: "Structured, Progressive Programming",
+    body: "Each class follows a designed structure that builds strength, endurance, and control over time - no random workouts, just consistent progress.",
+  },
+  {
+    icon: Users,
+    title: "Strong Community and Accountability",
+    body: "A supportive boutique environment helps members stay motivated, consistent, and emotionally connected to their fitness routine.",
+  },
+];
+
+function KeyBenefitsGrid() {
+  return (
+    <div className="mt-14 pt-14 border-t border-border">
+      <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-6">
+        Key Benefits
+      </p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {KEY_BENEFITS.map((benefit) => (
+          <div
+            key={benefit.title}
+            className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/15 text-primary-deep">
+              <benefit.icon className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <h3 className="mt-4 font-bold text-base leading-tight tracking-tight">
+              {benefit.title}
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{benefit.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const NEXT_STEPS = [
+  {
+    n: "01",
+    title: "Tell us what suits you",
+    body: "Share your preferred studio and the format you want to begin with.",
+  },
+  {
+    n: "02",
+    title: "We review your preferences",
+    body: "The studio team checks your selected location and preferred format to shape the best first recommendation.",
+  },
+  {
+    n: "03",
+    title: "You receive a guided confirmation",
+    body: "You hear back with the best-fit option, next steps, and booking details needed to secure your first class.",
+  },
+  {
+    n: "04",
+    title: "We help you prepare",
+    body: "You'll know what to wear, when to arrive, and what to expect so your first visit feels stress-free.",
+  },
+  {
+    n: "05",
+    title: "Arrive ready for your first session",
+    body: "Walk in with clarity, confidence, and a format that suits your schedule, goals, and energy.",
+  },
+  {
+    n: "06",
+    title: "Feel the signature finish",
+    body: "Expect expert coaching, boutique energy, and the unmistakable shake that makes the method memorable from class one.",
+  },
+];
+
+function WhatHappensNext() {
+  return (
+    <section className="bg-secondary py-20 lg:py-28">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-2xl mb-14">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
+            Your First Visit
+          </p>
+          <h2 className="font-display text-4xl md:text-6xl leading-[1.05] tracking-tight">
+            What Happens <em className="italic">Next</em>.
+          </h2>
+          <p className="mt-5 text-base text-muted-foreground leading-relaxed">
+            From your first click to your first shake, every step is designed to feel curated,
+            clear, and high-touch.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {NEXT_STEPS.map((step) => (
+            <div key={step.n} className="relative rounded-2xl border border-border bg-card p-6">
+              <span className="font-display text-4xl text-primary-deep leading-none">{step.n}</span>
+              <h3 className="mt-3 font-bold text-lg leading-tight tracking-tight">{step.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{step.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const STUDIOS = [
+  {
+    name: "Kwality House, Kemps Corner",
+    neighborhood: "Grant Road, Mumbai",
+    location: "Kemps Corner",
+    phone: "097696 65757",
+    hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
+    address: "Kwality House, August Kranti Rd, below Kemps Corner, Grant Road, Mumbai 400036",
+  },
+  {
+    name: "Supreme HQ, Bandra",
+    neighborhood: "Bandra West, Mumbai",
+    location: "Bandra West",
+    phone: "097696 65757",
+    hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
+    address: "203, Supreme Headquarters, Junction of 14th & 33rd Rd, opposite Monkey Bar, Bandra West, Mumbai 400050",
+  },
+];
+
+function StudioLocations() {
+  return (
+    <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
+      <div className="max-w-2xl mb-14">
+        <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
+          Studio Locations
+        </p>
+        <h2 className="font-display text-4xl md:text-6xl leading-[1.05] tracking-tight">
+          Choose Your <em className="italic">Studio</em>.
+        </h2>
+        <p className="mt-5 text-base text-muted-foreground leading-relaxed">
+          Each location carries the same Physique 57 method, with its own neighborhood energy and
+          format mix.
+        </p>
+      </div>
+      <div className="grid md:grid-cols-2 gap-6">
+        {STUDIOS.map((studio) => (
+          <div
+            key={studio.name}
+            className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-card)]"
+          >
+            <div className="h-56 w-full bg-secondary">
+              <iframe
+                title={`Map to ${studio.name}`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(studio.address)}&output=embed`}
+                className="h-full w-full border-0 grayscale-[0.2]"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+
+            <div className="p-7">
+            <h3 className="font-display text-2xl tracking-tight">{studio.name}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{studio.neighborhood}</p>
+
+            <dl className="mt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
+                <div>
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    Location
+                  </dt>
+                  <dd className="text-sm">{studio.location}</dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
+                <div>
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    Phone
+                  </dt>
+                  <dd className="text-sm">
+                    <a
+                      href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
+                      className="hover:text-primary-deep transition"
+                    >
+                      {studio.phone}
+                    </a>
+                  </dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
+                <div>
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    Hours
+                  </dt>
+                  <dd className="text-sm">{studio.hours}</dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <FileText className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
+                <div>
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    Address
+                  </dt>
+                  <dd className="text-sm">{studio.address}</dd>
+                </div>
+              </div>
+            </dl>
+
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-foreground px-5 text-xs font-bold uppercase tracking-[0.15em] text-background hover:opacity-90 transition"
+            >
+              Get Directions
+            </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -522,33 +843,33 @@ function SignupCard({
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Takes 60 seconds. No card required.</p>
         </div>
-        <label className="flex shrink-0 items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground cursor-pointer">
+        <label className="flex shrink-0 items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70 cursor-pointer">
           <input
             type="checkbox"
             checked={testMode}
             onChange={(e) => onTestModeChange(e.target.checked)}
-            className="h-3.5 w-3.5 accent-[color:var(--primary)]"
+            className="h-3 w-3 accent-[color:var(--primary)]"
           />
-          Test mode
+          Test
         </label>
       </div>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <Field
-            label="First name"
-            value={form.firstName}
-            onChange={(v) => setForm({ ...form, firstName: v })}
-            required
-          />
-          <Field
-            label="Last name"
-            value={form.lastName}
-            onChange={(v) => setForm({ ...form, lastName: v })}
-            required
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+      <form onSubmit={onSubmit} className="mt-7 space-y-5">
+        <FormStep n={1} title="Your details">
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="First name"
+              value={form.firstName}
+              onChange={(v) => setForm({ ...form, firstName: v })}
+              required
+            />
+            <Field
+              label="Last name"
+              value={form.lastName}
+              onChange={(v) => setForm({ ...form, lastName: v })}
+              required
+            />
+          </div>
           <Field
             label="Email"
             type="email"
@@ -556,7 +877,6 @@ function SignupCard({
             onChange={(v) => setForm({ ...form, email: v })}
             required
           />
-
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
               Mobile number *
@@ -570,7 +890,7 @@ function SignupCard({
                   if (!selected) return;
                   setForm({ ...form, countryIso: selected.iso, countryCode: selected.dial });
                 }}
-                className="h-11 rounded-md border border-input bg-background px-3 text-center text-xl focus:outline-none focus:ring-2 focus:ring-ring min-w-[4.25rem]"
+                className="h-11 rounded-lg border border-input bg-background px-3 text-center text-xl focus:outline-none focus:ring-2 focus:ring-ring min-w-[4.25rem]"
                 aria-label="Country dialing code"
               >
                 {COUNTRY_CODES.map((c) => (
@@ -586,134 +906,134 @@ function SignupCard({
                 value={form.phoneNumber}
                 onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
                 placeholder="98765 43210"
-                className="flex-1 h-11 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="flex-1 h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
-        </div>
+        </FormStep>
 
-        <div>
-          <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-            Preferred studio *
-          </label>
-          <select
-            required
-            className="w-full h-11 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            value={form.homeLocationId}
-            onChange={(e) => {
-              setForm({ ...form, homeLocationId: Number(e.target.value) });
-              onStudioSelectedChange(true);
-            }}
-          >
-            <option value={0} disabled>
-              -- Select studio --
-            </option>
-            {LOCATIONS.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {studioSelected && (
+        <FormStep n={2} title="Studio & class">
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-              Class type *
+              Preferred studio *
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {classTypeOptionsForLocation(form.homeLocationId).map((key) => {
-                const classFormat = classFormatForKey(key);
-                const selected = form.classType === key;
-                const showDescription =
-                  (hoveredClassType === key || descriptionClassType === key) &&
-                  descriptionClassType === key;
-                return (
-                  <div key={key} className="group relative">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, classType: key })}
-                      onMouseEnter={() => startDescriptionDelay(key)}
-                      onMouseLeave={() => hideDescription(key)}
-                      onFocus={() => setDescriptionClassType(key)}
-                      onBlur={() => hideDescription(key)}
-                      aria-pressed={selected}
-                      className={`flex w-full flex-col items-center gap-2 rounded-lg border p-2.5 text-center transition ${
-                        selected
-                          ? "border-primary-deep bg-[#f8f5ff] ring-2 ring-primary-deep"
-                          : "border-input bg-background hover:border-[#c8bef4]"
-                      }`}
-                    >
-                      <img
-                        src={classFormat.image}
-                        alt=""
-                        className="h-24 w-full rounded-md object-cover object-top"
-                      />
-                      <span className="text-xs font-semibold text-foreground">{classFormat.name}</span>
-                    </button>
-
-                    {showDescription && (
-                      <div
-                        role="tooltip"
-                        className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 w-56 -translate-x-1/2 rounded-md border border-border bg-background px-3 py-2 text-left text-[11px] leading-relaxed text-muted-foreground shadow-[var(--shadow-card)]"
-                      >
-                        {classFormat.description}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <select
+              required
+              className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              value={form.homeLocationId}
+              onChange={(e) => {
+                setForm({ ...form, homeLocationId: Number(e.target.value) });
+                onStudioSelectedChange(true);
+              }}
+            >
+              <option value={0} disabled>
+                -- Select studio --
+              </option>
+              {LOCATIONS.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
 
-        <div className="rounded-xl border border-[#cfcfd7] bg-[#fbfbf8] p-4 space-y-4 shadow-[0_18px_50px_-35px_rgb(0_0_0/0.45)]">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-              <FileText className="h-4 w-4" aria-hidden="true" />
-            </div>
+          {studioSelected && (
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground">
-                  Liability waiver & consent agreement
-                </p>
-                <span className="rounded-full border border-[#b9bac3] bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#55535d]">
-                  Required
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Please review and sign before activating Open Barre. This consent is recorded with
-                your Momence member profile.
-              </p>
-            </div>
-          </div>
+              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+                Class type *
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {classTypeOptionsForLocation(form.homeLocationId).map((key) => {
+                  const classFormat = classFormatForKey(key);
+                  const selected = form.classType === key;
+                  const showDescription =
+                    (hoveredClassType === key || descriptionClassType === key) &&
+                    descriptionClassType === key;
+                  return (
+                    <div key={key} className="group relative">
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, classType: key })}
+                        onMouseEnter={() => startDescriptionDelay(key)}
+                        onMouseLeave={() => hideDescription(key)}
+                        onFocus={() => setDescriptionClassType(key)}
+                        onBlur={() => hideDescription(key)}
+                        aria-pressed={selected}
+                        className={`group/card flex w-full flex-col overflow-hidden rounded-xl border text-center transition shadow-sm ${
+                          selected
+                            ? "border-primary-deep bg-[#f8f5ff] ring-2 ring-primary-deep shadow-md"
+                            : "border-input bg-background hover:border-[#c8bef4] hover:shadow-md"
+                        }`}
+                      >
+                        <div className="w-full overflow-hidden">
+                          <img
+                            src={classFormat.image}
+                            alt=""
+                            className="h-36 w-full object-cover object-top transition-transform duration-500 group-hover/card:scale-105"
+                          />
+                        </div>
+                        <span className="px-2 py-2.5 text-xs font-semibold text-foreground">
+                          {classFormat.name}
+                        </span>
+                      </button>
 
-          <div className="rounded-lg border border-[#d8d8df] bg-white p-4 space-y-3">
-            <ConsentLine>
-              I voluntarily participate in Physique 57 India classes and assume all risks of injury.
-            </ConsentLine>
-            <ConsentLine>
-              I confirm I am physically fit to participate, and I release Physique 57 India, its
-              instructors and affiliates from liability arising from my participation.
-            </ConsentLine>
-            <ConsentLine>
-              I consent to receive class-related communications and agree to the{" "}
-              <Link
-                to="/waiver"
-                className="font-semibold text-primary-deep underline underline-offset-2"
-              >
-                Waiver
-              </Link>{" "}
-              and{" "}
-              <Link
-                to="/privacy"
-                className="font-semibold text-primary-deep underline underline-offset-2"
-              >
-                Privacy Policy
-              </Link>
-              .
-            </ConsentLine>
-          </div>
+                      {showDescription && (
+                        <div
+                          role="tooltip"
+                          className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 w-56 -translate-x-1/2 rounded-md border border-border bg-background px-3 py-2 text-left text-[11px] leading-relaxed text-muted-foreground shadow-[var(--shadow-card)]"
+                        >
+                          {classFormat.description}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </FormStep>
+
+        <FormStep n={3} title="Waiver & signature" badge="Required">
+          <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
+            Please review and sign before activating Open Barre. This consent is recorded with
+            your Momence member profile.
+          </p>
+
+          <details className="group/waiver rounded-lg border border-border bg-background open:pb-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3.5 py-2.5 text-xs font-semibold text-foreground">
+              <span>View full waiver details</span>
+              <span className="text-muted-foreground transition group-open/waiver:rotate-180">
+                ▾
+              </span>
+            </summary>
+            <div className="space-y-3 px-3.5">
+              <ConsentLine>
+                I voluntarily participate in Physique 57 India classes and assume all risks of
+                injury.
+              </ConsentLine>
+              <ConsentLine>
+                I confirm I am physically fit to participate, and I release Physique 57 India, its
+                instructors and affiliates from liability arising from my participation.
+              </ConsentLine>
+              <ConsentLine>
+                I consent to receive class-related communications and agree to the{" "}
+                <Link
+                  to="/waiver"
+                  className="font-semibold text-primary-deep underline underline-offset-2"
+                >
+                  Waiver
+                </Link>{" "}
+                and{" "}
+                <Link
+                  to="/privacy"
+                  className="font-semibold text-primary-deep underline underline-offset-2"
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </ConsentLine>
+            </div>
+          </details>
 
           <input
             type="text"
@@ -721,7 +1041,7 @@ function SignupCard({
             value={form.signatureName}
             onChange={(e) => setForm({ ...form, signatureName: e.target.value })}
             placeholder="Type your full legal name"
-            className="w-full h-10 px-3 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full h-10 px-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             aria-label="Full legal name"
           />
           <div onPointerUp={() => onSignChange(!(sigRef.current?.isEmpty() ?? true))}>
@@ -739,7 +1059,7 @@ function SignupCard({
               I have read, signed, and accept the waiver and Physique 57 India's privacy terms.
             </span>
           </label>
-        </div>
+        </FormStep>
 
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded">{error}</p>
@@ -748,11 +1068,42 @@ function SignupCard({
         <button
           type="submit"
           disabled={loading || !valid}
-          className="w-full h-12 rounded-md bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full h-12 rounded-full bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? "Activating membership…" : "Activate Your Trial"}
         </button>
       </form>
+    </div>
+  );
+}
+
+function FormStep({
+  n,
+  title,
+  badge,
+  children,
+}: {
+  n: number;
+  title: string;
+  badge?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-secondary/40 p-4 space-y-3.5">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-deep text-[11px] font-bold text-white">
+          {n}
+        </span>
+        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-foreground">
+          {title}
+        </p>
+        {badge && (
+          <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+            {badge}
+          </span>
+        )}
+      </div>
+      {children}
     </div>
   );
 }

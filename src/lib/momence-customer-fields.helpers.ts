@@ -57,11 +57,14 @@ export function sanitizePhoneNumber(value: string): string {
 
 export function validateCustomerFieldValues(
   values: CustomerFieldValues,
-  { requiresShoeSize }: { requiresShoeSize: boolean },
+  { requiresShoeSize, gender }: { requiresShoeSize: boolean; gender?: string },
 ): CustomerFieldErrors {
   const errors: CustomerFieldErrors = {};
 
+  const isFemale = gender === "Female";
+
   for (const field of ALWAYS_REQUIRED_FIELDS) {
+    if ((field === "pregnancyStatus" || field === "postNatalStatus") && !isFemale) continue;
     if (!trimmed(values[field])) {
       errors[field] = `${CUSTOMER_FIELD_LABELS[field]} is required.`;
     }

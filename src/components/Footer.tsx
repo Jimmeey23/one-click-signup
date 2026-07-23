@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 export function Footer() {
   return (
@@ -8,7 +8,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid md:grid-cols-4 gap-10">
           <div>
-            <img src={logoUrl} alt="Physique 57" className="h-12 w-auto" />
+            <img src={logoUrl} alt="Physique 57" className="h-12 w-auto brightness-0 invert" />
             <p className="mt-4 text-sm text-background/60 max-w-xs leading-relaxed">
               The legendary 57-minute barre-based workout - now in Mumbai.
             </p>

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Star } from "lucide-react";
 
 type Review = {
   name: string;
@@ -46,47 +47,93 @@ const REVIEWS: Review[] = [
   },
 ];
 
+const AVATAR_COLORS = ["#1a73e8", "#d93025", "#f9ab00", "#188038", "#8430ce", "#e37400"];
+
+function avatarColorFor(name: string): string {
+  const sum = [...name].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+}
+
+function initialFor(name: string): string {
+  return name.trim().charAt(0).toUpperCase();
+}
+
+const VISIBLE_DESKTOP = 3;
+// Extra copies of the deck appended so the track always has cards to slide in from the right.
+const TRACK = [...REVIEWS, ...REVIEWS.slice(0, VISIBLE_DESKTOP)];
+
 export function ReviewsCarousel() {
-  const [idx, setIdx] = useState(0);
+  const [step, setStep] = useState(0);
+  const [animated, setAnimated] = useState(true);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % REVIEWS.length), 5000);
+    const t = setInterval(() => setStep((s) => s + 1), 4500);
     return () => clearInterval(t);
   }, []);
 
-  const visible = [0, 1, 2].map((offset) => REVIEWS[(idx + offset) % REVIEWS.length]);
+  function handleTransitionEnd(event: React.TransitionEvent<HTMLDivElement>) {
+    if (event.target !== trackRef.current || event.propertyName !== "transform") return;
+    if (step < REVIEWS.length) return;
+    // Loop seamlessly: jump back to the equivalent frame with no transition, then re-enable it.
+    setAnimated(false);
+    setStep((s) => s % REVIEWS.length);
+    requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
+  }
 
   return (
-    <div className="grid md:grid-cols-3 gap-5">
-      {visible.map((r, i) => (
-        <article
-          key={`${idx}-${i}`}
-          className="bg-card rounded-lg p-6 border border-border shadow-[var(--shadow-card)] animate-fade-in"
-        >
-          <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                Member review
-              </p>
-              {r.meta && <p className="mt-1 text-sm font-semibold text-foreground">{r.meta}</p>}
-            </div>
-            <div className="rounded-md bg-[#fff7df] px-2.5 py-1 text-xs font-bold text-[#9d6b00]">
-              {(r.rating ?? 5).toFixed(1)}
-            </div>
-          </div>
-          <div
-            className="mt-4 text-sm tracking-[0.18em] text-[#d8a016]"
-            aria-label={`${r.rating ?? 5} out of 5 stars`}
+    <div className="overflow-hidden">
+      <div
+        ref={trackRef}
+        onTransitionEnd={handleTransitionEnd}
+        className="flex [--n:1] md:[--n:3]"
+        style={{
+          transform: `translateX(calc(${step} * (-100% / var(--n))))`,
+          transition: animated ? "transform 700ms cubic-bezier(0.65,0,0.35,1)" : "none",
+        }}
+      >
+        {TRACK.map((r, i) => (
+          <article
+            key={i}
+            className="group w-full shrink-0 basis-full px-2 md:basis-1/3"
+            aria-hidden={i < step || i >= step + VISIBLE_DESKTOP}
           >
-            {"★".repeat(r.rating ?? 5)}
-          </div>
-          <p className="mt-3 text-foreground leading-relaxed text-[15px]">"{r.text}"</p>
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
-            <p className="font-bold text-sm">{r.name}</p>
-            <span className="h-1.5 w-10 rounded-full bg-[#d73b2f]" aria-hidden="true" />
-          </div>
-        </article>
-      ))}
+            <div className="h-full rounded-lg border border-[#e8eaed] bg-white p-5 shadow-[0_1px_2px_rgb(60_64_67/0.08)] transition duration-200 hover:shadow-[0_1px_6px_rgb(60_64_67/0.18)]">
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-medium text-white"
+                  style={{ backgroundColor: avatarColorFor(r.name) }}
+                  aria-hidden="true"
+                >
+                  {initialFor(r.name)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-[#202124]">{r.name}</p>
+                  {r.meta && <p className="truncate text-xs text-[#70757a]">{r.meta}</p>}
+                </div>
+              </div>
+
+              <div
+                className="mt-2.5 flex items-center gap-0.5"
+                aria-label={`${r.rating ?? 5} out of 5 stars`}
+              >
+                {Array.from({ length: 5 }).map((_, starIdx) => (
+                  <Star
+                    key={starIdx}
+                    className={`h-3.5 w-3.5 ${
+                      starIdx < (r.rating ?? 5)
+                        ? "fill-[#fbbc04] text-[#fbbc04]"
+                        : "fill-[#e8eaed] text-[#e8eaed]"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <p className="mt-3 text-sm leading-6 text-[#3c4043]">{r.text}</p>
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }

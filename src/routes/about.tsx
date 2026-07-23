@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import group from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
 import trainer from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.jpg";
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 export const Route = createFileRoute("/about")({
   head: () => ({

@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { LegalDocumentArticle } from "@/components/LegalPage";
 import { membershipWaiverDocument, waiverDocument } from "@/lib/legal-content";
 
-const logoUrl = "/Physique57-800x600-1.jpg";
+const logoUrl = "/physique57-logo.png";
 
 export const Route = createFileRoute("/waiver")({
   head: () => ({

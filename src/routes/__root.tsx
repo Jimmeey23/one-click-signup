@@ -78,15 +78,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Physique 57 India - Barre Sign up" },
-      { name: "description", content: "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai." },
+      {
+        name: "description",
+        content:
+          "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai.",
+      },
       { property: "og:title", content: "Physique 57 India - Barre Sign up" },
-      { property: "og:description", content: "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai." },
+      {
+        property: "og:description",
+        content:
+          "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Physique 57 India - Barre Sign up" },
-      { name: "twitter:description", content: "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a668fa8-2615-469d-a5e7-77e96e2c32b8/id-preview-d8de624d--2f4e0b0e-31c3-4143-a84b-4ddac40ad6e2.lovable.app-1780395324402.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a668fa8-2615-469d-a5e7-77e96e2c32b8/id-preview-d8de624d--2f4e0b0e-31c3-4143-a84b-4ddac40ad6e2.lovable.app-1780395324402.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a668fa8-2615-469d-a5e7-77e96e2c32b8/id-preview-d8de624d--2f4e0b0e-31c3-4143-a84b-4ddac40ad6e2.lovable.app-1780395324402.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a668fa8-2615-469d-a5e7-77e96e2c32b8/id-preview-d8de624d--2f4e0b0e-31c3-4143-a84b-4ddac40ad6e2.lovable.app-1780395324402.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -98,6 +118,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
+  scripts: () => [
+    {
+      id: "respondio__growth_tool",
+      src: "https://cdn.respond.io/widget/widget.js?wId=a99c1d5b-93a4-4bc1-b1be-21bea2ece4b3",
+    },
+  ],
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -120,6 +146,32 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const script = document.getElementById("respondio__growth_tool") as HTMLScriptElement | null;
+    console.debug("[debug:respondio] script tag present:", !!script, script?.src);
+    if (!script) {
+      console.error("[debug:respondio] widget script tag missing from DOM");
+      return;
+    }
+    script.addEventListener("error", () => {
+      console.error("[debug:respondio] widget script failed to load (network/blocked/404)");
+    });
+
+    const checkTimer = setTimeout(() => {
+      const mounted = document.querySelector(
+        '[id*="respond" i], [class*="respond" i], iframe[src*="respond.io" i]',
+      );
+      console.debug("[debug:respondio] widget UI element found after 5s:", !!mounted);
+      if (!mounted) {
+        console.warn(
+          "[debug:respondio] script loaded but no widget UI detected - check the wId is active and this domain is allow-listed in the respond.io Growth Tool settings",
+        );
+      }
+    }, 5000);
+
+    return () => clearTimeout(checkTimer);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

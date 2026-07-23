@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
-import { buildMembershipCheckoutRequest, OPEN_BARRE_MEMBERSHIP_ID } from "./momence-booking.helpers";
+import {
+  buildMembershipCheckoutRequest,
+  OPEN_BARRE_MEMBERSHIP_ID,
+} from "./momence-booking.helpers";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
@@ -63,6 +66,172 @@ const LeadAndOpenBarreInput = z.object({
   landingPage: z.string().max(500).optional(),
 });
 
+type RespondAttempt = {
+  path: string;
+  method?: "POST" | "PUT";
+  body: Record<string, unknown>;
+};
+
+async function callRespondIo(
+  baseUrl: string,
+  apiKey: string,
+  attempt: RespondAttempt,
+): Promise<{ ok: boolean; status: number; data: unknown; text: string }> {
+  const response = await fetch(`${baseUrl}${attempt.path}`, {
+    method: attempt.method ?? "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "X-API-KEY": apiKey,
+    },
+    body: JSON.stringify(attempt.body),
+  });
+
+  const text = await response.text();
+  let data: unknown = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    data,
+    text,
+  };
+}
+
+function readContactId(value: unknown): string | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+
+  const direct = record.id ?? record.contactId;
+  if (typeof direct === "string" || typeof direct === "number") return String(direct);
+
+  const contact = record.contact;
+  if (contact && typeof contact === "object") {
+    const nested = (contact as Record<string, unknown>).id;
+    if (typeof nested === "string" || typeof nested === "number") return String(nested);
+  }
+
+  const data = record.data;
+  if (data && typeof data === "object") {
+    const nested = (data as Record<string, unknown>).id;
+    if (typeof nested === "string" || typeof nested === "number") return String(nested);
+  }
+
+  return null;
+}
+
+async function syncRespondIoContactAndConversation(payload: LeadCapturePayload): Promise<void> {
+  const apiKey = process.env.RESPONDIO_API_KEY?.trim();
+  if (!apiKey) {
+    console.warn("RESPONDIO_API_KEY not set - skipping Respond.io contact sync");
+    return;
+  }
+
+  const baseUrl = (process.env.RESPONDIO_BASE_URL?.trim() || "https://api.respond.io/v2").replace(
+    /\/$/,
+    "",
+  );
+  const channelId = process.env.RESPONDIO_CHANNEL_ID?.trim();
+
+  const contactAttempts: RespondAttempt[] = [
+    {
+      path: "/contact",
+      body: {
+        name: `${payload.firstName} ${payload.lastName}`.trim(),
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+        phone: payload.phoneE164,
+        phoneNumber: payload.phoneE164,
+        type: "phone",
+      },
+    },
+    {
+      path: "/contact/phone",
+      body: {
+        name: `${payload.firstName} ${payload.lastName}`.trim(),
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+        phone: payload.phoneE164,
+        phoneNumber: payload.phoneE164,
+        type: "phone",
+      },
+    },
+  ];
+
+  let contactId: string | null = null;
+  let lastContactError = "";
+
+  for (const attempt of contactAttempts) {
+    try {
+      const response = await callRespondIo(baseUrl, apiKey, attempt);
+      if (response.ok) {
+        contactId = readContactId(response.data);
+        if (contactId) break;
+      } else {
+        lastContactError = `${attempt.path} -> ${response.status} ${response.text}`;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+      lastContactError = `${attempt.path} -> ${message}`;
+    }
+  }
+
+  if (!contactId) {
+    console.error("Respond.io contact creation failed", lastContactError);
+    return;
+  }
+
+  const conversationAttempts: RespondAttempt[] = [
+    {
+      path: "/conversation",
+      body: {
+        contactId,
+        ...(channelId ? { channelId: Number(channelId) } : {}),
+      },
+    },
+    {
+      path: `/contact/${contactId}/conversation`,
+      body: {
+        ...(channelId ? { channelId: Number(channelId) } : {}),
+      },
+    },
+    {
+      path: `/contact/${contactId}/openConversation`,
+      body: {
+        ...(channelId ? { channelId: Number(channelId) } : {}),
+      },
+    },
+  ];
+
+  let conversationOpened = false;
+  let lastConversationError = "";
+
+  for (const attempt of conversationAttempts) {
+    try {
+      const response = await callRespondIo(baseUrl, apiKey, attempt);
+      if (response.ok) {
+        conversationOpened = true;
+        break;
+      }
+      lastConversationError = `${attempt.path} -> ${response.status} ${response.text}`;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+      lastConversationError = `${attempt.path} -> ${message}`;
+    }
+  }
+
+  if (!conversationOpened) {
+    console.error("Respond.io conversation open failed", lastConversationError);
+  }
+}
+
 async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
   const token = process.env.MOMENCE_API_TOKEN;
   if (!token) {
@@ -103,6 +272,15 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       return { ok: false, error: `Lead capture ${res.status}` };
     }
 
+    try {
+      await syncRespondIoContactAndConversation(payload);
+    } catch (respondError) {
+      console.error(
+        "Respond.io sync failed",
+        respondError instanceof Error ? respondError.message : respondError,
+      );
+    }
+
     const additionalWebhookUrl = process.env.MOMENCE_LEADS_WEBHOOK_URL?.trim();
     if (additionalWebhookUrl) {
       try {
@@ -112,9 +290,6 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
           body: JSON.stringify(leadBody),
         });
 
-
-      await syncRespondIoContactAndConversation(payload);
-
         if (!webhookRes.ok) {
           const body = await webhookRes.text();
           console.error("Additional Momence leads webhook failed:", webhookRes.status, body);
@@ -122,172 +297,6 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       } catch (webhookError) {
         const webhookMsg =
           webhookError instanceof Error ? webhookError.message : "Additional webhook failed";
-
-  type RespondAttempt = {
-    path: string;
-    method?: "POST" | "PUT";
-    body: Record<string, unknown>;
-  };
-
-  async function callRespondIo(
-    baseUrl: string,
-    apiKey: string,
-    attempt: RespondAttempt,
-  ): Promise<{ ok: boolean; status: number; data: unknown; text: string }> {
-    const response = await fetch(`${baseUrl}${attempt.path}`, {
-      method: attempt.method ?? "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "X-API-KEY": apiKey,
-      },
-      body: JSON.stringify(attempt.body),
-    });
-
-    const text = await response.text();
-    let data: unknown = null;
-    try {
-      data = text ? JSON.parse(text) : null;
-    } catch {
-      data = null;
-    }
-
-    return {
-      ok: response.ok,
-      status: response.status,
-      data,
-      text,
-    };
-  }
-
-  function readContactId(value: unknown): string | null {
-    if (!value || typeof value !== "object") return null;
-    const record = value as Record<string, unknown>;
-
-    const direct = record.id ?? record.contactId;
-    if (typeof direct === "string" || typeof direct === "number") return String(direct);
-
-    const contact = record.contact;
-    if (contact && typeof contact === "object") {
-      const nested = (contact as Record<string, unknown>).id;
-      if (typeof nested === "string" || typeof nested === "number") return String(nested);
-    }
-
-    const data = record.data;
-    if (data && typeof data === "object") {
-      const nested = (data as Record<string, unknown>).id;
-      if (typeof nested === "string" || typeof nested === "number") return String(nested);
-    }
-
-    return null;
-  }
-
-  async function syncRespondIoContactAndConversation(payload: LeadCapturePayload): Promise<void> {
-    const apiKey = process.env.RESPONDIO_API_KEY?.trim();
-    if (!apiKey) {
-      console.warn("RESPONDIO_API_KEY not set - skipping Respond.io contact sync");
-      return;
-    }
-
-    const baseUrl = (process.env.RESPONDIO_BASE_URL?.trim() || "https://api.respond.io/v2").replace(
-      /\/$/,
-      "",
-    );
-    const channelId = process.env.RESPONDIO_CHANNEL_ID?.trim();
-
-    const contactAttempts: RespondAttempt[] = [
-      {
-        path: "/contact",
-        body: {
-          name: `${payload.firstName} ${payload.lastName}`.trim(),
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          email: payload.email,
-          phone: payload.phoneE164,
-          phoneNumber: payload.phoneE164,
-          type: "phone",
-        },
-      },
-      {
-        path: "/contact/phone",
-        body: {
-          name: `${payload.firstName} ${payload.lastName}`.trim(),
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          email: payload.email,
-          phone: payload.phoneE164,
-          phoneNumber: payload.phoneE164,
-          type: "phone",
-        },
-      },
-    ];
-
-    let contactId: string | null = null;
-    let lastContactError = "";
-
-    for (const attempt of contactAttempts) {
-      try {
-        const response = await callRespondIo(baseUrl, apiKey, attempt);
-        if (response.ok) {
-          contactId = readContactId(response.data);
-          if (contactId) break;
-        } else {
-          lastContactError = `${attempt.path} -> ${response.status} ${response.text}`;
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown Respond.io error";
-        lastContactError = `${attempt.path} -> ${message}`;
-      }
-    }
-
-    if (!contactId) {
-      console.error("Respond.io contact creation failed", lastContactError);
-      return;
-    }
-
-    const conversationAttempts: RespondAttempt[] = [
-      {
-        path: "/conversation",
-        body: {
-          contactId,
-          ...(channelId ? { channelId: Number(channelId) } : {}),
-        },
-      },
-      {
-        path: `/contact/${contactId}/conversation`,
-        body: {
-          ...(channelId ? { channelId: Number(channelId) } : {}),
-        },
-      },
-      {
-        path: `/contact/${contactId}/openConversation`,
-        body: {
-          ...(channelId ? { channelId: Number(channelId) } : {}),
-        },
-      },
-    ];
-
-    let conversationOpened = false;
-    let lastConversationError = "";
-
-    for (const attempt of conversationAttempts) {
-      try {
-        const response = await callRespondIo(baseUrl, apiKey, attempt);
-        if (response.ok) {
-          conversationOpened = true;
-          break;
-        }
-        lastConversationError = `${attempt.path} -> ${response.status} ${response.text}`;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown Respond.io error";
-        lastConversationError = `${attempt.path} -> ${message}`;
-      }
-    }
-
-    if (!conversationOpened) {
-      console.error("Respond.io conversation open failed", lastConversationError);
-    }
-  }
         console.error(webhookMsg);
       }
     }
