@@ -160,18 +160,29 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
     },
   ];
 
+  // A freshly created contact is indexed asynchronously on respond.io's side; calls made
+  // immediately after creation can hit their queue and return 449 until indexing finishes.
+  const RETRY_DELAYS_MS = [1500, 3000, 5000];
+
   for (const attempt of followUps) {
-    try {
-      const response = await callRespondIo(baseUrl, apiKey, attempt);
-      if (!response.ok) {
+    for (let retry = 0; ; retry++) {
+      try {
+        const response = await callRespondIo(baseUrl, apiKey, attempt);
+        if (response.ok) break;
+        if (response.status === 449 && retry < RETRY_DELAYS_MS.length) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[retry]));
+          continue;
+        }
         console.error(
           `Respond.io ${attempt.path} failed`,
           `${response.status} ${response.text}`,
         );
+        break;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+        console.error(`Respond.io ${attempt.path} failed`, message);
+        break;
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown Respond.io error";
-      console.error(`Respond.io ${attempt.path} failed`, message);
     }
   }
 }
