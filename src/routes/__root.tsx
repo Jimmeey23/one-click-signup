@@ -118,12 +118,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
-  scripts: () => [
-    {
-      id: "respondio__growth_tool",
-      src: "https://cdn.respond.io/widget/widget.js?wId=a99c1d5b-93a4-4bc1-b1be-21bea2ece4b3",
-    },
-  ],
+  scripts: () => {
+    const scripts: Array<React.JSX.IntrinsicElements["script"]> = [
+      {
+        id: "respondio__growth_tool",
+        src: "https://cdn.respond.io/widget/widget.js?wId=a99c1d5b-93a4-4bc1-b1be-21bea2ece4b3",
+      },
+    ];
+
+    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+    if (gaId) {
+      scripts.push({ src: `https://www.googletagmanager.com/gtag/js?id=${gaId}`, async: true });
+      scripts.push({
+        id: "ga4-init",
+        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`,
+      });
+    }
+
+    const pixelId = import.meta.env.VITE_META_PIXEL_ID;
+    if (pixelId) {
+      scripts.push({
+        id: "meta-pixel-init",
+        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixelId}');fbq('track','PageView');`,
+      });
+    }
+
+    return scripts;
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

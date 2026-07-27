@@ -1,0 +1,205 @@
+product_id,name,type,date_utc,description,statement_descriptor,unit_label,url,tax_code,city_metadata,product_type_metadata,category_metadata,mum_tax_rate_percent_metadata,blr_price_metadata,blr_duration_unit_metadata,mum_price_metadata,mum_pre_tax_price_metadata,mum_number_of_events_metadata,blr_duration_metadata,blr_number_of_events_metadata,mum_type_metadata,blr_pre_tax_price_metadata,blr_valid_for_metadata,mum_duration_metadata,blr_type_metadata,mum_duration_unit_metadata,mum_valid_for_metadata,name_mum_metadata,blr_membership_id_metadata,mum_city_from_host_id_metadata,mum_host_id_metadata,blr_city_from_host_id_metadata,normalized_name_metadata,blr_host_id_metadata,name_blr_metadata,mum_membership_id_metadata,source_metadata,offering_id_metadata,partner_id_metadata
+prod_Ug1gfLhcnNMQ7a,Studio hosted class @ 20% disc,service,2026-06-10 06:28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UduvboNkFXZosB,Studio 1 Month Unlimited,service,2026-06-04 15:21,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UYY06HmYsF4QoX,Studio Hosted Class x 2,service,2026-05-21 07:20,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UPyv1FqKQPZrcx,Studio 1 Month unlimited x 2,service,2026-04-28 10:34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UL5FBCoPnQl30u,Custom,service,2026-04-15 08:45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UKNMBJJYdv4p5L,Studio 3 Month U/L - Anniversary LP,service,2026-04-13 11:24,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UIULHXwaI42Dn6,The Studio Big Flex,service,2026-04-08 10:30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_UAdIir3uiYbHI2,Studio 40 Single Private Class Packge,service,2026-03-18 11:13,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_U7cZELRmLCFJae,Studio Hosted Class + Office Space,service,2026-03-10 10:15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_U0RbuaYkg2TLKd,Studio Private Class,service,2026-02-19 06:28,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+prod_Ty8ffwgFwYfTEv,Test,service,2026-02-13 02:45,,,,,,,,,5%,,,1,,,,,,,,,,,,,,,13752,,,,,675444,,,
+prod_TtKnAWKs5OW1qD,Studio 57 Class Package,service,2026-01-31 06:57,"Whether you're a fitness enthusiast or just starting out, Physique 57's 12 Class Package is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this package cannot be shared between members.",,,,,,,,,,,99750,99750,,,,subscription,,,180,,days,180 days,,,Mumbai,13752,,studio 57 class package,,,634608,momence,,
+prod_TtKnO0QkvvIi31,1 Freeze Attempt,service,2026-01-31 06:57,,,,,,,,,,,,1000,1000,,,,subscription,,,7,,days,7 days,,,Mumbai,13752,,1 freeze attempt,,,602418,momence,,
+prod_TtKnsviOHfmktM,Owner's Special - 2 for 1,service,2026-01-31 06:57,"Owner's Special: Purchase 2 classes at the price of 1
+Additionally, a special owner's F&F discount of 25% will be applied to your next Studio Group purchase ONLY. This discount will not be applicable on Private Classes.",,,,,,,,,,,1500,1500,2,,,package-events,,,7,,days,7 days,,,Mumbai,13752,,owner s special 2 for 1,,,500399,momence,,
+prod_TtKnvNkNnCYuwu,Strength Lab 2 week Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,8500,8500,20,,,package-events,,,14,,days,14 days,,,Mumbai,13752,,strength lab 2 week unlimited,,,495716,momence,,
+prod_TtKnSqKe0NRfJc,powerCycle 2 week Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,8500,8500,20,,,package-events,,,14,,days,14 days,,,Mumbai,13752,,powercycle 2 week unlimited,,,495715,momence,,
+prod_TtKnAxWzqyYAGM,Barre 2 week Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,8500,8500,20,,,package-events,,,14,,days,14 days,,,Mumbai,13752,,barre 2 week unlimited,,,495714,momence,,
+prod_TtKnwsJ8xWxIHA,Strength Lab Annual Membership,service,2026-01-31 06:57,,,,,,,,,,,,165000,165000,,,,subscription,,,365,,days,365 days,,,Mumbai,13752,,strength lab annual,,,495708,momence,,
+prod_TtKmiTL9usPTgU,powerCycle Annual Membership,service,2026-01-31 06:57,,,,,,,,,,,,165000,165000,,,,subscription,,,365,,days,365 days,,,Mumbai,13752,,powercycle annual,,,495707,momence,,
+prod_TtKmUKCmYSWZel,Barre Annual Membership,service,2026-01-31 06:57,,,,,,,,,,,,165000,165000,,,,subscription,,,365,,days,365 days,,,Mumbai,13752,,barre annual,,,495706,momence,,
+prod_TtKmVOsBAV0UBf,Strength Lab 6 months Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,85500,85500,,,,subscription,,,180,,days,180 days,,,Mumbai,13752,,strength lab 6 months unlimited,,,495705,momence,,
+prod_TtKmhkiPtdK01A,powerCycle 6 months Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,85500,85500,,,,subscription,,,180,,days,180 days,,,Mumbai,13752,,powercycle 6 months unlimited,,,495704,momence,,
+prod_TtKmvYRsTFSUc8,Barre 6 month Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,85500,85500,,,,subscription,,,180,,days,180 days,,,Mumbai,13752,,barre 6 month unlimited,,,495703,momence,,
+prod_TtKmd8BTHk2IVU,Strength Lab 3 months Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,15250,15250,,,,subscription,,,90,,days,90 days,,,Mumbai,13752,,strength lab 3 months unlimited,,,495702,momence,,
+prod_TtKmZWrSCCNVd8,powerCycle 3 months Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,43500,43500,,,,subscription,,,90,,days,90 days,,,Mumbai,13752,,powercycle 3 months unlimited,,,495701,momence,,
+prod_TtKmljwGDLqMyk,Barre 3 months Unlimited,service,2026-01-31 06:57,,,,,,,,,,,,43500,43500,,,,subscription,,,90,,days,90 days,,,Mumbai,13752,,barre 3 months unlimited,,,495700,momence,,
+prod_TtKm0vufRDCkd8,Strength Lab 1 month Unlimited,service,2026-01-31 06:57,"Whether you're a fitness enthusiast or just starting out, Physique 57's 1 Month Strength Lab Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+NOTE : This membership gives you unlimited access to all Physique 57's Strength Lab classes & does not include either powerCycle or Barre based classes. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,,,15250,15250,,,,subscription,,,30,,days,30 days,,,Mumbai,13752,,strength lab 1 month unlimited,,,495697,momence,,
+prod_TtKmWOZSBVvode,powerCycle 1 month Unlimited,service,2026-01-31 06:57,"Whether you're a fitness enthusiast or just starting out, Physique 57's 1 Month powerCycle Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+NOTE : This membership gives you unlimited access to all Physique 57's powerCycle based classes & does not include either Barre or Strength Lab classes. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,,,15250,15250,,,,subscription,,,30,,days,30 days,,,Mumbai,13752,,powercycle 1 month unlimited,,,495696,momence,,
+prod_TtKm0wAOn5CH3Q,Barre 1 month Unlimited,service,2026-01-31 06:57,"Whether you're a fitness enthusiast or just starting out, Physique 57's 1 Month Barre Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+NOTE : This membership gives you unlimited access to all Physique 57's barre based classes & does not include either powerCycle or Strength Lab classes. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,,,15250,15250,,,,subscription,,,30,,days,30 days,,,Mumbai,13752,,barre 1 month unlimited,,,495695,momence,,
+prod_TtKmv6UIIvE0EB,Virtual Privates - Anisha x 10,service,2026-01-31 06:57,,,,,,,,,,,,54000,54000,10,,,package-events,,,500,,days,500 days,,,Mumbai,13752,,virtual privates anisha x 10,,,467481,momence,,
+prod_TtKmX1VhEEOF5V,Virtual Private - Anisha,service,2026-01-31 06:57,,,,,,,,,,,,5400,5400,1,,,package-events,,,7,,days,7 days,,,Mumbai,13752,,virtual private anisha,,,467480,momence,,
+prod_TtKmp5s74lTAGC,Studio Privates - Anisha x 10,service,2026-01-31 06:57,,,,,,,,,,,,59500,59500,10,,,package-events,,,70,,days,70 days,,,Mumbai,13752,,studio privates anisha x 10,,,423239,momence,,
+prod_TtKmYcZ1Dg2mD8,Studio Private - Anisha (Single Class),service,2026-01-31 06:57,,,,,,,,,,,,5950,5950,1,,,package-events,,,7,,days,7 days,,,Mumbai,13752,,studio private anisha single class,,,423238,momence,,
+prod_TtKmL7axUvNLYZ,Studio Extended 10 Single Class Pack,service,2026-01-31 06:57,,,,,,,,,,,,15000,15000,,,,subscription,,,90,,days,90 days,,,Mumbai,13752,,studio extended 10 single class pack,,,395212,momence,,
+prod_TtKmxJjnNEIO75,Newcomers 2 For 1,service,2026-01-31 06:57,"Whether you're a fitness enthusiast or just starting out, Physique 57's Newcomers 2 for 1  is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancellations and results in loss of your credit.
+
+This membership can be purchased ONLY once, is non refundable & cannot be shared between members.",,,,,,,,,,,1750,1750,2,,,package-events,,,14,,days,14 days,,,Mumbai,13752,,newcomers 2 for 1,,,240932,momence,,
+prod_TtKmLg6mNyIyIq,Virtual Private Class X 10,service,2026-01-31 06:57,,,,,,,,,,,,45000,45000,10,,,package-events,,,70,,days,70 days,,,Mumbai,13752,,virtual private class x 10,,,149879,momence,,
+prod_TtKmS22b3K4A6w,Studio Annual Membership - Monthly Intsallment,service,2026-01-31 06:57,,,,,,,,,,,,13750,13750,,,,subscription,,,30,,days,30 days,,,Mumbai,13752,,studio annual monthly intsallment,,,144454,momence,,
+prod_TtKmEgLxFIa95U,Studio Private Class X 10,service,2026-01-31 06:57,,,,,,,,,,,,50000,50000,10,,,package-events,,,70,,days,70 days,,,Mumbai,13752,,studio private class x 10,,,121839,momence,,
+prod_TtKmZhtdKoZUs0,Studio 3 Month U/L Monthly Installment,service,2026-01-31 06:57,3 months unlimited classes,,,,,,,,,,,14500,14500,,,,subscription,,,30,,days,30 days,,,Mumbai,13752,,studio 3 month u l monthly installment,,,116641,momence,,
+prod_TtKmpXQvoCwvA1,Studio Happy Hour Private,service,2026-01-31 06:57,,,,,,,,,,,,3000,3000,1,,,package-events,,,,,days,,,,Mumbai,13752,,studio happy hour private,,,98500,momence,,
+prod_TtKmnRjWdAOYSr,Virtual Private Class,service,2026-01-31 06:57,,,,,,,,,,,,4500,4500,1,,,package-events,,,,,days,,,,Mumbai,13752,,virtual private class,,,97977,momence,,
+prod_TtKm27zXS1FJxN,Festive 5 Package,service,2026-01-31 06:57,,,,,,,,,,4450,days,,,,14,5,,4450,14 days,,package-events,,,,597491,,,Bengaluru,festive 5 package,33905,,,momence,,
+prod_TtKmKzZTkpf3WW,Anniversary Starter Pack,service,2026-01-31 06:57,"Whether you're a fitness enthusiast or just starting out, Physique 57's Anniversary Starter Pack - 12 Class Package + 2 complimentary classes, is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit. FREEZE POLICY : Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,12500,days,,,,45,,,12500,45 days,,subscription,,,,563318,,,Bengaluru,anniversary starter pack,33905,,,momence,,
+prod_TtKms0VBhssjN9,Copper + Cloves 10 Class Pack,service,2026-01-31 06:57,"Introducing our Copper + Cloves 10 Class Package – a unique offering tailored to provide our members with unparalleled flexibility. This package extends the validity to a generous 90 days, empowering members to complete their 10 classes at their own pace. 
+
+Please note - this package is only useable at the Studio by Copper + Cloves.
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit. VALIDITY: This package is valid for90 days.",,,,,,,,,8100,days,,,,90,,,8100,90 days,,subscription,,,,555182,,,Bengaluru,copper cloves 10 class pack,33905,,,momence,,
+prod_TtKmtqX26o1J4G,Copper + Cloves Credit,service,2026-01-31 06:57,,,,,,,,,,450,days,,,,7,1,,450,7 days,,package-events,,,,548529,,,Bengaluru,copper cloves credit,33905,,,momence,,
+prod_TtKmQ56bRI9NVI,Copper + Cloves Single Class Package,service,2026-01-31 06:57,"Copper + Cloves Single Class Package will give you access to any 1 of our classes at the Studio by Copper + Cloves, Indiranagar. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit. VALIDITY: This package is valid for 7 days only.",,,,,,,,,900,days,,,,7,1,,900,7 days,,package-events,,,,548528,,,Bengaluru,copper cloves single class package,33905,,,momence,,
+prod_TtKmhztBfXgQaK,Studio 4 Private Class Package,service,2026-01-31 06:57,,,,,,,,,,11000,days,,,,30,,,11000,30 days,,subscription,,,,523700,,,Bengaluru,studio 4 private class package,33905,,,momence,,
+prod_TtKmpIqzs4sADl,6 Private Classes & 2 Studio Single Classes,service,2026-01-31 06:56,"Whether you’re just starting out or looking to take your training to the next level, our 6 Private Classes + 2 Studio Classes Membership gives you the best of both worlds. Enjoy personalised attention in private sessions tailored to your goals, while also experiencing the energy and motivation of our studio community. With expert guidance and a supportive environment, you’ll stay consistent, confident and on track to achieve lasting results.
+
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.",,,,,,,,,25950,days,,,,30,,,25950,30 days,,subscription,,,,498632,,,Bengaluru,6 private classes 2 studio single classes,33905,,,momence,,
+prod_TtKm87FKvsbqnn,Newcomer 8 Class Package,service,2026-01-31 06:56,"Whether you're a fitness enthusiast or just starting out, Physique 57's Newcomer 8 Class Package is the perfect way to achieve the results you've been dreaming of with a validity period of 60 days! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.",,,,,,,,,8300,days,,,,60,,,8300,60 days,,subscription,,,,426901,,,Bengaluru,newcomer 8 class package,33905,,,momence,,
+prod_TtKm4mSBzVQGnK,Kickstarter Pack - 5 classes in 10 days,service,2026-01-31 06:56,The ideal newcomer package with 5 credits to be completed in 10 days!,,,,,,,,,4900,days,,,,10,5,,4900,10 days,,package-events,,,,426898,,,Bengaluru,kickstarter pack 5 classes in 10 days,33905,,,momence,,
+prod_TtKmoDsPHOaDuB,Summer Bootcamp - Studio 6 Week Unlimited,service,2026-01-31 06:56,"Summer Bootcamp is a 6-week program built to sculpt, strengthen and completely transform how you feel — inside and out. Here’s what you’ll receive:
+
+•⁠  ⁠Workout plan tailored to your goals
+•⁠  ⁠Nutrition guide crafted by our in-house expert
+•⁠  ⁠Access to our instructors & expert for any questions
+•⁠  ⁠Bi-weekly video check-ins to track your progress
+•⁠  ⁠Recovery strategies, delicious recipes, and exclusive weekly workshops
+
+It’s everything you need to stay consistent, motivated and supported - plus the extra push we all need sometimes. 
+
+FREEZE POLICY : Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,22000,days,30000,30000,,42,,subscription,22000,42 days,42,subscription,days,42 days,,415305,Mumbai,13752,Bengaluru,summer bootcamp studio 6 week unlimited,33905,,415299,momence,,
+prod_TtKmeqRuntt4gP,New Studio 10 Single Class Pack,service,2026-01-31 06:56,"Introducing our NEW Studio 10 Class Package – a unique offering tailored to provide our members with unparalleled flexibility. This exclusive package extends the validity to a generous 90 days, empowering members to complete their 10 classes at their own pace. With an emphasis on accommodating diverse schedules, this package is designed to meet the needs of those seeking a more flexible and personalized fitness journey. Embrace the freedom to enjoy your classes at a comfortable rhythm over an extended period, making fitness more accessible and convenient than ever before",,,,,,,,,12000,days,,,,90,,,12000,90 days,,subscription,,,,395193,,,Bengaluru,new studio 10 single class pack,33905,,,momence,,
+prod_TtKmohhbz6Xls3,Studio Newcomer 2 for 1,service,2026-01-31 06:56,,,,,,,,,,1350,days,,,,7,2,,1350,7 days,,package-events,,,,302239,,,Bengaluru,studio newcomer 2 for 1,33905,,,momence,,
+prod_TtKmhq3OENO0nd,Studio 30 Private Class Package,service,2026-01-31 06:56,,,,,,,,,,117750,days,,,,210,,,117750,210 days,,subscription,,,,237643,,,Bengaluru,studio 30 private class package,33905,,,momence,,
+prod_TtKmvSUROgNQmB,Studio Private Class,service,2026-01-31 06:56,,,,,,,,,18,3925,days,5000,5000,1,7,1,package-events,3925,7 days,7,package-events,days,7 days,,173094,Mumbai,13752,Bengaluru,studio private class,33905,,65342,momence,,
+prod_TtKm6u4yora5cm,Studio 30 Single Class Pack,service,2026-01-31 06:56,"Introducing our Studio 30 Class Package – a unique offering tailored to provide our members with unparalleled flexibility. This exclusive package extends the validity to a generous 140 days, empowering members to complete their 30 classes at their own pace. With an emphasis on accommodating diverse schedules, this package is designed to meet the needs of those seeking a more flexible and personalized fitness journey. Embrace the freedom to enjoy your classes at a comfortable rhythm over an extended period, making fitness more accessible and convenient than ever before.
+
+FREEZE POLICY : 
+Clients are allowed 3 freezes within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,36000,days,45000,45000,,140,,subscription,36000,140 days,140,subscription,days,140 days,,159882,Mumbai,13752,Bengaluru,studio 30 single class pack,33905,,98515,momence,,
+prod_TtKmLathZc0p0T,Studio 10 Single Class Pack,service,2026-01-31 06:56,"Introducing our Studio 10 Class Package – a unique offering tailored to provide our members with unparalleled flexibility. This exclusive package extends the validity to a generous 70 days, empowering members to complete their 10 classes at their own pace. With an emphasis on accommodating diverse schedules, this package is designed to meet the needs of those seeking a more flexible and personalized fitness journey. Embrace the freedom to enjoy your classes at a comfortable rhythm over an extended period, making fitness more accessible and convenient than ever before.
+
+FREEZE POLICY : 
+Clients are allowed 2 freezes within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,12000,days,15000,15000,,70,,subscription,12000,70 days,70,subscription,days,70 days,,159880,Mumbai,13752,Bengaluru,studio 10 single class pack,33905,,98513,momence,,
+prod_TtKmoYYCKSzqE8,Studio 20 Single Class Pack,service,2026-01-31 06:56,"Introducing our Studio 20 Class Package – a unique offering tailored to provide our members with unparalleled flexibility. This exclusive package extends the validity to a generous 105 days, empowering members to complete their 20 classes at their own pace. With an emphasis on accommodating diverse schedules, this package is designed to meet the needs of those seeking a more flexible and personalized fitness journey. Embrace the freedom to enjoy your classes at a comfortable rhythm over an extended period, making fitness more accessible and convenient than ever before.
+
+FREEZE POLICY : 
+Clients are allowed 3 freezes within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,24000,days,30000,30000,,105,,subscription,24000,105 days,105,subscription,days,105 days,,159883,Mumbai,13752,Bengaluru,studio 20 single class pack,33905,,98510,momence,,
+prod_TtKmeTVGmVWHWU,test,service,2026-01-31 06:56,,,,,,,,,,10000,days,,,,60,,,10000,60 days,,subscription,,,,393946,,,Bengaluru,test,33905,,,momence,,
+prod_TtKmQ89hEpNQ4U,Hosted Class 2 Week Unlimited Membership,service,2026-01-31 06:56,,,,,,,,,,7200,days,,,,14,999,,7200,14 days,,package-events,,,,111543,,,Bengaluru,hosted class 2 week unlimited,33905,,,momence,,
+prod_TtKmCHzFDfy9Ro,Studio 12 Class Package,service,2026-01-31 06:56,"Whether you're a fitness enthusiast or just starting out, Physique 57's 12 Class Package is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this package cannot be shared between members.",,,,,,,,,12500,days,15050,15050,,45,,subscription,12500,45 days,45,subscription,days,45 days,,111538,Mumbai,13752,Bengaluru,studio 12 class package,33905,,97885,momence,,
+prod_TtKj3aq4Q11yG9,Studio 8 Class Package,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's 8 Class Package is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this package cannot be shared between members.",,,,,,,,,8300,months,10200,10200,,1,,subscription,8300,1 months,30,subscription,days,30 days,,111537,Mumbai,13752,Bengaluru,studio 8 class package,33905,,97883,momence,,
+prod_TtKjW2TTtggXIs,Studio 6 Month Unlimited Membership,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's 6 Month Unlimited Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 6 freezes within this package. Each Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,78300,months,99750,99750,,6,,subscription,78300,6 months,6,subscription,months,6 months,,111536,Mumbai,13752,Bengaluru,studio 6 month unlimited,33905,,97972,momence,,
+prod_TtKjAVPN5crxLD,Studio Annual Unlimited Membership,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's Annual Unlimited Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. Plus, Annual Members have a variety of perks added to their membership: 
+
+2 free private classes,
+One on One trainer catch ups (once every quarter to discuss progress),
+10% discount on all retail products,
+3 guest passes,
+Free workshop access & Priority booking for workshops.
+
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 12 freezes within this package. Each Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57bengaluru.com in advance of the freeze start date.",,,,,,,,,148800,years,192500,192500,,1,,subscription,148800,1 years,12,subscription,months,12 months,,111535,Mumbai,13752,Bengaluru,studio annual unlimited,33905,,69067,momence,,
+prod_TtKjB365h8xw7T,Studio 3 Month Unlimited Membership,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's 3 Month Unlimited Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 3 freezes within this package. Each Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,40200,months,50750,50750,,3,,subscription,40200,3 months,3,subscription,months,3 months,,111534,Mumbai,13752,Bengaluru,studio 3 month unlimited,33905,,69065,momence,,
+prod_TtKjS5HrTvbrSN,Studio 1 Month Unlimited Membership,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's 1 Month Unlimited Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+Clients are allowed 1 freeze within this package. Freeze Duration can range from 1-30 days. To request a freeze, clients must email info@physique57india.com in advance of the freeze start date. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,13900,months,17750,17750,,1,,subscription,13900,1 months,1,subscription,months,1 months,,111533,Mumbai,13752,Bengaluru,studio 1 month unlimited,33905,,69064,momence,,
+prod_TtKjUQPw3866Ic,Studio 2 Week Unlimited,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's 2 Week Unlimited Membership is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+This package does not include any freezes. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,7200,days,9916.5,9916.5,999,14,999,package-events,7200,14 days,14,package-events,days,14 days,,111532,Mumbai,13752,Bengaluru,studio 2 week unlimited,33905,,27849,momence,,
+prod_TtKjgfq2T8uTHd,Studio Newcomers 2 Week Unlimited Membership,service,2026-01-31 06:53,,,,,,,,,,5750,days,7500,7500,999,14,999,package-events,5750,14 days,14,package-events,days,14 days,,111531,Mumbai,13752,Bengaluru,studio newcomers 2 week unlimited,33905,,27848,momence,,
+prod_TtKjuTn3uxrZtX,Studio 4 Class Package,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's 4 Class Package is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+LATE CANCELLATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.
+
+FREEZE POLICY : 
+This package does not include any freezes. 
+
+Please note, this membership cannot be shared between members.",,,,,,,,,4450,days,5350,5350,4,14,4,package-events,4450,14 days,14,package-events,days,14 days,,111530,Mumbai,13752,Bengaluru,studio 4 class package,33905,,25768,momence,,
+prod_TtKjd5Qbeo9xWj,Studio Single Class,service,2026-01-31 06:53,"Whether you're a fitness enthusiast or just starting out, Physique 57's Single Class is the perfect way to achieve the results you've been dreaming of! With our expert instructors and supportive community, you'll have the guidance and accountability you need to stay motivated and committed to your fitness goals. 
+
+
+
+LATE CANCELATION: Canceling your class within 12 hours of your class start time results in loss of your credit. No shows are considered late cancelations and results in loss of your credit.",,,,,,,,,1350,days,1750,1750,1,7,1,package-events,1350,7 days,7,package-events,days,7 days,,111528,Mumbai,13752,Bengaluru,studio single class,33905,,27845,momence,,
+prod_Tt3JoWuItIvAAt,Studio 3 Month Unlimited Membership,service,2026-01-30 12:54,,,,,,,,,,40200,months,50750,50750,,3,,subscription,40200,3 months,3,subscription,months,3 months,,111534,Mumbai,13752,Bengaluru,studio 3 month unlimited,33905,,69065,momence,,
+prod_Tt3IMv6O0ygHj4,Studio 3 Month Unlimited Membership,service,2026-01-30 12:53,,,,,,,,,,40200,months,50750,50750,,3,,subscription,40200,3 months,3,subscription,months,3 months,,111534,Mumbai,13752,Bengaluru,studio 3 month unlimited,33905,,69065,momence,,

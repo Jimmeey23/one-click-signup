@@ -44,6 +44,28 @@ const SignupInput = z.object({
   utmCampaign: z.string().max(200).optional(),
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
+  abVariant: z.string().max(20).optional(),
+});
+
+const PartialLeadInput = z.object({
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().max(100).optional().default(""),
+  email: z.string().trim().email().max(150),
+  countryCode: z.string().regex(/^\+\d{1,4}$/),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(5)
+    .max(20)
+    .regex(/^[0-9 -]+$/),
+  homeLocationId: z.number().int().positive().optional(),
+  // Tracking
+  utmSource: z.string().max(200).optional(),
+  utmMedium: z.string().max(200).optional(),
+  utmCampaign: z.string().max(200).optional(),
+  referrer: z.string().max(500).optional(),
+  landingPage: z.string().max(500).optional(),
+  abVariant: z.string().max(20).optional(),
 });
 
 const LeadAndOpenBarreInput = z.object({
@@ -64,6 +86,7 @@ const LeadAndOpenBarreInput = z.object({
   utmCampaign: z.string().max(200).optional(),
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
+  abVariant: z.string().max(20).optional(),
 });
 
 type RespondAttempt = {
@@ -145,6 +168,8 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
     return;
   }
 
+  const tags = payload.stage === "partial" ? [RESPONDIO_TAG, "Partial Signup"] : [RESPONDIO_TAG];
+
   const followUps: RespondAttempt[] = [
     {
       path: `/contact/${identifier}/lifecycle/update`,
@@ -152,7 +177,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
     },
     {
       path: `/contact/${identifier}/tag`,
-      body: [RESPONDIO_TAG],
+      body: tags,
     },
     {
       path: `/contact/${identifier}/conversation/status`,
@@ -205,12 +230,14 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       center: payload.center,
       type: "Barre 57",
       waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
-      event_id: `signup_${payload.memberId}_${Date.now()}`,
+      event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? "prospect"}_${Date.now()}`,
       utm_source: payload.utmSource ?? "website",
       utm_medium: payload.utmMedium ?? "trial-landing",
       utm_campaign: payload.utmCampaign ?? "open-barre-trial",
       landing_page: payload.landingPage ?? "https://trial.physique57india.com/",
       referrer: payload.referrer ?? "",
+      ab_variant: payload.abVariant ?? "",
+      lead_stage: payload.stage ?? "completed",
     };
 
     const res = await fetch("https://api.momence.com/integrations/customer-leads/13752/collect", {
@@ -373,7 +400,9 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       utmCampaign: data.utmCampaign,
       referrer: data.referrer,
       landingPage: data.landingPage,
+      abVariant: data.abVariant,
       memberId: created.memberId,
+      stage: "completed",
     });
 
     return {
@@ -382,6 +411,36 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       leadCaptured: lead.ok,
       leadError: lead.error ?? null,
     };
+  });
+
+// Fires as soon as a visitor has entered contact details but before they finish
+// the waiver/booking steps, so an abandoned form still reaches respond.io for
+// follow-up instead of vanishing with zero trace.
+export const captureLeadPartial = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => PartialLeadInput.parse(input))
+  .handler(async ({ data }) => {
+    const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
+    const center = data.homeLocationId
+      ? (LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India")
+      : "Physique 57 India";
+
+    const lead = await captureLead({
+      firstName: data.firstName,
+      lastName: data.lastName ?? "",
+      email: data.email,
+      phoneE164,
+      center,
+      waiverAccepted: false,
+      utmSource: data.utmSource,
+      utmMedium: data.utmMedium,
+      utmCampaign: data.utmCampaign,
+      referrer: data.referrer,
+      landingPage: data.landingPage,
+      abVariant: data.abVariant,
+      stage: "partial",
+    });
+
+    return { leadCaptured: lead.ok, leadError: lead.error ?? null };
   });
 
 // Kept for backwards compatibility; the classes page now uses the Momence widget.

@@ -25,5 +25,5 @@ export const Route = createFileRoute("/skip-lead")({
 });
 
 function SkipLeadLanding() {
-  return <OpenBarreLanding captureLead={false} />;
+  return <OpenBarreLanding captureLead={false} routeSource="skip-lead" />;
 }

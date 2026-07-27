@@ -33,7 +33,8 @@ describe("Stripe checkout helpers", () => {
     assert.deepEqual(params.payment_intent_data?.metadata, params.metadata);
     assert.equal(params.line_items?.[0]?.quantity, 1);
     assert.equal(params.line_items?.[0]?.price_data?.currency, "inr");
-    assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 175000);
+    // 1750 pre-tax + 18% GST = 2065
+    assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 206500);
     assert.equal(
       params.line_items?.[0]?.price_data?.product_data?.name,
       "powerCycle Newcomers 2 For 1",

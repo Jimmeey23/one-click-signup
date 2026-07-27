@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import {
   NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
-  NEWCOMERS_2_FOR_1_PRICE_INR,
+  NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR,
 } from "./momence-booking.helpers.ts";
 
 export type NewcomersCheckoutSessionInput = {
@@ -63,7 +63,7 @@ export function buildNewcomersCheckoutSessionParams(
         quantity: 1,
         price_data: {
           currency: "inr",
-          unit_amount: Number(NEWCOMERS_2_FOR_1_PRICE_INR) * 100,
+          unit_amount: Number(NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR) * 100,
           product_data: {
             name: `${input.className} Newcomers 2 For 1`,
             description: "Physique 57 India Newcomers 2 For 1 membership.",

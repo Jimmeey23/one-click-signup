@@ -385,7 +385,6 @@ function ClassesPage() {
     paidLocationId,
     classType: initialClassType,
   } = Route.useSearch();
-  const navigate = Route.useNavigate();
   const memberId = Number(memberIdStr);
 
   const listFn = useServerFn(listSessions);
@@ -640,15 +639,6 @@ function ClassesPage() {
   }, [activeClassType, activeDateKey, sessions, windowEndKey, windowStartKey]);
   const grouped = useMemo(() => groupByDay(visibleSessions), [visibleSessions]);
   const sessionsByDay = useMemo(() => groupSessionsByDate(visibleSessions), [visibleSessions]);
-  const filterClassTypes = useMemo(() => {
-    const available = classTypeOptionsForLocation(locationId);
-    const priority: ClassFormatKey[] = ["barre-57", "power-cycle"];
-    const ordered = [
-      ...priority.filter((key) => available.includes(key)),
-      ...available.filter((key) => !priority.includes(key)),
-    ];
-    return ordered;
-  }, [locationId]);
 
   function switchViewMode(mode: ViewMode) {
     setViewMode(mode);
@@ -691,6 +681,11 @@ function ClassesPage() {
   }
 
   if (booked) return <ThankYou booked={booked} onAnother={() => setBooked(null)} />;
+
+  // Once details are submitted, hide the schedule entirely until the booking
+  // (or Stripe redirect / payment confirmation) resolves - no flash of the
+  // class grid in between.
+  if (bookingId !== null && !customFieldsSession) return <BookingLoader />;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,#e7f0ff_0%,#f4f8ff_45%,#f4f8ff_100%)] text-[#172033]">
@@ -834,70 +829,21 @@ function ClassesPage() {
             </button>
           </div>
 
-          <div className="mt-5 rounded-[18px] border border-[#e3ebf7] bg-[#fbfcff] p-3.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b98b0]">
-                Studio
-              </span>
-              {LOCATIONS.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => navigate({ search: { locationId: l.id }, replace: true })}
-                  className={`h-9 rounded-full border px-4 text-xs font-semibold uppercase tracking-[0.14em] transition ${
-                    l.id === locationId
-                      ? "border-[#1d7cf2] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
-                      : "border-[#d9e7fb] bg-white text-[#52617a] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
-                  }`}
-                >
-                  {l.name.split(",")[0]}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[#e8eef6] pt-3">
-              <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b98b0]">
-                Class type
-              </span>
-              <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
-                {filterClassTypes.map((key) => {
-                  const classFormat = classFormatForKey(key);
-                  const info = formatInfoForKey(key);
-                  const selected = key === activeClassType;
-                  return (
-                    <div key={key} className="group/tab relative">
-                      <button
-                        type="button"
-                        onClick={() => setActiveClassType(key)}
-                        aria-pressed={selected}
-                        className={`flex items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-4 text-left transition duration-150 active:scale-95 ${
-                          selected
-                            ? "border-[#1d7cf2] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.24)]"
-                            : "border-[#d9e7fb] bg-white text-[#3a4b66] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
-                        }`}
-                      >
-                        <img
-                          src={classFormat.image}
-                          alt=""
-                          className="h-8 w-8 rounded-full object-cover object-top"
-                        />
-                        <span className="text-xs font-semibold uppercase tracking-[0.1em]">
-                          {classFormat.name}
-                        </span>
-                      </button>
-                      <div
-                        role="tooltip"
-                        className="pointer-events-none absolute right-0 top-[calc(100%+8px)] z-30 hidden w-64 rounded-[14px] border border-[#d9e7fb] bg-white p-3 text-left shadow-[0_18px_40px_rgb(29_124_242/0.15)] group-hover/tab:block"
-                      >
-                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#1d7cf2]">
-                          {info.level}
-                        </p>
-                        <p className="mt-1 text-xs leading-relaxed text-[#4d4b55]">{info.teaser}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="mt-5 flex flex-wrap items-center gap-2 rounded-[18px] border border-[#e3ebf7] bg-[#fbfcff] p-3.5">
+            <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b98b0]">
+              Your booking
+            </span>
+            <span className="inline-flex h-9 items-center rounded-full border border-[#1d7cf2] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-4 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+              {currentLoc.name.split(",")[0]}
+            </span>
+            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[#d9e7fb] bg-white px-4 text-xs font-semibold uppercase tracking-[0.1em] text-[#3a4b66]">
+              <img
+                src={classFormatForKey(activeClassType).image}
+                alt=""
+                className="h-6 w-6 rounded-full object-cover object-top"
+              />
+              {classFormatForKey(activeClassType).name}
+            </span>
           </div>
         </section>
 
@@ -1113,8 +1059,13 @@ function MonthCalendarClassChip({
         </span>
       </span>
       <span className="mt-1 block truncate text-[11px] font-bold">{session.name}</span>
-      <span className="mt-0.5 block truncate text-[10px] text-[#77757f]">
-        {isFull ? "Full" : (session.teacherName ?? "Studio Instructor")}
+      <span className="mt-0.5 flex items-center justify-between gap-1 text-[10px] text-[#77757f]">
+        <span className="truncate">
+          {isFull ? "Full" : (session.teacherName ?? "Studio Instructor")}
+        </span>
+        {session.spotsLeft != null && !isFull && (
+          <span className="shrink-0 font-bold text-[#1d7cf2]">{session.spotsLeft} left</span>
+        )}
       </span>
     </button>
   );
@@ -1731,6 +1682,18 @@ function ScheduleSkeleton() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function BookingLoader() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,#e7f0ff_0%,#f4f8ff_45%,#f4f8ff_100%)] px-6 text-center">
+      <span className="h-12 w-12 animate-spin rounded-full border-4 border-[#d9e7fb] border-t-[#1d7cf2]" />
+      <p className="font-display mt-6 text-2xl italic tracking-[-0.01em] text-[#101828]">
+        Confirming your booking…
+      </p>
+      <p className="mt-1.5 text-sm text-[#5c6b78]">Please don't close or refresh this page.</p>
     </div>
   );
 }

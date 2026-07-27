@@ -16,7 +16,13 @@ import {
   Phone,
   Clock,
 } from "lucide-react";
-import { signupAndEnroll, signupAndEnrollWithoutLead } from "@/lib/momence.functions";
+import {
+  signupAndEnroll,
+  signupAndEnrollWithoutLead,
+  captureLeadPartial,
+} from "@/lib/momence.functions";
+import { trackSignupStart, trackWaiverSigned, trackBookingComplete } from "@/lib/analytics";
+import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import {
@@ -44,8 +50,6 @@ import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg"
 import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
 
 const logoUrl = "/physique57-logo.png";
-
-const TEST_MEMBER_ID = import.meta.env.VITE_TEST_MEMBER_ID ?? "999999";
 
 const HERO_QUOTES = [
   "Meet the workout your body will thank you for.",
@@ -75,6 +79,51 @@ const HERO_QUOTES = [
   "The workout you'll never want to skip.",
 ];
 
+type StoredAttribution = {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  referrer?: string;
+  landingPage?: string;
+};
+
+const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
+
+// Captures UTMs into sessionStorage on the first hit so attribution survives if
+// the visitor navigates around the site before finishing the signup form -
+// window.location.search alone is gone the moment they leave this URL.
+function persistAttributionIfPresent(routeSource: string) {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  const utmSource = params.get("utm_source");
+  const utmMedium = params.get("utm_medium");
+  const utmCampaign = params.get("utm_campaign");
+  if (!utmSource && !utmMedium && !utmCampaign) return;
+
+  const attribution: StoredAttribution = {
+    utmSource: utmSource ?? undefined,
+    utmMedium: utmMedium ?? routeSource,
+    utmCampaign: utmCampaign ?? undefined,
+    referrer: document.referrer || undefined,
+    landingPage: window.location.href,
+  };
+  try {
+    window.sessionStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(attribution));
+  } catch {
+    // sessionStorage unavailable (private mode quota) - attribution just won't persist
+  }
+}
+
+function readStoredAttribution(): StoredAttribution {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as StoredAttribution) : {};
+  } catch {
+    return {};
+  }
+}
+
 type FormState = {
   firstName: string;
   lastName: string;
@@ -88,18 +137,29 @@ type FormState = {
   classType: ClassFormatKey;
 };
 
-export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean }) {
+export function OpenBarreLanding({
+  captureLead = true,
+  routeSource = "landing",
+}: {
+  captureLead?: boolean;
+  routeSource?: string;
+}) {
   const navigate = useNavigate();
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
+  const submitPartialLead = useServerFn(captureLeadPartial);
   const signup = captureLead ? signupWithLead : signupWithoutLead;
   const sigRef = useRef<SignaturePadHandle | null>(null);
   const [signed, setSigned] = useState(false);
   const [studioSelected, setStudioSelected] = useState(false);
-  const [testMode, setTestMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
+  const [variant] = useState(() => getVariant());
+  const variantCopy = VARIANT_COPY[variant];
+  const signupStartedRef = useRef(false);
+  const waiverSignedTrackedRef = useRef(false);
+  const partialCapturedRef = useRef(false);
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -114,11 +174,14 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
   });
 
   useEffect(() => {
-    setHeroQuote(HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)]);
-  }, []);
+    setHeroQuote(
+      variantCopy.headline || HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)],
+    );
+  }, [variantCopy.headline]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    persistAttributionIfPresent(routeSource);
 
     const params = new URLSearchParams(window.location.search);
     const updates: Partial<FormState> = {};
@@ -194,6 +257,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
     if (Object.keys(updates).length > 0) {
       setForm((prev) => ({ ...prev, ...updates }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -208,6 +272,61 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
     }
   }, [form.homeLocationId]);
 
+  useEffect(() => {
+    if (signupStartedRef.current) return;
+    if (form.firstName || form.lastName || form.email || form.phoneNumber) {
+      signupStartedRef.current = true;
+      trackSignupStart({ variant });
+    }
+  }, [form.firstName, form.lastName, form.email, form.phoneNumber, variant]);
+
+  useEffect(() => {
+    if (partialCapturedRef.current || !captureLead) return;
+    const emailValid = /\S+@\S+\.\S+/.test(form.email);
+    const phoneValid = form.phoneNumber.replace(/[^0-9]/g, "").length >= 6;
+    if (!form.firstName.trim() || !emailValid || !phoneValid) return;
+
+    partialCapturedRef.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const stored = readStoredAttribution();
+
+    submitPartialLead({
+      data: {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        countryCode: form.countryCode,
+        phoneNumber: form.phoneNumber.trim(),
+        homeLocationId: form.homeLocationId || undefined,
+        utmSource: params.get("utm_source") ?? stored.utmSource,
+        utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? routeSource,
+        utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
+        referrer: stored.referrer ?? document.referrer,
+        landingPage: stored.landingPage ?? window.location.href,
+        abVariant: variant,
+      },
+    }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
+  }, [
+    form.firstName,
+    form.lastName,
+    form.email,
+    form.phoneNumber,
+    form.homeLocationId,
+    form.countryCode,
+    captureLead,
+    variant,
+    routeSource,
+    submitPartialLead,
+  ]);
+
+  function handleSignChange(isSigned: boolean) {
+    setSigned(isSigned);
+    if (isSigned && !waiverSignedTrackedRef.current) {
+      waiverSignedTrackedRef.current = true;
+      trackWaiverSigned({ variant });
+    }
+  }
+
   const valid = useMemo(
     () =>
       form.firstName.trim().length > 0 &&
@@ -216,8 +335,9 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
       form.countryCode.trim().length > 0 &&
       form.phoneNumber.replace(/[^0-9]/g, "").length >= 6 &&
       LOCATIONS.some((l) => l.id === form.homeLocationId) &&
-      (testMode || (form.waiverAccepted && form.signatureName.trim().length >= 2)),
-    [form, testMode],
+      form.waiverAccepted &&
+      form.signatureName.trim().length >= 2,
+    [form],
   );
 
   async function onSubmit(e: React.FormEvent) {
@@ -230,16 +350,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
         countryCode: form.countryCode.trim().length > 0,
         phoneNumber: form.phoneNumber.replace(/[^0-9]/g, "").length >= 6,
         homeLocationId: LOCATIONS.some((l) => l.id === form.homeLocationId),
-        waiverAndSignature: testMode || (form.waiverAccepted && form.signatureName.trim().length >= 2),
-      });
-      return;
-    }
-
-    if (testMode) {
-      navigate({
-        to: "/classes/$memberId",
-        params: { memberId: TEST_MEMBER_ID },
-        search: { locationId: form.homeLocationId, classType: form.classType },
+        waiverAndSignature: form.waiverAccepted && form.signatureName.trim().length >= 2,
       });
       return;
     }
@@ -259,15 +370,20 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
     }
 
     try {
+      const stored = readStoredAttribution();
       const trackingPayload = captureLead
         ? {
-            utmSource: params.get("utm_source") ?? undefined,
-            utmMedium: params.get("utm_medium") ?? undefined,
-            utmCampaign: params.get("utm_campaign") ?? undefined,
-            referrer: typeof document !== "undefined" ? document.referrer : undefined,
-            landingPage: typeof window !== "undefined" ? window.location.href : undefined,
+            utmSource: params.get("utm_source") ?? stored.utmSource ?? undefined,
+            utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? routeSource,
+            utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign ?? undefined,
+            referrer:
+              stored.referrer ?? (typeof document !== "undefined" ? document.referrer : undefined),
+            landingPage:
+              stored.landingPage ??
+              (typeof window !== "undefined" ? window.location.href : undefined),
+            abVariant: variant,
           }
-        : {};
+        : { abVariant: variant };
       console.debug("[debug:signup] calling signup server fn", { captureLead });
       const result = await signup({
         data: {
@@ -295,6 +411,7 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
         );
         return;
       }
+      trackBookingComplete({ variant, homeLocationId: result.homeLocationId });
       navigate({
         to: "/classes/$memberId",
         params: { memberId: String(result.memberId) },
@@ -353,11 +470,10 @@ export function OpenBarreLanding({ captureLead = true }: { captureLead?: boolean
             error={error}
             valid={valid && signed}
             sigRef={sigRef}
-            onSignChange={setSigned}
+            onSignChange={handleSignChange}
             studioSelected={studioSelected}
             onStudioSelectedChange={setStudioSelected}
-            testMode={testMode}
-            onTestModeChange={setTestMode}
+            ctaLabel={variantCopy.ctaLabel}
           />
         </div>
       </section>
@@ -783,8 +899,7 @@ function SignupCard({
   onSignChange,
   studioSelected,
   onStudioSelectedChange,
-  testMode,
-  onTestModeChange,
+  ctaLabel,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
@@ -796,8 +911,7 @@ function SignupCard({
   onSignChange: (signed: boolean) => void;
   studioSelected: boolean;
   onStudioSelectedChange: (selected: boolean) => void;
-  testMode: boolean;
-  onTestModeChange: (testMode: boolean) => void;
+  ctaLabel: string;
 }) {
   const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
   const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
@@ -836,26 +950,15 @@ function SignupCard({
       id="signup"
       className="w-full bg-background text-foreground rounded-2xl p-7 md:p-8 shadow-[var(--shadow-elegant)] border border-white/10"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
-            Activate your trial
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">Takes 60 seconds. No card required.</p>
-        </div>
-        <label className="flex shrink-0 items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={testMode}
-            onChange={(e) => onTestModeChange(e.target.checked)}
-            className="h-3 w-3 accent-[color:var(--primary)]"
-          />
-          Test
-        </label>
+      <div>
+        <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
+          Activate your trial
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">Takes 60 seconds. No card required.</p>
       </div>
 
       <form onSubmit={onSubmit} className="mt-7 space-y-5">
-        <FormStep n={1} title="Your details">
+        <div className="space-y-3.5">
           <div className="grid grid-cols-2 gap-3">
             <Field
               label="First name"
@@ -910,9 +1013,9 @@ function SignupCard({
               />
             </div>
           </div>
-        </FormStep>
+        </div>
 
-        <FormStep n={2} title="Studio & class">
+        <div className="space-y-3.5">
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
               Preferred studio *
@@ -991,9 +1094,9 @@ function SignupCard({
               </div>
             </div>
           )}
-        </FormStep>
+        </div>
 
-        <FormStep n={3} title="Waiver & signature" badge="Required">
+        <div className="space-y-3.5">
           <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
             Please review and sign before activating Open Barre. This consent is recorded with
             your Momence member profile.
@@ -1059,7 +1162,7 @@ function SignupCard({
               I have read, signed, and accept the waiver and Physique 57 India's privacy terms.
             </span>
           </label>
-        </FormStep>
+        </div>
 
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded">{error}</p>
@@ -1070,40 +1173,9 @@ function SignupCard({
           disabled={loading || !valid}
           className="w-full h-12 rounded-full bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? "Activating membership…" : "Activate Your Trial"}
+          {loading ? "Activating membership…" : ctaLabel}
         </button>
       </form>
-    </div>
-  );
-}
-
-function FormStep({
-  n,
-  title,
-  badge,
-  children,
-}: {
-  n: number;
-  title: string;
-  badge?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-secondary/40 p-4 space-y-3.5">
-      <div className="flex items-center gap-2.5">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-deep text-[11px] font-bold text-white">
-          {n}
-        </span>
-        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-foreground">
-          {title}
-        </p>
-        {badge && (
-          <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-            {badge}
-          </span>
-        )}
-      </div>
-      {children}
     </div>
   );
 }

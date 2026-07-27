@@ -6,9 +6,22 @@ export type CompatibleMembershipsRequest = {
 
 export const OPEN_BARRE_MEMBERSHIP_ID = 33609;
 export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 240932;
+// Momence's own catalog price for this membership (matches mum_price_metadata in the
+// products export) - this is what must be sent back to Momence's checkout API.
 export const STANDARD_CLASS_PRICE_INR = "1750";
 export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
 export const MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 4578;
+// GST applied on top of the Momence catalog price when charging the member directly
+// through Stripe Checkout (Momence's own checkout already accounts for tax internally).
+export const GST_RATE = 0.18;
+
+export function toGstInclusiveInr(preTaxAmountInCurrency: string): string {
+  return String(Math.round(Number(preTaxAmountInCurrency) * (1 + GST_RATE)));
+}
+
+export const NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR = toGstInclusiveInr(
+  NEWCOMERS_2_FOR_1_PRICE_INR,
+);
 
 export type CompatibleBoughtMembership = {
   id: number;
@@ -66,8 +79,7 @@ export function isPaidNewcomersClassName(className: string): boolean {
     normalized.includes("strength") ||
     normalized.includes("lab") ||
     normalized.includes("push") ||
-    normalized.includes("pull") ||
-    normalized.includes("blaze")
+    normalized.includes("pull")
   );
 }
 
@@ -86,7 +98,7 @@ export function getSchedulePriceDisplay(className: string): {
   if (isPaidNewcomersClassName(className)) {
     return {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
+      bookingPriceInCurrency: NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR,
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     };

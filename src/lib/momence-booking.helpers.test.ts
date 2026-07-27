@@ -66,6 +66,8 @@ describe("Momence booking helpers", () => {
     assert.equal(isPaidNewcomersClassName("Strength Lab Push"), true);
     assert.equal(isPaidNewcomersClassName("Barre 57"), false);
     assert.equal(isPaidNewcomersClassName("Studio FIT"), false);
+    assert.equal(isPaidNewcomersClassName("Studio Back Body Blaze"), false);
+    assert.equal(isPaidNewcomersClassName("Studio Back Body Blaze Express"), false);
     assert.equal(membershipIdForClassName("powerCycle"), 240932);
     assert.equal(membershipIdForClassName("Strength Lab Push"), 240932);
     assert.equal(membershipIdForClassName("Barre 57"), 33609);
@@ -79,16 +81,17 @@ describe("Momence booking helpers", () => {
       slashOriginalPrice: true,
     });
 
+    // 1750 pre-tax + 18% GST = 2065 (the Stripe-charged, post-tax amount)
     assert.deepEqual(getSchedulePriceDisplay("powerCycle"), {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: "1750",
+      bookingPriceInCurrency: "2065",
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     });
 
     assert.deepEqual(getSchedulePriceDisplay("Strength Lab Push"), {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: "1750",
+      bookingPriceInCurrency: "2065",
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     });

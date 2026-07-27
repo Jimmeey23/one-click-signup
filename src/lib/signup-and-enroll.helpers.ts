@@ -24,6 +24,7 @@ export type SignupAndEnrollInput = {
   utmCampaign?: string;
   referrer?: string;
   landingPage?: string;
+  abVariant?: string;
 };
 
 export type LeadCapturePayload = {
@@ -38,7 +39,9 @@ export type LeadCapturePayload = {
   utmCampaign?: string;
   referrer?: string;
   landingPage?: string;
-  memberId: number;
+  abVariant?: string;
+  memberId?: number;
+  stage?: "partial" | "completed";
 };
 
 export type SignupAndEnrollResult = {
@@ -140,7 +143,9 @@ export async function runSignupAndEnroll(
       utmCampaign: data.utmCampaign,
       referrer: data.referrer,
       landingPage: data.landingPage,
+      abVariant: data.abVariant,
       memberId: created.memberId,
+      stage: "completed",
     });
     leadCaptured = lead.ok;
     leadError = lead.error ?? null;
