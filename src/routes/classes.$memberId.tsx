@@ -1106,22 +1106,22 @@ function CustomerFieldsModal({
   }, [onCancel, saving]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#050a14]/70 px-4 py-6 backdrop-blur-md sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/70 px-4 py-6 backdrop-blur-md sm:items-center">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           onSubmit();
         }}
-        className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-[#fcfdff] shadow-[0_40px_120px_rgb(8_17_31/0.45)] ring-1 ring-black/5"
+        className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-card shadow-[0_40px_120px_rgb(8_17_31/0.45)] ring-1 ring-black/5"
       >
-        <div className="h-[5px] w-full shrink-0 bg-gradient-to-r from-[#123f7a] via-[#1d7cf2] to-[#7db8ff]" />
+        <div className="h-[5px] w-full shrink-0 bg-primary" />
 
         <button
           type="button"
           onClick={onCancel}
           disabled={saving}
           aria-label="Close profile details"
-          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#e2e9f2] bg-white/90 text-[#506176] shadow-sm transition hover:border-[#123f7a] hover:text-[#123f7a] disabled:opacity-50"
+          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/90 text-muted-foreground shadow-sm transition hover:border-primary hover:text-primary-deep disabled:opacity-50"
         >
           <X className="h-4 w-4" />
         </button>
@@ -1155,14 +1155,14 @@ function CustomerFieldsModal({
           </aside>
 
           <div className="flex min-h-0 flex-col overflow-hidden">
-            <div className="shrink-0 border-b border-[#e8eef6] px-6 pb-5 pt-7 sm:px-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#1d7cf2]">
+            <div className="shrink-0 border-b border-border px-6 pb-5 pt-7 sm:px-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-deep">
                 Before you book
               </p>
-              <h2 className="font-display mt-1 text-[28px] italic tracking-[-0.01em] text-[#101828] lg:hidden">
+              <h2 className="font-display mt-1 text-[28px] italic tracking-[-0.01em] text-foreground lg:hidden">
                 {session.name}
               </h2>
-              <p className="mt-1.5 max-w-md text-sm leading-relaxed text-[#5c6b78]">
+              <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
                 A few details our team needs to keep your session safe and personal to you.
               </p>
             </div>
@@ -1173,7 +1173,7 @@ function CustomerFieldsModal({
               </p>
             )}
 
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-6 sm:px-8">
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
               <SelectField
                 label="Gender"
                 icon={<UserRound className="h-3.5 w-3.5" />}
@@ -1264,19 +1264,19 @@ function CustomerFieldsModal({
               )}
             </div>
 
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-[#e8eef6] bg-[#fbfcff] px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border bg-muted px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
               <button
                 type="button"
                 onClick={onCancel}
                 disabled={saving}
-                className="h-12 rounded-[12px] border border-[#d7e0ec] bg-white px-6 text-sm font-semibold text-[#4e4d55] transition hover:border-[#123f7a] hover:text-[#123f7a] disabled:opacity-50"
+                className="h-12 rounded-[12px] border border-border bg-white px-6 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary-deep disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="h-12 rounded-[12px] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-6 text-sm font-semibold text-white shadow-[0_12px_26px_rgb(18_63_122/0.28)] transition hover:brightness-110 disabled:opacity-50"
+                className="h-12 rounded-[12px] bg-primary px-6 text-sm font-semibold text-white shadow-[0_12px_26px_rgb(18_63_122/0.28)] transition hover:brightness-110 disabled:opacity-50"
               >
                 {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
               </button>
@@ -1319,15 +1319,19 @@ function TextField({
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const baseClass =
-    "mt-1.5 w-full rounded-[12px] border bg-white px-3.5 py-2.5 text-sm font-medium text-[#101828] outline-none transition focus:border-[#123f7a] focus:ring-2 focus:ring-[#123f7a]/12";
+    "mt-1.5 w-full rounded-[12px] border bg-white px-3.5 py-2.5 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
   return (
     <label
       htmlFor={id}
-      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#7d8aa0]"
+      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-muted-foreground"
     >
       <span className="inline-flex items-center gap-1.5">
-        {icon && <span className="text-[#1d7cf2]">{icon}</span>}
+        {icon && (
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary-deep">
+            {icon}
+          </span>
+        )}
         <span>
           {label}
           {required && <span className="text-red-600"> *</span>}
@@ -1340,7 +1344,7 @@ function TextField({
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
           rows={4}
-          className={`${baseClass} ${error ? "border-red-500" : "border-[#dedee5]"}`}
+          className={`${baseClass} ${error ? "border-red-500" : "border-border"}`}
         />
       ) : (
         <input
@@ -1351,11 +1355,11 @@ function TextField({
           maxLength={maxLength}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
-          className={`${baseClass} ${error ? "border-red-500" : "border-[#dedee5]"}`}
+          className={`${baseClass} ${error ? "border-red-500" : "border-border"}`}
         />
       )}
       {helperText && !error && (
-        <span className="mt-1 block text-xs font-medium text-[#6f7d90]">{helperText}</span>
+        <span className="mt-1 block text-xs font-medium text-muted-foreground">{helperText}</span>
       )}
       {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
       {suggestions && (
@@ -1367,8 +1371,8 @@ function TextField({
               onClick={() => onChange(option)}
               className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
                 value === option
-                  ? "border-[#1d7cf2] bg-[#1d7cf2] text-white"
-                  : "border-[#dde5ee] bg-white text-[#5c6b78] hover:border-[#1d7cf2] hover:text-[#1d7cf2]"
+                  ? "border-primary bg-primary text-white"
+                  : "border-border bg-white text-muted-foreground hover:border-primary hover:text-primary-deep"
               }`}
             >
               {option}
@@ -1404,10 +1408,14 @@ function SelectField({
   return (
     <label
       htmlFor={id}
-      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-[#7d8aa0]"
+      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-muted-foreground"
     >
       <span className="inline-flex items-center gap-1.5">
-        {icon && <span className="text-[#1d7cf2]">{icon}</span>}
+        {icon && (
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary-deep">
+            {icon}
+          </span>
+        )}
         <span>
           {label}
           {required && <span className="text-red-600"> *</span>}
@@ -1417,8 +1425,8 @@ function SelectField({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`mt-1.5 h-11 w-full rounded-[12px] border bg-white px-3.5 text-sm font-medium text-[#101828] outline-none transition focus:border-[#123f7a] focus:ring-2 focus:ring-[#123f7a]/12 ${
-          error ? "border-red-500" : "border-[#dedee5]"
+        className={`mt-1.5 h-11 w-full rounded-[12px] border bg-white px-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 ${
+          error ? "border-red-500" : "border-border"
         }`}
       >
         <option value="">Select</option>
@@ -1429,7 +1437,7 @@ function SelectField({
         ))}
       </select>
       {helperText && !error && (
-        <span className="mt-1 block text-xs font-medium text-[#6f7d90]">{helperText}</span>
+        <span className="mt-1 block text-xs font-medium text-muted-foreground">{helperText}</span>
       )}
       {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
     </label>
