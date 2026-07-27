@@ -538,6 +538,17 @@ function ClassesPage() {
     sessions,
   ]);
 
+  useEffect(() => {
+    if (!booked) return;
+
+    window.history.pushState(null, "", window.location.href);
+    function trapBack() {
+      window.history.pushState(null, "", window.location.href);
+    }
+    window.addEventListener("popstate", trapBack);
+    return () => window.removeEventListener("popstate", trapBack);
+  }, [booked]);
+
   function openCustomerFields(session: SessionDTO) {
     setBookErr(null);
     setCustomFieldSubmitError(null);
