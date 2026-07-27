@@ -27,6 +27,8 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import confetti from "canvas-confetti";
+import { fireDualSideConfetti } from "@/lib/confetti";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { CLASS_FORMAT_KEYS, type ClassFormatKey } from "@/lib/class-format-matchers";
@@ -1867,6 +1869,12 @@ function classPolicy(name: string): { entryMin: number; cancelHrs: number; famil
 function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () => void }) {
   const policy = classPolicy(booked.session.name);
   const whatsappPhone = whatsappPhoneForLocationId(booked.location.id);
+  const confettiFiredRef = useRef(false);
+  useEffect(() => {
+    if (confettiFiredRef.current) return;
+    confettiFiredRef.current = true;
+    fireDualSideConfetti((opts) => confetti(opts));
+  }, []);
   const start = new Date(booked.session.startsAt);
   const dateStr = start.toLocaleDateString("en-IN", {
     weekday: "long",
