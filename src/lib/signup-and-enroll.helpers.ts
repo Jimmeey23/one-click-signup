@@ -19,6 +19,7 @@ export type SignupAndEnrollInput = {
   signatureRealSignature?: string;
   signatureDataUrl?: string;
   signatures?: Array<{ documentId: number; signatureText: string }>;
+  classType?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -33,6 +34,7 @@ export type LeadCapturePayload = {
   email: string;
   phoneE164: string;
   center: string;
+  classType?: string;
   waiverAccepted: boolean;
   utmSource?: string;
   utmMedium?: string;
@@ -137,6 +139,7 @@ export async function runSignupAndEnroll(
       email: data.email,
       phoneE164,
       center: dependencies.resolveCenterName(data.homeLocationId),
+      classType: data.classType,
       waiverAccepted: data.waiverAccepted,
       utmSource: data.utmSource,
       utmMedium: data.utmMedium,

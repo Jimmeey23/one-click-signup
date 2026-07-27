@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { OPEN_BARRE_MEMBERSHIP_ID } from "./momence-booking.helpers.ts";
 import {
   runSignupAndEnroll,
+  type LeadCapturePayload,
   type SignupAndEnrollDependencies,
   type SignupAndEnrollInput,
 } from "./signup-and-enroll.helpers.ts";
@@ -95,5 +96,38 @@ describe("signup and enroll helper", () => {
     ]);
     assert.equal(result.leadCaptured, true);
     assert.equal(result.leadError, null);
+  });
+
+  it("threads classType through to the captureLead payload", async () => {
+    let capturedPayload: LeadCapturePayload | undefined;
+    const dependencies: SignupAndEnrollDependencies = {
+      createMember: async () => ({ memberId: 1 }),
+      signMemberWaivers: async () => ({ signedCount: 1, availableCount: 1 }),
+      enrollOpenBarre: async () => {},
+      captureLead: async (payload) => {
+        capturedPayload = payload;
+        return { ok: true };
+      },
+      resolveCenterName: () => "Kwality House, Kemps Corner",
+    };
+
+    await runSignupAndEnroll(
+      {
+        firstName: "Asha",
+        lastName: "Rao",
+        email: "asha@example.com",
+        countryCode: "+91",
+        phoneNumber: "9876543210",
+        homeLocationId: 9030,
+        waiverAccepted: true,
+        signatureName: "Asha Rao",
+        signatureRealSignature: "sig-data",
+        classType: "barre-57",
+      },
+      dependencies,
+      { captureLead: true },
+    );
+
+    assert.equal(capturedPayload?.classType, "barre-57");
   });
 });
