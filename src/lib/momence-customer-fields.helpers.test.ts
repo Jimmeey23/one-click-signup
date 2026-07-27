@@ -51,13 +51,27 @@ describe("Momence customer field helpers", () => {
       ),
       {
         emergencyContactInfo: "Emergency Contact Info is required.",
+        medicalHistory: "Medical History is required.",
+      },
+    );
+
+    assert.deepEqual(
+      validateCustomerFieldValues(
+        { emergencyContactInfo: "", pregnancyStatus: "", medicalHistory: "", postNatalStatus: "" },
+        { requiresShoeSize: false, gender: "Female" },
+      ),
+      {
+        emergencyContactInfo: "Emergency Contact Info is required.",
         pregnancyStatus: "Are you currently pregnant? is required.",
         medicalHistory: "Medical History is required.",
         postNatalStatus: "Post Natal is required.",
       },
     );
 
-    assert.deepEqual(validateCustomerFieldValues(completeValues, { requiresShoeSize: true }), {});
+    assert.deepEqual(
+      validateCustomerFieldValues(completeValues, { requiresShoeSize: true, gender: "Male" }),
+      {},
+    );
     assert.deepEqual(
       validateCustomerFieldValues(
         { ...completeValues, euShoeSize: "" },
@@ -68,7 +82,7 @@ describe("Momence customer field helpers", () => {
   });
 
   it("keeps emergency contact values numeric and rejects non-phone values", () => {
-    assert.equal(sanitizePhoneNumber("+91 97690-72866"), "919769665757");
+    assert.equal(sanitizePhoneNumber("+91 97690-72866"), "919769072866");
 
     assert.deepEqual(
       validateCustomerFieldValues(
