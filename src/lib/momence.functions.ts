@@ -75,6 +75,7 @@ const PartialLeadInput = z.object({
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
+  classType: z.string().max(100).optional(),
 });
 
 const LeadAndOpenBarreInput = z.object({
@@ -100,6 +101,7 @@ const LeadAndOpenBarreInput = z.object({
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
+  classType: z.string().max(100).optional(),
 });
 
 type RespondAttempt = {
@@ -270,7 +272,7 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       phoneNumber: payload.phoneE164,
       time: "Flexible / Needs Recommendation",
       center: payload.center,
-      type: "Barre 57",
+      type: payload.classType ?? "Barre 57",
       waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
       event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? "prospect"}_${Date.now()}`,
       utm_source: payload.utmSource ?? "website",
@@ -451,6 +453,7 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       referrer: data.referrer,
       landingPage: data.landingPage,
       abVariant: data.abVariant,
+      classType: data.classType,
       memberId: created.memberId,
       stage: "completed",
     });
@@ -491,6 +494,7 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
       referrer: data.referrer,
       landingPage: data.landingPage,
       abVariant: data.abVariant,
+      classType: data.classType,
       stage: "partial",
     });
 

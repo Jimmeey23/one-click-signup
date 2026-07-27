@@ -80,11 +80,6 @@ const HERO_QUOTES = [
   "The workout you'll never want to skip.",
 ];
 
-// parseAttributionFromSearch/StoredAttribution live in src/lib/attribution.helpers.ts (imported
-// above) so they're importable/unit-testable via Node's test runner without pulling in this
-// file's asset (jpg) imports. Re-exported here so existing importers of this module still work.
-export { parseAttributionFromSearch, type StoredAttribution };
-
 const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
 
 // Captures UTMs into sessionStorage on the first hit so attribution survives if
@@ -302,6 +297,7 @@ export function OpenBarreLanding({
         referrer: stored.referrer ?? document.referrer,
         landingPage: stored.landingPage ?? window.location.href,
         abVariant: variant,
+        classType: form.classType,
       },
     }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
   }, [
@@ -398,6 +394,7 @@ export function OpenBarreLanding({
           waiverAccepted: true,
           signatureName: form.signatureName.trim(),
           signatureRealSignature,
+          classType: form.classType,
           ...trackingPayload,
         },
       });
