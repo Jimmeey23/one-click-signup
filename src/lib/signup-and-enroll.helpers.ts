@@ -23,6 +23,10 @@ export type SignupAndEnrollInput = {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  gclid?: string;
+  fbclid?: string;
   referrer?: string;
   landingPage?: string;
   abVariant?: string;
@@ -39,6 +43,10 @@ export type LeadCapturePayload = {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  gclid?: string;
+  fbclid?: string;
   referrer?: string;
   landingPage?: string;
   abVariant?: string;
@@ -144,6 +152,10 @@ export async function runSignupAndEnroll(
       utmSource: data.utmSource,
       utmMedium: data.utmMedium,
       utmCampaign: data.utmCampaign,
+      utmTerm: data.utmTerm,
+      utmContent: data.utmContent,
+      gclid: data.gclid,
+      fbclid: data.fbclid,
       referrer: data.referrer,
       landingPage: data.landingPage,
       abVariant: data.abVariant,

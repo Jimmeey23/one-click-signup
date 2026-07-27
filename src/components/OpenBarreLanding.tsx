@@ -25,6 +25,7 @@ import { trackSignupStart, trackWaiverSigned, trackBookingComplete } from "@/lib
 import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
+import { parseAttributionFromSearch, type StoredAttribution } from "@/lib/attribution.helpers";
 import {
   CLASS_FORMAT_KEYS,
   classFormatKeyForSessionName,
@@ -79,13 +80,10 @@ const HERO_QUOTES = [
   "The workout you'll never want to skip.",
 ];
 
-type StoredAttribution = {
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  referrer?: string;
-  landingPage?: string;
-};
+// parseAttributionFromSearch/StoredAttribution live in src/lib/attribution.helpers.ts (imported
+// above) so they're importable/unit-testable via Node's test runner without pulling in this
+// file's asset (jpg) imports. Re-exported here so existing importers of this module still work.
+export { parseAttributionFromSearch, type StoredAttribution };
 
 const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
 
@@ -94,16 +92,12 @@ const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
 // window.location.search alone is gone the moment they leave this URL.
 function persistAttributionIfPresent(routeSource: string) {
   if (typeof window === "undefined") return;
-  const params = new URLSearchParams(window.location.search);
-  const utmSource = params.get("utm_source");
-  const utmMedium = params.get("utm_medium");
-  const utmCampaign = params.get("utm_campaign");
-  if (!utmSource && !utmMedium && !utmCampaign) return;
+  const parsed = parseAttributionFromSearch(window.location.search);
+  if (Object.keys(parsed).length === 0) return;
 
   const attribution: StoredAttribution = {
-    utmSource: utmSource ?? undefined,
-    utmMedium: utmMedium ?? routeSource,
-    utmCampaign: utmCampaign ?? undefined,
+    ...parsed,
+    utmMedium: parsed.utmMedium ?? routeSource,
     referrer: document.referrer || undefined,
     landingPage: window.location.href,
   };
@@ -301,6 +295,10 @@ export function OpenBarreLanding({
         utmSource: params.get("utm_source") ?? stored.utmSource,
         utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? routeSource,
         utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
+        utmTerm: params.get("utm_term") ?? stored.utmTerm,
+        utmContent: params.get("utm_content") ?? stored.utmContent,
+        gclid: params.get("gclid") ?? stored.gclid,
+        fbclid: params.get("fbclid") ?? stored.fbclid,
         referrer: stored.referrer ?? document.referrer,
         landingPage: stored.landingPage ?? window.location.href,
         abVariant: variant,
@@ -376,6 +374,10 @@ export function OpenBarreLanding({
             utmSource: params.get("utm_source") ?? stored.utmSource ?? undefined,
             utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? routeSource,
             utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign ?? undefined,
+            utmTerm: params.get("utm_term") ?? stored.utmTerm ?? undefined,
+            utmContent: params.get("utm_content") ?? stored.utmContent ?? undefined,
+            gclid: params.get("gclid") ?? stored.gclid ?? undefined,
+            fbclid: params.get("fbclid") ?? stored.fbclid ?? undefined,
             referrer:
               stored.referrer ?? (typeof document !== "undefined" ? document.referrer : undefined),
             landingPage:
