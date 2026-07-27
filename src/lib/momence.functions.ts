@@ -38,6 +38,7 @@ const SignupInput = z.object({
   signatureRealSignature: z.string().min(2).max(300000).optional(),
   signatureDataUrl: z.string().max(300000).optional(),
   signatures: z.array(SignatureSchema).max(20).optional().default([]),
+  classType: z.string().max(100).optional(),
   // Tracking
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
@@ -129,6 +130,33 @@ async function callRespondIo(
 const RESPONDIO_LIFECYCLE_STAGE = "New Enquiry";
 const RESPONDIO_TAG = "Website";
 
+export function buildRespondIoContactBody({
+  firstName,
+  lastName,
+  email,
+  phoneE164,
+  center,
+  classType,
+}: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneE164: string;
+  center: string;
+  classType?: string;
+}) {
+  return {
+    firstName,
+    lastName,
+    email,
+    phone: phoneE164,
+    customFields: [
+      { name: "center", value: center },
+      { name: "classType", value: classType ?? "Barre 57" },
+    ],
+  };
+}
+
 async function syncRespondIoContactAndConversation(payload: LeadCapturePayload): Promise<void> {
   const apiKey = process.env.RESPONDIO_API_KEY?.trim();
   if (!apiKey) {
@@ -148,12 +176,14 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
   try {
     const created = await callRespondIo(baseUrl, apiKey, {
       path: `/contact/create_or_update/${identifier}`,
-      body: {
+      body: buildRespondIoContactBody({
         firstName: payload.firstName,
         lastName: payload.lastName,
         email: payload.email,
-        phone: payload.phoneE164,
-      },
+        phoneE164: payload.phoneE164,
+        center: payload.center,
+        classType: payload.classType,
+      }),
     });
     if (!created.ok) {
       console.error(
