@@ -541,24 +541,22 @@ function ClassesPage() {
   useEffect(() => {
     if (!booked) return;
 
-    // Every pushState here (the initial one plus each re-trap on popstate) adds an
-    // entry above the pre-booking history entry. Track how many we added so cleanup
-    // can pop exactly that many off once `booked` goes false again (e.g. "Book
-    // another class") - otherwise the leftover entries silently absorb the user's
-    // next real Back press instead of navigating away.
-    let pushedCount = 0;
+    // The initial pushState here adds exactly one entry above the pre-booking
+    // history entry. Each subsequent popstate-triggered re-push (trapBack) just
+    // refills the same slot the Back press moved away from, netting to zero
+    // additional entries - per HTML5 history semantics, pushState called from
+    // inside a popstate handler doesn't stack on top of the entry the browser
+    // just navigated to. So cleanup only ever needs to undo that one initial
+    // entry once `booked` goes false again (e.g. "Book another class"),
+    // regardless of how many Back presses were trapped in between.
     window.history.pushState(null, "", window.location.href);
-    pushedCount++;
     function trapBack() {
       window.history.pushState(null, "", window.location.href);
-      pushedCount++;
     }
     window.addEventListener("popstate", trapBack);
     return () => {
       window.removeEventListener("popstate", trapBack);
-      if (pushedCount > 0) {
-        window.history.go(-pushedCount);
-      }
+      window.history.go(-1);
     };
   }, [booked]);
 
