@@ -20,6 +20,8 @@ export type SignupAndEnrollInput = {
   signatureDataUrl?: string;
   signatures?: Array<{ documentId: number; signatureText: string }>;
   classType?: string;
+  whatsappConsent?: boolean;
+  whatsappConsentAt?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -40,6 +42,8 @@ export type LeadCapturePayload = {
   center: string;
   classType?: string;
   waiverAccepted: boolean;
+  whatsappConsent?: boolean;
+  whatsappConsentAt?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -149,6 +153,8 @@ export async function runSignupAndEnroll(
       center: dependencies.resolveCenterName(data.homeLocationId),
       classType: data.classType,
       waiverAccepted: data.waiverAccepted,
+      whatsappConsent: data.whatsappConsent ?? false,
+      whatsappConsentAt: data.whatsappConsentAt,
       utmSource: data.utmSource,
       utmMedium: data.utmMedium,
       utmCampaign: data.utmCampaign,

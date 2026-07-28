@@ -39,6 +39,8 @@ const SignupInput = z.object({
   signatureDataUrl: z.string().max(300000).optional(),
   signatures: z.array(SignatureSchema).max(20).optional().default([]),
   classType: z.string().max(100).optional(),
+  whatsappConsent: z.boolean().optional().default(false),
+  whatsappConsentAt: z.string().max(40).optional(),
   // Tracking
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
@@ -64,6 +66,8 @@ const PartialLeadInput = z.object({
     .max(20)
     .regex(/^[0-9 -]+$/),
   homeLocationId: z.number().int().positive().optional(),
+  whatsappConsent: z.boolean().optional().default(false),
+  whatsappConsentAt: z.string().max(40).optional(),
   // Tracking
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
@@ -90,6 +94,8 @@ const LeadAndOpenBarreInput = z.object({
     .max(20)
     .regex(/^[0-9 -]+$/),
   homeLocationId: z.number().int().positive(),
+  whatsappConsent: z.boolean().optional().default(false),
+  whatsappConsentAt: z.string().max(40).optional(),
   // Tracking
   utmSource: z.string().max(200).optional(),
   utmMedium: z.string().max(200).optional(),
@@ -151,6 +157,7 @@ export function buildRespondIoContactBody({
   phoneE164,
   center,
   classType,
+  whatsappConsent,
 }: {
   firstName: string;
   lastName: string;
@@ -158,6 +165,7 @@ export function buildRespondIoContactBody({
   phoneE164: string;
   center: string;
   classType?: string;
+  whatsappConsent?: boolean;
 }) {
   return {
     firstName,
@@ -167,6 +175,7 @@ export function buildRespondIoContactBody({
     customFields: [
       { name: "center", value: center },
       { name: "classType", value: classType ?? "Barre 57" },
+      { name: "whatsappConsent", value: whatsappConsent ? "opted_in" : "not_opted_in" },
     ],
   };
 }
@@ -197,6 +206,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
         phoneE164: payload.phoneE164,
         center: payload.center,
         classType: payload.classType,
+        whatsappConsent: payload.whatsappConsent,
       }),
     });
     if (!created.ok) {
@@ -213,6 +223,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
   }
 
   const tags = payload.stage === "partial" ? [RESPONDIO_TAG, "Partial Signup"] : [RESPONDIO_TAG];
+  if (payload.whatsappConsent) tags.push("WhatsApp Opt-In");
 
   const followUps: RespondAttempt[] = [
     {
@@ -274,6 +285,8 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       center: payload.center,
       type: payload.classType ?? "Barre 57",
       waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
+      whatsapp_consent: payload.whatsappConsent ? "opted_in" : "not_opted_in",
+      whatsapp_consent_at: payload.whatsappConsentAt ?? "",
       event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? "prospect"}_${Date.now()}`,
       utm_source: payload.utmSource ?? "website",
       utm_medium: payload.utmMedium ?? "trial-landing",
@@ -443,6 +456,8 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       phoneE164,
       center: LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India",
       waiverAccepted: true,
+      whatsappConsent: data.whatsappConsent ?? false,
+      whatsappConsentAt: data.whatsappConsentAt,
       utmSource: data.utmSource,
       utmMedium: data.utmMedium,
       utmCampaign: data.utmCampaign,
@@ -484,6 +499,8 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
       phoneE164,
       center,
       waiverAccepted: false,
+      whatsappConsent: data.whatsappConsent ?? false,
+      whatsappConsentAt: data.whatsappConsentAt,
       utmSource: data.utmSource,
       utmMedium: data.utmMedium,
       utmCampaign: data.utmCampaign,

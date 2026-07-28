@@ -122,6 +122,8 @@ type FormState = {
   phoneNumber: string;
   homeLocationId: number;
   waiverAccepted: boolean;
+  whatsappConsent: boolean;
+  whatsappConsentAt: string | null;
   signatureName: string;
   classType: ClassFormatKey;
 };
@@ -158,6 +160,8 @@ export function OpenBarreLanding({
     phoneNumber: "",
     homeLocationId: 0,
     waiverAccepted: false,
+    whatsappConsent: false,
+    whatsappConsentAt: null,
     signatureName: "",
     classType: "barre-57",
   });
@@ -298,6 +302,8 @@ export function OpenBarreLanding({
         landingPage: stored.landingPage ?? window.location.href,
         abVariant: variant,
         classType: form.classType,
+        whatsappConsent: form.whatsappConsent,
+        whatsappConsentAt: form.whatsappConsentAt ?? undefined,
       },
     }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
   }, [
@@ -307,6 +313,7 @@ export function OpenBarreLanding({
     form.phoneNumber,
     form.homeLocationId,
     form.countryCode,
+    form.whatsappConsent,
     captureLead,
     variant,
     routeSource,
@@ -395,6 +402,8 @@ export function OpenBarreLanding({
           signatureName: form.signatureName.trim(),
           signatureRealSignature,
           classType: form.classType,
+          whatsappConsent: form.whatsappConsent,
+          whatsappConsentAt: form.whatsappConsentAt ?? undefined,
           ...trackingPayload,
         },
       });
@@ -1012,6 +1021,25 @@ function SignupCard({
               />
             </div>
           </div>
+          <label className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
+            <input
+              type="checkbox"
+              checked={form.whatsappConsent}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setForm({
+                  ...form,
+                  whatsappConsent: checked,
+                  whatsappConsentAt: checked ? new Date().toISOString() : null,
+                });
+              }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-input"
+            />
+            <span>
+              Yes, send me class reminders and updates on WhatsApp at the number above. I can
+              reply STOP anytime to opt out.
+            </span>
+          </label>
         </div>
 
         <div className="space-y-3.5">
