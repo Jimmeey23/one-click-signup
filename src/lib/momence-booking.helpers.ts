@@ -13,7 +13,7 @@ export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
 export const MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 4578;
 // GST applied on top of the Momence catalog price when charging the member directly
 // through Stripe Checkout (Momence's own checkout already accounts for tax internally).
-export const GST_RATE = 0.18;
+export const GST_RATE = 0.05;
 
 export function toGstInclusiveInr(preTaxAmountInCurrency: string): string {
   return String(Math.round(Number(preTaxAmountInCurrency) * (1 + GST_RATE)));
