@@ -13,6 +13,13 @@ export const BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID = 654474;
 // Indiranagar has no first-class promo; new members go on the Copper + Cloves single class package.
 export const BENGALURU_INDIRANAGAR_MEMBERSHIP_ID = 548528;
 
+export function isBengaluruLocation(homeLocationId: number | undefined | null): boolean {
+  return (
+    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID ||
+    homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID
+  );
+}
+
 export function openBarreMembershipIdForLocation(homeLocationId: number): number {
   if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
     return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;

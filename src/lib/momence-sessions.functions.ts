@@ -9,6 +9,7 @@ import {
   BENGALURU_MOMENCE_HOST_ID,
   buildPayCartRequest,
   findBoughtMembershipIdFromPayCart,
+  isBengaluruLocation,
   type CompatibleMembershipsResponse,
   type PayCartResponse,
 } from "./momence-booking.helpers";
@@ -54,17 +55,23 @@ export const listSessions = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ sessions: SessionDTO[] }> => {
     const start = new Date();
     const end = new Date(Date.now() + data.daysAhead * 24 * 60 * 60 * 1000);
+    const isBengaluru = isBengaluruLocation(data.locationId);
     const params = new URLSearchParams({
       page: "0",
-      pageSize: "100",
+      pageSize: isBengaluru ? "200" : "100",
       sortBy: "startsAt",
       sortOrder: "ASC",
       locationId: String(data.locationId),
       startAfter: start.toISOString(),
       startBefore: end.toISOString(),
+      ...(isBengaluru
+        ? { includeCancelled: "false", includeChildLocations: "true" }
+        : {}),
     });
     const res = await momenceFetch<{ payload: HostSession[] }>(
       `/host/sessions?${params.toString()}`,
+      {},
+      isBengaluru ? "bengaluru" : "default",
     );
     const sessions = (res.payload ?? [])
       .filter((s) => !s.isCancelled)
