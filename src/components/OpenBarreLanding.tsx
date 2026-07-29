@@ -23,7 +23,7 @@ import {
 } from "@/lib/momence.functions";
 import { trackSignupStart, trackWaiverSigned, trackBookingComplete } from "@/lib/analytics";
 import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
-import { LOCATIONS } from "@/lib/momence-locations";
+import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { parseAttributionFromSearch, type StoredAttribution } from "@/lib/attribution.helpers";
 import {
@@ -210,6 +210,7 @@ export function OpenBarreLanding({
 
   const isBengaluru = studioVariant === "bengaluru";
   const studioConfig = STUDIO_CONFIG[studioVariant];
+  const LOCATIONS = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
 
   useEffect(() => {
     setHeroQuote(
@@ -595,7 +596,7 @@ export function OpenBarreLanding({
 
       <WhatHappensNext />
 
-      <StudioLocations />
+      <StudioLocations studioVariant={studioVariant} />
 
       <section className="bg-secondary py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
@@ -833,7 +834,7 @@ function WhatHappensNext() {
   );
 }
 
-const STUDIOS = [
+const MUMBAI_STUDIOS = [
   {
     name: "Kwality House, Kemps Corner",
     neighborhood: "Grant Road, Mumbai",
@@ -852,7 +853,28 @@ const STUDIOS = [
   },
 ];
 
-function StudioLocations() {
+// TODO: placeholder contact details - swap in real phone/hours/address for both Bengaluru studios.
+const BENGALURU_STUDIOS = [
+  {
+    name: "Lavelle Road, Bengaluru",
+    neighborhood: "Lavelle Road, Bengaluru",
+    location: "Lavelle Road",
+    phone: "097696 65757",
+    hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
+    address: "Lavelle Road, Bengaluru",
+  },
+  {
+    name: "Indiranagar, Bengaluru",
+    neighborhood: "Indiranagar, Bengaluru",
+    location: "Indiranagar",
+    phone: "097696 65757",
+    hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
+    address: "Indiranagar, Bengaluru",
+  },
+];
+
+function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
+  const STUDIOS = studioVariant === "bengaluru" ? BENGALURU_STUDIOS : MUMBAI_STUDIOS;
   return (
     <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
       <div className="max-w-2xl mb-14">
@@ -980,6 +1002,8 @@ function SignupCard({
   const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
   const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
   const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isBengaluru = studioVariant === "bengaluru";
+  const LOCATIONS = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
 
   function clearHoverDelay() {
     if (!hoverDelayRef.current) return;
@@ -1123,14 +1147,13 @@ function SignupCard({
             </select>
           </div>
 
-          {studioSelected && (
+          {studioSelected && !isBengaluru && (
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                 Class type *
               </label>
-              <div className={studioVariant === "bengaluru" ? "grid grid-cols-1 gap-2" : "grid grid-cols-3 gap-2"}>
+              <div className="grid grid-cols-3 gap-2">
                 {classTypeOptionsForLocation(form.homeLocationId)
-                  .filter((key) => (studioVariant === "bengaluru" ? key === "barre-57" : true))
                   .map((key) => {
                   const classFormat = classFormatForKey(key);
                   const selected = form.classType === key;

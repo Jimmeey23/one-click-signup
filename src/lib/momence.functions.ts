@@ -7,7 +7,7 @@ import {
 } from "./class-format-matchers";
 import {
   buildMembershipCheckoutRequest,
-  OPEN_BARRE_MEMBERSHIP_ID,
+  openBarreMembershipIdForLocation,
 } from "./momence-booking.helpers";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
@@ -213,7 +213,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
         email: payload.email,
         phoneE164: payload.phoneE164,
         center: payload.center,
-        classType: payload.classType,
+        classType: payload.abVariant === "bengaluru" ? "barre-57" : payload.classType,
         whatsappConsent: payload.whatsappConsent,
       }),
     });
@@ -275,11 +275,15 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
   }
 }
 
+const BENGALURU_LEADS_HOST_ID = 33905;
+const BENGALURU_LEADS_SOURCE_ID = "11615";
+const BENGALURU_LEADS_FALLBACK_TOKEN = "qy71rOk8en";
+
 async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
-  const token =
-    payload.abVariant === "bengaluru"
-      ? process.env.MOMENCE_API_TOKEN_BLR ?? process.env.MOMENCE_API_TOKEN
-      : process.env.MOMENCE_API_TOKEN;
+  const isBengaluru = payload.abVariant === "bengaluru";
+  const token = isBengaluru
+    ? (process.env.MOMENCE_API_TOKEN_BLR?.trim() || BENGALURU_LEADS_FALLBACK_TOKEN)
+    : process.env.MOMENCE_API_TOKEN;
   if (!token) {
     console.warn("MOMENCE_API_TOKEN not set - skipping lead capture");
     return { ok: false, error: "Lead webhook token not configured" };
@@ -287,14 +291,14 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
   try {
     const leadBody = {
       token,
-      sourceId: "8082",
+      sourceId: isBengaluru ? BENGALURU_LEADS_SOURCE_ID : "8082",
       firstName: payload.firstName,
       lastName: payload.lastName,
       email: payload.email,
       phoneNumber: payload.phoneE164,
       time: "Flexible / Needs Recommendation",
       center: payload.center,
-      type: payload.classType ?? "Barre 57",
+      type: isBengaluru ? "Barre 57" : (payload.classType ?? "Barre 57"),
       waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
       whatsapp_consent: payload.whatsappConsent ? "opted_in" : "not_opted_in",
       whatsapp_consent_at: payload.whatsappConsentAt ?? "",
@@ -316,7 +320,8 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       lead_stage: payload.stage ?? "completed",
     };
 
-    const res = await fetch("https://api.momence.com/integrations/customer-leads/13752/collect", {
+    const leadsHostId = isBengaluru ? BENGALURU_LEADS_HOST_ID : 13752;
+    const res = await fetch(`https://api.momence.com/integrations/customer-leads/${leadsHostId}/collect`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -454,7 +459,7 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
     const checkoutRequest = buildMembershipCheckoutRequest({
       memberId: created.memberId,
       homeLocationId: data.homeLocationId,
-      membershipId: OPEN_BARRE_MEMBERSHIP_ID,
+      membershipId: openBarreMembershipIdForLocation(data.homeLocationId),
       attemptedPriceInCurrency: "0",
       paymentMethodType: "free",
     });

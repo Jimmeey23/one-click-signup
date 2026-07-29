@@ -1,6 +1,6 @@
 import {
   buildMembershipCheckoutRequest,
-  OPEN_BARRE_MEMBERSHIP_ID,
+  openBarreMembershipIdForLocation,
 } from "./momence-booking.helpers";
 import {
   buildHostMemberCreateRequest,
@@ -130,7 +130,7 @@ export async function runSignupAndEnroll(
     const checkoutRequest = buildMembershipCheckoutRequest({
       memberId: created.memberId,
       homeLocationId: data.homeLocationId,
-      membershipId: OPEN_BARRE_MEMBERSHIP_ID,
+      membershipId: openBarreMembershipIdForLocation(data.homeLocationId),
       attemptedPriceInCurrency: "0",
       paymentMethodType: "free",
     });

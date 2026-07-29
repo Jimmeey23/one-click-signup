@@ -6,6 +6,22 @@ export type CompatibleMembershipsRequest = {
 
 export const OPEN_BARRE_MEMBERSHIP_ID = 33609;
 export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 240932;
+export const BENGALURU_LAVELLE_ROAD_LOCATION_ID = 22116;
+export const BENGALURU_INDIRANAGAR_LOCATION_ID = 36372;
+// 50%-off first-class intro pack - Lavelle Road only.
+export const BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID = 654474;
+// Indiranagar has no first-class promo; new members go on the Copper + Cloves single class package.
+export const BENGALURU_INDIRANAGAR_MEMBERSHIP_ID = 548528;
+
+export function openBarreMembershipIdForLocation(homeLocationId: number): number {
+  if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
+    return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;
+  }
+  if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
+    return BENGALURU_INDIRANAGAR_MEMBERSHIP_ID;
+  }
+  return OPEN_BARRE_MEMBERSHIP_ID;
+}
 // Momence's own catalog price for this membership (matches mum_price_metadata in the
 // products export) - this is what must be sent back to Momence's checkout API.
 export const STANDARD_CLASS_PRICE_INR = "1750";

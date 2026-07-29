@@ -164,4 +164,6 @@ export {
 export const LOCATIONS = [
   { id: 9030, name: "Kwality House, Kemps Corner" },
   { id: 29821, name: "Supreme HQ, Bandra" },
+  { id: 22116, name: "Lavelle Road, Bengaluru" },
+  { id: 36372, name: "Indiranagar, Bengaluru" },
 ] as const;
