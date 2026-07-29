@@ -4,7 +4,11 @@ const DASHBOARD_BASE = "https://momence.com/_api/primary";
 export const MOMENCE_HOST_ID = 13752;
 
 type TokenCache = { accessToken: string; expiresAt: number } | null;
-let cached: TokenCache = null;
+export type MomenceApiAccount = "default" | "bengaluru";
+const cachedByAccount: Record<MomenceApiAccount, TokenCache> = {
+  default: null,
+  bengaluru: null,
+};
 let localEnvCache: Record<string, string> | null | undefined;
 
 async function readLocalEnv(): Promise<Record<string, string> | null> {
@@ -59,13 +63,15 @@ export async function requireServerEnv(name: string): Promise<string> {
   return value;
 }
 
-export async function getMomenceToken(): Promise<string> {
+export async function getMomenceToken(account: MomenceApiAccount = "default"): Promise<string> {
+  const cached = cachedByAccount[account];
   if (cached && cached.expiresAt > Date.now() + 30_000) return cached.accessToken;
 
-  const clientId = await requireServerEnv("MOMENCE_CLIENT_ID");
-  const clientSecret = await requireServerEnv("MOMENCE_CLIENT_SECRET");
-  const username = await requireServerEnv("MOMENCE_USERNAME");
-  const password = await requireServerEnv("MOMENCE_PASSWORD");
+  const envSuffix = account === "bengaluru" ? "_BLR" : "";
+  const clientId = await requireServerEnv(`MOMENCE_CLIENT_ID${envSuffix}`);
+  const clientSecret = await requireServerEnv(`MOMENCE_CLIENT_SECRET${envSuffix}`);
+  const username = await requireServerEnv(`MOMENCE_USERNAME${envSuffix}`);
+  const password = await requireServerEnv(`MOMENCE_PASSWORD${envSuffix}`);
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
   const body = new URLSearchParams({
@@ -104,12 +110,16 @@ export async function getMomenceToken(): Promise<string> {
   const exp = data.accessTokenExpiresAt
     ? new Date(data.accessTokenExpiresAt).getTime()
     : Date.now() + 30 * 60_000;
-  cached = { accessToken: token, expiresAt: exp };
+  cachedByAccount[account] = { accessToken: token, expiresAt: exp };
   return token;
 }
 
-export async function momenceFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = await getMomenceToken();
+export async function momenceFetch<T>(
+  path: string,
+  init: RequestInit = {},
+  account: MomenceApiAccount = "default",
+): Promise<T> {
+  const token = await getMomenceToken(account);
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {

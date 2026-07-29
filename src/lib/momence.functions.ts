@@ -9,6 +9,7 @@ import {
   buildOpenBarreCheckoutRequestForLocation,
   BENGALURU_LAVELLE_ROAD_LOCATION_ID,
   BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID,
+  BENGALURU_INDIRANAGAR_LOCATION_ID,
 } from "./momence-booking.helpers";
 import { payBengaluruMembershipCart } from "./momence-sessions.functions";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
@@ -410,12 +411,23 @@ async function signMemberWaivers({
   return { signedCount: signRequests.length, availableCount: waivers.length };
 }
 
+function isBengaluruLocation(homeLocationId: number | undefined): boolean {
+  return (
+    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID ||
+    homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID
+  );
+}
+
 const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
   createMember: async (request) =>
-    momenceFetch<{ memberId: number }>(request.path, {
-      method: request.method,
-      body: JSON.stringify(request.body),
-    }),
+    momenceFetch<{ memberId: number }>(
+      request.path,
+      {
+        method: request.method,
+        body: JSON.stringify(request.body),
+      },
+      isBengaluruLocation(request.body.homeLocationId) ? "bengaluru" : "default",
+    ),
   signMemberWaivers,
   enrollOpenBarre: async ({ memberId, homeLocationId }) => {
     if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
