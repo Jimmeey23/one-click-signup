@@ -603,7 +603,7 @@ export function OpenBarreLanding({
           <div className="flex items-end justify-between flex-wrap gap-6 mb-10">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
-                Loved by Mumbai
+                Loved by {isBengaluru ? "Bengaluru" : "Mumbai"}
               </p>
               <h2 className="font-display text-4xl md:text-5xl tracking-tight">
                 What our community says
@@ -649,12 +649,6 @@ function Header() {
         >
           Claim Your Trial Class
         </a>
-        <Link
-          to="/bengaluru"
-          className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest hover:opacity-90 transition ml-3"
-        >
-          Bengaluru Offer
-        </Link>
       </div>
     </header>
   );
@@ -853,23 +847,24 @@ const MUMBAI_STUDIOS = [
   },
 ];
 
-// TODO: placeholder contact details - swap in real phone/hours/address for both Bengaluru studios.
 const BENGALURU_STUDIOS = [
   {
     name: "Lavelle Road, Bengaluru",
-    neighborhood: "Lavelle Road, Bengaluru",
+    neighborhood: "Shanthala Nagar, Bengaluru",
     location: "Lavelle Road",
-    phone: "097696 65757",
-    hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
-    address: "Lavelle Road, Bengaluru",
+    phone: "070220 43667",
+    hours: "Daily: 6:00 AM - 8:30 PM",
+    address:
+      "1st Floor, Kenkere House, Vittal Mallya Rd, above Raymonds, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001",
   },
   {
     name: "Indiranagar, Bengaluru",
-    neighborhood: "Indiranagar, Bengaluru",
+    neighborhood: "Domlur, Bengaluru",
     location: "Indiranagar",
-    phone: "097696 65757",
-    hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
-    address: "Indiranagar, Bengaluru",
+    phone: "090084 26703",
+    hours: "Daily: 6:00 AM - 8:00 PM",
+    address:
+      "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",
   },
 ];
 

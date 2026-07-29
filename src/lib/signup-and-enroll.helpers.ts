@@ -1,7 +1,4 @@
-import {
-  buildMembershipCheckoutRequest,
-  openBarreMembershipIdForLocation,
-} from "./momence-booking.helpers";
+import { buildOpenBarreCheckoutRequestForLocation } from "./momence-booking.helpers";
 import {
   buildHostMemberCreateRequest,
   type HostMemberCreateRequest,
@@ -69,7 +66,7 @@ export type SignupAndEnrollResult = {
   leadError: string | null;
 };
 
-export type OpenBarreCheckoutRequest = ReturnType<typeof buildMembershipCheckoutRequest>;
+export type OpenBarreCheckoutRequest = ReturnType<typeof buildOpenBarreCheckoutRequestForLocation>;
 
 export type SignupAndEnrollDependencies = {
   createMember: (request: HostMemberCreateRequest) => Promise<{ memberId: number }>;
@@ -127,12 +124,9 @@ export async function runSignupAndEnroll(
   let enrolled = false;
   let enrollError: string | null = null;
   try {
-    const checkoutRequest = buildMembershipCheckoutRequest({
+    const checkoutRequest = buildOpenBarreCheckoutRequestForLocation({
       memberId: created.memberId,
       homeLocationId: data.homeLocationId,
-      membershipId: openBarreMembershipIdForLocation(data.homeLocationId),
-      attemptedPriceInCurrency: "0",
-      paymentMethodType: "free",
     });
     await dependencies.enrollOpenBarre(checkoutRequest);
     enrolled = true;

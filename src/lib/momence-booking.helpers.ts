@@ -39,6 +39,39 @@ export const NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR = toGstInclusiveInr(
   NEWCOMERS_2_FOR_1_PRICE_INR,
 );
 
+// Copper + Cloves single class package (Indiranagar) - INR 900 + 5% GST, charged via Stripe.
+export const BENGALURU_INDIRANAGAR_PRICE_INR = "900";
+export const BENGALURU_INDIRANAGAR_STRIPE_CHARGE_PRICE_INR = toGstInclusiveInr(
+  BENGALURU_INDIRANAGAR_PRICE_INR,
+);
+
+export function buildOpenBarreCheckoutRequestForLocation({
+  memberId,
+  homeLocationId,
+}: {
+  memberId: number;
+  homeLocationId: number;
+}) {
+  if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
+    return buildMembershipCheckoutRequest({
+      memberId,
+      homeLocationId,
+      membershipId: BENGALURU_INDIRANAGAR_MEMBERSHIP_ID,
+      attemptedPriceInCurrency: BENGALURU_INDIRANAGAR_STRIPE_CHARGE_PRICE_INR,
+      paymentMethodType: "custom",
+      customPaymentMethodId: MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
+    });
+  }
+
+  return buildMembershipCheckoutRequest({
+    memberId,
+    homeLocationId,
+    membershipId: openBarreMembershipIdForLocation(homeLocationId),
+    attemptedPriceInCurrency: "0",
+    paymentMethodType: "free",
+  });
+}
+
 export type CompatibleBoughtMembership = {
   id: number;
   membership?: { id?: number | null } | null;

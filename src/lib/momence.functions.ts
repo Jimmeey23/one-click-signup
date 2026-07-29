@@ -5,10 +5,7 @@ import {
   classTypeValueForClassFormatKey,
   type ClassFormatKey,
 } from "./class-format-matchers";
-import {
-  buildMembershipCheckoutRequest,
-  openBarreMembershipIdForLocation,
-} from "./momence-booking.helpers";
+import { buildOpenBarreCheckoutRequestForLocation } from "./momence-booking.helpers";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
@@ -456,12 +453,9 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       body: JSON.stringify(memberRequest.body),
     });
 
-    const checkoutRequest = buildMembershipCheckoutRequest({
+    const checkoutRequest = buildOpenBarreCheckoutRequestForLocation({
       memberId: created.memberId,
       homeLocationId: data.homeLocationId,
-      membershipId: openBarreMembershipIdForLocation(data.homeLocationId),
-      attemptedPriceInCurrency: "0",
-      paymentMethodType: "free",
     });
 
     await momenceFetch(checkoutRequest.path, {
