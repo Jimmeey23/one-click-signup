@@ -35,7 +35,7 @@ export const STANDARD_CLASS_PRICE_INR = "1750";
 export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
 export const MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 4578;
 // Custom payment methods are per-host in Momence - Bengaluru (host 33905) has its own id.
-export const BENGALURU_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 391130;
+export const BENGALURU_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 5801;
 // GST applied on top of the Momence catalog price when charging the member directly
 // through Stripe Checkout (Momence's own checkout already accounts for tax internally).
 export const GST_RATE = 0.05;
