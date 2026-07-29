@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OpenBarreLanding } from "@/components/OpenBarreLanding";
 import groupBarre from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
+import { Link } from "@tanstack/react-router";
 
 const bengaluruHead = () => ({
   meta: [
@@ -26,5 +27,11 @@ const bengaluruHead = () => ({
 
 export const Route = createFileRoute("/bengaluru")({
   head: bengaluruHead,
-  component: () => <OpenBarreLanding studioVariant="bengaluru" routeSource="bengaluru" />,
+  component: BengaluruPage,
 });
+
+function BengaluruPage() {
+  return (
+    <OpenBarreLanding studioVariant="bengaluru" routeSource="bengaluru" />
+  );
+}

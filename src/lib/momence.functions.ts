@@ -5,7 +5,12 @@ import {
   classTypeValueForClassFormatKey,
   type ClassFormatKey,
 } from "./class-format-matchers";
-import { buildOpenBarreCheckoutRequestForLocation } from "./momence-booking.helpers";
+import {
+  buildOpenBarreCheckoutRequestForLocation,
+  BENGALURU_LAVELLE_ROAD_LOCATION_ID,
+  BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID,
+} from "./momence-booking.helpers";
+import { payBengaluruMembershipCart } from "./momence-sessions.functions";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
@@ -412,11 +417,20 @@ const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
       body: JSON.stringify(request.body),
     }),
   signMemberWaivers,
-  enrollOpenBarre: async (request) => {
-    await momenceFetch(request.path, {
+  enrollOpenBarre: async ({ memberId, homeLocationId }) => {
+    if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
+      return payBengaluruMembershipCart({
+        memberId,
+        homeLocationId,
+        membershipId: BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID,
+      });
+    }
+    const checkoutRequest = buildOpenBarreCheckoutRequestForLocation({ memberId, homeLocationId });
+    await momenceFetch(checkoutRequest.path, {
       method: "POST",
-      body: JSON.stringify(request.body),
+      body: JSON.stringify(checkoutRequest.body),
     });
+    return { boughtMembershipId: null };
   },
   captureLead,
   resolveCenterName: (homeLocationId) =>

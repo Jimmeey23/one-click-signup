@@ -1,9 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { Footer } from "@/components/Footer";
+import { BENGALURU_LOCATIONS, MUMBAI_LOCATIONS } from "@/lib/momence-locations";
 
 const logoUrl = "/physique57-logo.png";
 
+const searchSchema = z.object({
+  studio: z.enum(["mumbai", "bengaluru"]).optional(),
+});
+
 export const Route = createFileRoute("/contact")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Contact - Physique 57 India" },
@@ -15,12 +22,11 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const STUDIOS = [
-  { name: "Kemps Corner", address: "Kwality House, 1st Floor, August Kranti Marg, Kemps Corner, Mumbai 400036", phone: "+91 90040 01057", mapsQ: "Physique 57 India Kwality House Kemps Corner Mumbai" },
-  { name: "Bandra", address: "Supreme HQ, Off Linking Road, Bandra West, Mumbai 400050", phone: "+91 90040 01057", mapsQ: "Physique 57 India Supreme HQ Bandra Mumbai" },
-];
-
 function ContactPage() {
+  const { studio } = Route.useSearch();
+  const isBengaluru = studio === "bengaluru";
+  const studios = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -29,17 +35,26 @@ function ContactPage() {
 
       <section className="max-w-7xl mx-auto px-6 py-16">
         <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">Get in touch</p>
-        <h1 className="font-display text-5xl md:text-6xl tracking-tight mb-10">Come move with us.</h1>
+        <h1 className="font-display text-5xl md:text-6xl tracking-tight mb-4">
+          {isBengaluru ? "Come move with us in Bengaluru." : "Come move with us."}
+        </h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground mb-10">
+          {isBengaluru
+            ? "Visit our Bengaluru studios, or reach the team directly for class guidance, booking help, and first-visit questions."
+            : "Visit our Mumbai and Bengaluru studios, or reach the team directly for class guidance, booking help, and first-visit questions."}
+        </p>
         <div className="grid md:grid-cols-2 gap-8">
-          {STUDIOS.map((s) => (
+          {studios.map((s) => (
             <div key={s.name} className="bg-card border border-border rounded-2xl overflow-hidden shadow-[var(--shadow-card)]">
-              <iframe title={`Map of ${s.name}`} src={`https://www.google.com/maps?q=${encodeURIComponent(s.mapsQ)}&output=embed`} className="w-full h-64 border-0" loading="lazy" />
+              <iframe title={`Map of ${s.name}`} src={`https://www.google.com/maps?q=${encodeURIComponent(s.name)}&output=embed`} className="w-full h-64 border-0" loading="lazy" />
               <div className="p-6">
                 <h2 className="font-display text-3xl mb-2">{s.name}</h2>
-                <p className="text-sm text-muted-foreground">{s.address}</p>
+                <p className="text-sm text-muted-foreground">
+                  {"address" in s ? s.address : s.name}
+                </p>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                  <a className="text-primary-deep underline" href={`tel:${s.phone.replace(/\s/g, "")}`}>{s.phone}</a>
-                  <a className="text-primary-deep underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.mapsQ)}`} target="_blank" rel="noreferrer">Get directions</a>
+                  <a className="text-primary-deep underline" href={`tel:${"phone" in s ? s.phone.replace(/\s/g, "") : ""}`}>{"phone" in s ? s.phone : ""}</a>
+                  <a className="text-primary-deep underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name)}`} target="_blank" rel="noreferrer">Get directions</a>
                 </div>
               </div>
             </div>

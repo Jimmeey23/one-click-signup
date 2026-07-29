@@ -1,4 +1,3 @@
-import { buildOpenBarreCheckoutRequestForLocation } from "./momence-booking.helpers";
 import {
   buildHostMemberCreateRequest,
   type HostMemberCreateRequest,
@@ -60,13 +59,12 @@ export type SignupAndEnrollResult = {
   homeLocationId: number;
   enrolled: boolean;
   enrollError: string | null;
+  boughtMembershipId: number | null;
   signedCount: number;
   availableWaivers: number;
   leadCaptured: boolean;
   leadError: string | null;
 };
-
-export type OpenBarreCheckoutRequest = ReturnType<typeof buildOpenBarreCheckoutRequestForLocation>;
 
 export type SignupAndEnrollDependencies = {
   createMember: (request: HostMemberCreateRequest) => Promise<{ memberId: number }>;
@@ -74,7 +72,10 @@ export type SignupAndEnrollDependencies = {
     memberId: number;
     realSignature: string;
   }) => Promise<{ signedCount: number; availableCount: number }>;
-  enrollOpenBarre: (request: OpenBarreCheckoutRequest) => Promise<void>;
+  enrollOpenBarre: (input: {
+    memberId: number;
+    homeLocationId: number;
+  }) => Promise<{ boughtMembershipId: number | null } | void>;
   captureLead: (payload: LeadCapturePayload) => Promise<{ ok: boolean; error?: string | null }>;
   resolveCenterName: (homeLocationId: number) => string;
 };
@@ -123,12 +124,13 @@ export async function runSignupAndEnroll(
 
   let enrolled = false;
   let enrollError: string | null = null;
+  let boughtMembershipId: number | null = null;
   try {
-    const checkoutRequest = buildOpenBarreCheckoutRequestForLocation({
+    const enrollResult = await dependencies.enrollOpenBarre({
       memberId: created.memberId,
       homeLocationId: data.homeLocationId,
     });
-    await dependencies.enrollOpenBarre(checkoutRequest);
+    boughtMembershipId = enrollResult?.boughtMembershipId ?? null;
     enrolled = true;
     console.debug("[debug:signup] open barre enrolled", { memberId: created.memberId });
   } catch (e) {
@@ -172,6 +174,7 @@ export async function runSignupAndEnroll(
     homeLocationId: data.homeLocationId,
     enrolled,
     enrollError,
+    boughtMembershipId,
     signedCount: signed,
     availableWaivers,
     leadCaptured,

@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { OPEN_BARRE_MEMBERSHIP_ID } from "./momence-booking.helpers.ts";
 import {
   runSignupAndEnroll,
   type LeadCapturePayload,
@@ -46,13 +45,11 @@ function createDependencies(calls: string[]): SignupAndEnrollDependencies {
       assert.equal(realSignature, "real-signature-payload");
       return { signedCount: 2, availableCount: 2 };
     },
-    enrollOpenBarre: async (request) => {
+    enrollOpenBarre: async ({ memberId, homeLocationId }) => {
       calls.push("enrollOpenBarre");
-      assert.equal(request.path, "/host/checkout");
-      assert.equal(request.body.memberId, 32166499);
-      assert.equal(request.body.homeLocationId, 29821);
-      assert.equal(request.body.items[0]?.membershipId, OPEN_BARRE_MEMBERSHIP_ID);
-      assert.deepEqual(request.body.paymentMethods, [{ id: "1", type: "free" }]);
+      assert.equal(memberId, 32166499);
+      assert.equal(homeLocationId, 29821);
+      return { boughtMembershipId: null };
     },
     captureLead: async () => {
       calls.push("captureLead");
@@ -75,6 +72,7 @@ describe("signup and enroll helper", () => {
       homeLocationId: 29821,
       enrolled: true,
       enrollError: null,
+      boughtMembershipId: null,
       signedCount: 2,
       availableWaivers: 2,
       leadCaptured: false,

@@ -469,7 +469,11 @@ export function OpenBarreLanding({
       navigate({
         to: "/classes/$memberId",
         params: { memberId: String(result.memberId) },
-        search: { locationId: result.homeLocationId, classType: form.classType },
+        search: {
+          locationId: result.homeLocationId,
+          classType: form.classType,
+          ...(result.boughtMembershipId ? { boughtMembershipId: result.boughtMembershipId } : {}),
+        },
       });
     } catch (e2) {
       console.error("[debug:signup] signup threw:", e2);

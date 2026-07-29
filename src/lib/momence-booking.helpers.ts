@@ -248,3 +248,65 @@ export function findMembershipIncompatibility(
 
   return match?.incompatibility ?? null;
 }
+
+// Bengaluru studios sit under a separate Momence dashboard host and are not reachable
+// through the public API credentials used for Mumbai (host 13752). Billing and booking
+// for Bengaluru go through the same dashboard session-cookie API the Momence staff UI uses.
+export const BENGALURU_MOMENCE_HOST_ID = 33905;
+
+export type PayCartRequest = {
+  hostId: number;
+  payingMemberId: number;
+  targetMemberId: number;
+  homeLocationId: number;
+  membershipId: number;
+  priceInCurrency?: number;
+  itemGuid: string;
+  paymentMethodGuid: string;
+};
+
+export function buildPayCartRequest({
+  hostId,
+  payingMemberId,
+  targetMemberId,
+  homeLocationId,
+  membershipId,
+  priceInCurrency = 0,
+  itemGuid,
+  paymentMethodGuid,
+}: PayCartRequest) {
+  return {
+    path: `/host/${hostId}/pos/payments/pay-cart`,
+    body: {
+      hostId,
+      payingMemberId,
+      targetMemberId,
+      items: [
+        {
+          guid: itemGuid,
+          type: "membership",
+          quantity: 1,
+          priceInCurrency,
+          isPaymentPlanUsed: false,
+          membershipId,
+          appliedPriceRuleIds: [],
+        },
+      ],
+      paymentMethods: [{ type: "free", weightRelative: 1, guid: paymentMethodGuid }],
+      isEmailSent: false,
+      homeLocationId,
+    },
+  } as const;
+}
+
+export type PayCartResponse = {
+  isPending?: boolean;
+  processedItems?: Array<{ type: string; boughtMembershipId?: number }>;
+};
+
+export function findBoughtMembershipIdFromPayCart(response: PayCartResponse): number | null {
+  const match = (response.processedItems ?? []).find(
+    (item) => item.type === "membership" && typeof item.boughtMembershipId === "number",
+  );
+  return match?.boughtMembershipId ?? null;
+}

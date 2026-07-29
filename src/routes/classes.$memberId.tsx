@@ -35,6 +35,7 @@ import { CLASS_FORMAT_KEYS, type ClassFormatKey } from "@/lib/class-format-match
 import {
   listSessions,
   bookWithMembership,
+  bookWithBengaluruMembership,
   type SessionDTO,
 } from "@/lib/momence-sessions.functions";
 import {
@@ -94,6 +95,7 @@ const searchSchema = z.object({
   paidSessionId: z.coerce.number().int().positive().optional(),
   paidLocationId: z.coerce.number().int().positive().optional(),
   classType: z.enum(CLASS_FORMAT_KEYS).optional(),
+  boughtMembershipId: z.coerce.number().int().positive().optional(),
 });
 
 const logoUrl = "/physique57-logo.png";
@@ -386,11 +388,13 @@ function ClassesPage() {
     paidSessionId,
     paidLocationId,
     classType: initialClassType,
+    boughtMembershipId,
   } = Route.useSearch();
   const memberId = Number(memberIdStr);
 
   const listFn = useServerFn(listSessions);
   const bookFn = useServerFn(bookWithMembership);
+  const bookBengaluruFn = useServerFn(bookWithBengaluruMembership);
   const createCheckoutFn = useServerFn(createNewcomersCheckoutSession);
   const completeCheckoutFn = useServerFn(completeNewcomersCheckoutBooking);
   const saveCustomerFieldsFn = useServerFn(saveCustomerFieldsForMember);
@@ -639,7 +643,11 @@ function ClassesPage() {
         return;
       }
 
-      await bookFn({ data: { memberId, sessionId: s.id, homeLocationId: locationId } });
+      if (boughtMembershipId) {
+        await bookBengaluruFn({ data: { memberId, sessionId: s.id, boughtMembershipId } });
+      } else {
+        await bookFn({ data: { memberId, sessionId: s.id, homeLocationId: locationId } });
+      }
       setBooked({ session: s, location: bookingLocationForId(currentLoc.id) });
     } catch (e) {
       setBookErr(e instanceof Error ? e.message : "Booking failed");
