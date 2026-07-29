@@ -276,7 +276,10 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
 }
 
 async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
-  const token = process.env.MOMENCE_API_TOKEN;
+  const token =
+    payload.abVariant === "bengaluru"
+      ? process.env.MOMENCE_API_TOKEN_BLR ?? process.env.MOMENCE_API_TOKEN
+      : process.env.MOMENCE_API_TOKEN;
   if (!token) {
     console.warn("MOMENCE_API_TOKEN not set - skipping lead capture");
     return { ok: false, error: "Lead webhook token not configured" };
@@ -297,13 +300,17 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       whatsapp_consent_at: payload.whatsappConsentAt ?? "",
       event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? "prospect"}_${Date.now()}`,
       utm_source: payload.utmSource ?? "website",
-      utm_medium: payload.utmMedium ?? "trial-landing",
-      utm_campaign: payload.utmCampaign ?? "open-barre-trial",
+      utm_medium: payload.utmMedium ?? (payload.abVariant === "bengaluru" ? "bengaluru-landing" : "trial-landing"),
+      utm_campaign: payload.utmCampaign ?? (payload.abVariant === "bengaluru" ? "bengaluru-first-class-offer" : "open-barre-trial"),
       utm_term: payload.utmTerm ?? "",
       utm_content: payload.utmContent ?? "",
       gclid: payload.gclid ?? "",
       fbclid: payload.fbclid ?? "",
-      landing_page: payload.landingPage ?? "https://trial.physique57india.com/",
+      landing_page:
+        payload.landingPage ??
+        (payload.abVariant === "bengaluru"
+          ? "https://trial.physique57india.com/bengaluru"
+          : "https://trial.physique57india.com/"),
       referrer: payload.referrer ?? "",
       ab_variant: payload.abVariant ?? "",
       lead_stage: payload.stage ?? "completed",

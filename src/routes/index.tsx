@@ -26,5 +26,5 @@ const landingHead = () => ({
 
 export const Route = createFileRoute("/")({
   head: landingHead,
-  component: OpenBarreLanding,
+  component: () => <OpenBarreLanding studioVariant="mumbai" routeSource="landing" />,
 });

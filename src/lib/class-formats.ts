@@ -137,8 +137,17 @@ const STUDIO_CLASS_TYPES: Record<number, ClassFormatKey[]> = {
   29821: ["barre-57", "power-cycle"], // Supreme HQ, Bandra
 };
 
+const STUDIO_CLASS_TYPES_BY_STUDIO: Record<string, ClassFormatKey[]> = {
+  mumbai: ["barre-57", "power-cycle", "strength-lab"],
+  bengaluru: ["barre-57"],
+};
+
 export function classTypeOptionsForLocation(locationId: number): ClassFormatKey[] {
   return STUDIO_CLASS_TYPES[locationId] ?? ["barre-57"];
+}
+
+export function classTypeOptionsForStudio(studio: string): ClassFormatKey[] {
+  return STUDIO_CLASS_TYPES_BY_STUDIO[studio] ?? ["barre-57"];
 }
 
 for (const key of CLASS_FORMAT_KEYS) {

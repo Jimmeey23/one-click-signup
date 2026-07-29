@@ -16,6 +16,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ClassesInfoRouteImport } from './routes/classes-info'
+import { Route as BengaluruRouteImport } from './routes/bengaluru'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassesMemberIdRouteImport } from './routes/classes.$memberId'
@@ -55,6 +56,11 @@ const ClassesInfoRoute = ClassesInfoRouteImport.update({
   path: '/classes-info',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BengaluruRoute = BengaluruRouteImport.update({
+  id: '/bengaluru',
+  path: '/bengaluru',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -74,6 +80,7 @@ const ClassesMemberIdRoute = ClassesMemberIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/bengaluru': typeof BengaluruRoute
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/bengaluru': typeof BengaluruRoute
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/bengaluru': typeof BengaluruRoute
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/bengaluru'
     | '/classes-info'
     | '/contact'
     | '/faq'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/bengaluru'
     | '/classes-info'
     | '/contact'
     | '/faq'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/bengaluru'
     | '/classes-info'
     | '/contact'
     | '/faq'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  BengaluruRoute: typeof BengaluruRoute
   ClassesInfoRoute: typeof ClassesInfoRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassesInfoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bengaluru': {
+      id: '/bengaluru'
+      path: '/bengaluru'
+      fullPath: '/bengaluru'
+      preLoaderRoute: typeof BengaluruRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  BengaluruRoute: BengaluruRoute,
   ClassesInfoRoute: ClassesInfoRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,

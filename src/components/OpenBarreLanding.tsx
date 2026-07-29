@@ -128,13 +128,55 @@ type FormState = {
   classType: ClassFormatKey;
 };
 
+type StudioVariant = "mumbai" | "bengaluru";
+type StudioConfig = {
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+  heroLocationLine: string;
+  statLabel: string;
+  signupCta: string;
+  landingNote: string;
+};
+
+const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
+  mumbai: {
+    title: "Physique 57 India - Discover the workout everyone talks about.",
+    description:
+      "Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
+    ogTitle: "Physique 57 India - Discover the workout everyone talks about.",
+    ogDescription: "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
+    heroLocationLine: "Mumbai · Bengaluru",
+    statLabel: "studios",
+    signupCta: "Claim Your Trial Class",
+    landingNote: "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile.",
+  },
+  bengaluru: {
+    title: "Physique 57 Bengaluru - First class 50% off",
+    description:
+      "Your first Barre class in Bengaluru is 50% off. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
+    ogTitle: "Physique 57 Bengaluru - First class 50% off",
+    ogDescription: "Sign up for Bengaluru studios and claim 50% off your first Barre class.",
+    heroLocationLine: "Bengaluru",
+    statLabel: "format",
+    signupCta: "Book Bengaluru Class",
+    landingNote:
+      "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile.",
+  },
+};
+
+type OpenBarreLandingProps = {
+  captureLead?: boolean;
+  routeSource?: string;
+  studioVariant?: StudioVariant;
+};
+
 export function OpenBarreLanding({
   captureLead = true,
   routeSource = "landing",
-}: {
-  captureLead?: boolean;
-  routeSource?: string;
-}) {
+  studioVariant = "mumbai",
+}: OpenBarreLandingProps) {
   const navigate = useNavigate();
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -165,6 +207,9 @@ export function OpenBarreLanding({
     signatureName: "",
     classType: "barre-57",
   });
+
+  const isBengaluru = studioVariant === "bengaluru";
+  const studioConfig = STUDIO_CONFIG[studioVariant];
 
   useEffect(() => {
     setHeroQuote(
@@ -300,7 +345,7 @@ export function OpenBarreLanding({
         fbclid: params.get("fbclid") ?? stored.fbclid,
         referrer: stored.referrer ?? document.referrer,
         landingPage: stored.landingPage ?? window.location.href,
-        abVariant: variant,
+        abVariant: isBengaluru ? "bengaluru" : variant,
         classType: form.classType,
         whatsappConsent: form.whatsappConsent,
         whatsappConsentAt: form.whatsappConsentAt ?? undefined,
@@ -386,7 +431,7 @@ export function OpenBarreLanding({
             landingPage:
               stored.landingPage ??
               (typeof window !== "undefined" ? window.location.href : undefined),
-            abVariant: variant,
+            abVariant: isBengaluru ? "bengaluru" : variant,
           }
         : { abVariant: variant };
       console.debug("[debug:signup] calling signup server fn", { captureLead });
@@ -454,18 +499,17 @@ export function OpenBarreLanding({
         <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24 grid lg:grid-cols-[0.9fr_1.25fr] gap-12 lg:gap-14 items-start text-white">
           <div className="pt-4">
             <p className="text-[11px] uppercase tracking-[0.35em] text-primary font-bold mb-6">
-              Mumbai · Bengaluru
+              {studioConfig.heroLocationLine}
             </p>
             <h1 className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.05] tracking-tight">
               {heroQuote}
             </h1>
             <p className="mt-8 max-w-md text-base md:text-lg text-white/75 leading-relaxed">
-              Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body
-              in just 57 minutes. Sign up below to get started.
+              {studioConfig.description}
             </p>
             <div className="mt-10 grid grid-cols-3 gap-6 max-w-md">
               <Stat n="57" label="minutes" />
-              <Stat n="3" label="studios" />
+              <Stat n={isBengaluru ? "1" : "3"} label={studioConfig.statLabel} />
               <Stat n="∞" label="energy" />
             </div>
           </div>
@@ -481,7 +525,8 @@ export function OpenBarreLanding({
             onSignChange={handleSignChange}
             studioSelected={studioSelected}
             onStudioSelectedChange={setStudioSelected}
-            ctaLabel={variantCopy.ctaLabel}
+            ctaLabel={isBengaluru ? studioConfig.signupCta : variantCopy.ctaLabel}
+            studioVariant={studioVariant}
           />
         </div>
       </section>
@@ -587,6 +632,9 @@ function Header() {
           <Link to="/classes-info" className="hover:text-primary transition">
             Classes
           </Link>
+          <Link to="/bengaluru" className="hover:text-primary transition">
+            Bengaluru
+          </Link>
           <Link to="/faq" className="hover:text-primary transition">
             FAQ
           </Link>
@@ -600,6 +648,12 @@ function Header() {
         >
           Claim Your Trial Class
         </a>
+        <Link
+          to="/bengaluru"
+          className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest hover:opacity-90 transition ml-3"
+        >
+          Bengaluru Offer
+        </Link>
       </div>
     </header>
   );
@@ -908,6 +962,7 @@ function SignupCard({
   studioSelected,
   onStudioSelectedChange,
   ctaLabel,
+  studioVariant,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
@@ -920,6 +975,7 @@ function SignupCard({
   studioSelected: boolean;
   onStudioSelectedChange: (selected: boolean) => void;
   ctaLabel: string;
+  studioVariant: StudioVariant;
 }) {
   const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
   const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
@@ -1072,8 +1128,10 @@ function SignupCard({
               <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                 Class type *
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {classTypeOptionsForLocation(form.homeLocationId).map((key) => {
+              <div className={studioVariant === "bengaluru" ? "grid grid-cols-1 gap-2" : "grid grid-cols-3 gap-2"}>
+                {classTypeOptionsForLocation(form.homeLocationId)
+                  .filter((key) => (studioVariant === "bengaluru" ? key === "barre-57" : true))
+                  .map((key) => {
                   const classFormat = classFormatForKey(key);
                   const selected = form.classType === key;
                   const showDescription =
@@ -1125,8 +1183,9 @@ function SignupCard({
 
         <div className="space-y-3.5">
           <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
-            Please review and sign before activating Open Barre. This consent is recorded with
-            your Momence member profile.
+            {studioVariant === "bengaluru"
+              ? "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile."
+              : "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile."}
           </p>
 
           <details className="group/waiver rounded-lg border border-border bg-background open:pb-3">
@@ -1186,7 +1245,9 @@ function SignupCard({
               className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--primary)]"
             />
             <span className="text-xs text-foreground leading-relaxed">
-              I have read, signed, and accept the waiver and Physique 57 India's privacy terms.
+              {studioVariant === "bengaluru"
+                ? "I have read, signed, and accept the waiver and Physique 57 India's privacy terms for Bengaluru bookings."
+                : "I have read, signed, and accept the waiver and Physique 57 India's privacy terms."}
             </span>
           </label>
         </div>
