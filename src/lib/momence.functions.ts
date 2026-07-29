@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
 import {
+  classTypeValueForClassFormatKey,
+  type ClassFormatKey,
+} from "./class-format-matchers";
+import {
   buildMembershipCheckoutRequest,
   OPEN_BARRE_MEMBERSHIP_ID,
 } from "./momence-booking.helpers";
@@ -167,6 +171,10 @@ export function buildRespondIoContactBody({
   classType?: string;
   whatsappConsent?: boolean;
 }) {
+  const classTypeValue = classType
+    ? classTypeValueForClassFormatKey(classType as ClassFormatKey)
+    : "Barre";
+
   return {
     firstName,
     lastName,
@@ -174,7 +182,7 @@ export function buildRespondIoContactBody({
     phone: phoneE164,
     customFields: [
       { name: "center", value: center },
-      { name: "classType", value: classType ?? "Barre 57" },
+      { name: "classType", value: classTypeValue },
       { name: "whatsappConsent", value: whatsappConsent ? "opted_in" : "not_opted_in" },
     ],
   };

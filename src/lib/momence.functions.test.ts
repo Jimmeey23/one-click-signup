@@ -20,12 +20,12 @@ describe("respond.io contact body", () => {
       phone: "+919876543210",
       customFields: [
         { name: "center", value: "Kwality House, Kemps Corner" },
-        { name: "classType", value: "barre-57" },
+        { name: "classType", value: "Barre" },
       ],
     });
   });
 
-  it("falls back to Barre 57 for classType when not provided", () => {
+  it("falls back to Barre for classType when not provided", () => {
     const body = buildRespondIoContactBody({
       firstName: "Asha",
       lastName: "Rao",
@@ -36,7 +36,7 @@ describe("respond.io contact body", () => {
 
     assert.deepEqual(body.customFields, [
       { name: "center", value: "Kwality House, Kemps Corner" },
-      { name: "classType", value: "Barre 57" },
+      { name: "classType", value: "Barre" },
     ]);
   });
 });

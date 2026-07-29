@@ -36,3 +36,16 @@ export function classFormatKeyForSessionName(value: string): ClassFormatKey {
 
   return "barre-57";
 }
+
+export function classTypeValueForClassFormatKey(key: ClassFormatKey): string {
+  switch (key) {
+    case "barre-57":
+      return "Barre";
+    case "power-cycle":
+      return "powerCycle";
+    case "strength-lab":
+      return "Strength Lab";
+    default:
+      return "Barre";
+  }
+}
