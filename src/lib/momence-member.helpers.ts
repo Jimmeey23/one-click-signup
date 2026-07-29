@@ -40,11 +40,11 @@ export function buildHostMemberCreateRequest({
     throw new Error("Please enter first and last name using letters.");
   }
 
-  // Momence's /host/members endpoint only accepts a subset of location IDs.
-  // Keep unsupported studio IDs out of the payload so Bengaluru signups can
-  // still create members successfully and be routed by the downstream lead flow.
+  // Momence's /host/members endpoint requires homeLocationId for every known studio.
   const supportedHomeLocationId =
-    homeLocationId && [9030, 29821].includes(homeLocationId) ? homeLocationId : undefined;
+    homeLocationId && [9030, 29821, 22116, 36372].includes(homeLocationId)
+      ? homeLocationId
+      : undefined;
 
   return {
     path: "/host/members",
