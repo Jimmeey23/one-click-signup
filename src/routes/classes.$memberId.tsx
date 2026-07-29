@@ -32,17 +32,18 @@ import { fireDualSideConfetti } from "@/lib/confetti";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LOCATIONS } from "@/lib/momence-locations";
 import { CLASS_FORMAT_KEYS, type ClassFormatKey } from "@/lib/class-format-matchers";
-import {
-  listSessions,
-  bookWithMembership,
-  bookWithBengaluruMembership,
-  type SessionDTO,
-} from "@/lib/momence-sessions.functions";
+import { listSessions, bookWithMembership, type SessionDTO } from "@/lib/momence-sessions.functions";
 import {
   completeNewcomersCheckoutBooking,
   createNewcomersCheckoutSession,
+  completeBengaluruCheckoutBooking,
+  createBengaluruCheckoutSession,
 } from "@/lib/stripe-checkout.functions";
-import { getSchedulePriceDisplay, isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
+import {
+  getSchedulePriceDisplay,
+  isPaidNewcomersClassName,
+  isBengaluruLocation,
+} from "@/lib/momence-booking.helpers";
 import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
 import { saveCustomerFieldsForMember } from "@/lib/momence-customer-fields.functions";
 import {
@@ -95,7 +96,6 @@ const searchSchema = z.object({
   paidSessionId: z.coerce.number().int().positive().optional(),
   paidLocationId: z.coerce.number().int().positive().optional(),
   classType: z.enum(CLASS_FORMAT_KEYS).optional(),
-  boughtMembershipId: z.coerce.number().int().positive().optional(),
 });
 
 const logoUrl = "/physique57-logo.png";
@@ -388,15 +388,16 @@ function ClassesPage() {
     paidSessionId,
     paidLocationId,
     classType: initialClassType,
-    boughtMembershipId,
   } = Route.useSearch();
   const memberId = Number(memberIdStr);
+  const isBengaluru = isBengaluruLocation(locationId);
 
   const listFn = useServerFn(listSessions);
   const bookFn = useServerFn(bookWithMembership);
-  const bookBengaluruFn = useServerFn(bookWithBengaluruMembership);
   const createCheckoutFn = useServerFn(createNewcomersCheckoutSession);
   const completeCheckoutFn = useServerFn(completeNewcomersCheckoutBooking);
+  const createBengaluruCheckoutFn = useServerFn(createBengaluruCheckoutSession);
+  const completeBengaluruCheckoutFn = useServerFn(completeBengaluruCheckoutBooking);
   const saveCustomerFieldsFn = useServerFn(saveCustomerFieldsForMember);
   const completedCheckoutRef = useRef<string | null>(null);
   const activeCheckoutRef = useRef<string | null>(null);
@@ -501,7 +502,11 @@ function ClassesPage() {
     setBookErr(null);
     setBookingId(paidSessionId);
 
-    completeCheckoutFn({
+    const completeFn = isBengaluruLocation(checkoutLocationId)
+      ? completeBengaluruCheckoutFn
+      : completeCheckoutFn;
+
+    completeFn({
       data: {
         checkoutSessionId,
         memberId,
@@ -535,6 +540,7 @@ function ClassesPage() {
   }, [
     checkoutSessionId,
     completeCheckoutFn,
+    completeBengaluruCheckoutFn,
     locationId,
     memberId,
     paidLocationId,
@@ -621,14 +627,15 @@ function ClassesPage() {
     setBookErr(null);
     setBookingId(s.id);
     try {
-      if (isPaidNewcomersClassName(s.name)) {
+      if (isBengaluru || isPaidNewcomersClassName(s.name)) {
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.delete("checkout_session_id");
         currentUrl.searchParams.delete("paidSessionId");
         currentUrl.searchParams.delete("paidLocationId");
 
         storePaidCheckoutSession(s);
-        const checkout = await createCheckoutFn({
+        const createFn = isBengaluru ? createBengaluruCheckoutFn : createCheckoutFn;
+        const checkout = await createFn({
           data: {
             memberId,
             sessionId: s.id,
@@ -643,11 +650,7 @@ function ClassesPage() {
         return;
       }
 
-      if (boughtMembershipId) {
-        await bookBengaluruFn({ data: { memberId, sessionId: s.id, boughtMembershipId } });
-      } else {
-        await bookFn({ data: { memberId, sessionId: s.id, homeLocationId: locationId } });
-      }
+      await bookFn({ data: { memberId, sessionId: s.id, homeLocationId: locationId } });
       setBooked({ session: s, location: bookingLocationForId(currentLoc.id) });
     } catch (e) {
       setBookErr(e instanceof Error ? e.message : "Booking failed");
@@ -934,8 +937,9 @@ function ClassesPage() {
                     <SessionCard
                       key={s.id}
                       s={s}
+                      locationId={locationId}
                       loading={bookingId === s.id}
-                      requiresPayment={isPaidNewcomersClassName(s.name)}
+                      requiresPayment={isBengaluru || isPaidNewcomersClassName(s.name)}
                       onBook={() => openCustomerFields(s)}
                     />
                   ))}
@@ -949,6 +953,7 @@ function ClassesPage() {
       {customFieldsSession && (
         <CustomerFieldsModal
           session={customFieldsSession}
+          requiresPayment={isBengaluru || isPaidNewcomersClassName(customFieldsSession.name)}
           values={customFieldValues}
           errors={customFieldErrors}
           submitError={customFieldSubmitError}
@@ -1105,6 +1110,7 @@ function MonthCalendarClassChip({
 
 function CustomerFieldsModal({
   session,
+  requiresPayment,
   values,
   errors,
   submitError,
@@ -1115,6 +1121,7 @@ function CustomerFieldsModal({
   onSubmit,
 }: {
   session: SessionDTO;
+  requiresPayment: boolean;
   values: CustomerFieldValues;
   errors: CustomerFieldErrors;
   submitError: string | null;
@@ -1124,7 +1131,6 @@ function CustomerFieldsModal({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
-  const requiresPayment = isPaidNewcomersClassName(session.name);
   const isFemale = values.gender === "Female";
 
   useEffect(() => {
@@ -1476,11 +1482,13 @@ function SelectField({
 
 function SessionCard({
   s,
+  locationId,
   loading,
   requiresPayment,
   onBook,
 }: {
   s: SessionDTO;
+  locationId: number;
   loading: boolean;
   requiresPayment: boolean;
   onBook: () => void;
@@ -1498,7 +1506,7 @@ function SessionCard({
   const isFull = s.spotsLeft === 0;
   const format = formatInfoForSession(s);
   const teacherImage = trainerImageForName(s.teacherName) ?? s.bannerImageUrl ?? trainerPortrait;
-  const priceDisplay = getSchedulePriceDisplay(s.name);
+  const priceDisplay = getSchedulePriceDisplay(s.name, locationId);
 
   return (
     <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-[#d9e7fb] bg-white p-4 shadow-[0_10px_28px_rgb(29_124_242/0.06)] transition duration-200 hover:-translate-y-0.5 hover:border-[#b7d3fa] hover:shadow-[0_20px_44px_rgb(29_124_242/0.14)] md:grid-cols-[154px_minmax(0,1fr)_188px]">

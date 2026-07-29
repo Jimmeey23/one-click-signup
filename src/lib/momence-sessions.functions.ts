@@ -1,17 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID } from "./momence.server";
+import {
+  momenceDashboardFetch,
+  momenceFetch,
+  MOMENCE_HOST_ID,
+  type MomenceApiAccount,
+} from "./momence.server";
 import {
   buildCompatibleMembershipsRequest,
   findCompatibleBoughtMembershipId,
   findMembershipIncompatibility,
   OPEN_BARRE_MEMBERSHIP_ID,
-  BENGALURU_MOMENCE_HOST_ID,
-  buildPayCartRequest,
-  findBoughtMembershipIdFromPayCart,
   isBengaluruLocation,
   type CompatibleMembershipsResponse,
-  type PayCartResponse,
 } from "./momence-booking.helpers";
 
 const ListInput = z.object({
@@ -105,11 +106,15 @@ const BookInput = z.object({
 export type BookWithMomenceMembershipInput = z.infer<typeof BookInput> & {
   membershipId: number;
   membershipLabel: string;
+  hostId?: number;
+  momenceAccount?: MomenceApiAccount;
 };
 
 export async function bookSessionWithMomenceMembership({
   membershipId,
   membershipLabel,
+  hostId = MOMENCE_HOST_ID,
+  momenceAccount = "default",
   ...data
 }: BookWithMomenceMembershipInput) {
   let compatibleMemberships: CompatibleMembershipsResponse;
@@ -121,6 +126,7 @@ export async function bookSessionWithMomenceMembership({
         method: "POST",
         body: JSON.stringify(compatibilityRequest.body),
       },
+      momenceAccount,
     );
   } catch (e) {
     throw new Error(
@@ -145,12 +151,12 @@ export async function bookSessionWithMomenceMembership({
   }
 
   await momenceDashboardFetch(
-    `/host/${MOMENCE_HOST_ID}/auto-book/member/${data.memberId}/session/${data.sessionId}`,
+    `/host/${hostId}/auto-book/member/${data.memberId}/session/${data.sessionId}`,
     {
       method: "POST",
       headers: {
-        Referer: `https://momence.com/dashboard/${MOMENCE_HOST_ID}/sessions/${data.sessionId}`,
-        "X-Origin": `https://momence.com/dashboard/${MOMENCE_HOST_ID}/sessions/${data.sessionId}`,
+        Referer: `https://momence.com/dashboard/${hostId}/sessions/${data.sessionId}`,
+        "X-Origin": `https://momence.com/dashboard/${hostId}/sessions/${data.sessionId}`,
         "X-Idempotence-Key": globalThis.crypto.randomUUID(),
       },
       body: JSON.stringify({
@@ -175,88 +181,3 @@ export const bookWithMembership = createServerFn({ method: "POST" })
       membershipLabel: "Open Barre",
     });
   });
-
-// Bengaluru billing/booking runs through the dashboard session-cookie API (host 33905)
-// instead of the public API used for Mumbai, so the flow below mirrors Momence's own
-// staff dashboard: pay for the membership via pos/payments/pay-cart, then auto-book the
-// exact boughtMembershipId that payment returns (no compatible-memberships lookup needed).
-export async function payBengaluruMembershipCart({
-  memberId,
-  homeLocationId,
-  membershipId,
-}: {
-  memberId: number;
-  homeLocationId: number;
-  membershipId: number;
-}): Promise<{ boughtMembershipId: number }> {
-  const request = buildPayCartRequest({
-    hostId: BENGALURU_MOMENCE_HOST_ID,
-    payingMemberId: memberId,
-    targetMemberId: memberId,
-    homeLocationId,
-    membershipId,
-    itemGuid: globalThis.crypto.randomUUID(),
-    paymentMethodGuid: globalThis.crypto.randomUUID(),
-  });
-
-  const response = await momenceDashboardFetch<PayCartResponse>(request.path, {
-    method: "POST",
-    headers: {
-      Referer: `https://momence.com/dashboard/${BENGALURU_MOMENCE_HOST_ID}/memberships/package/${membershipId}`,
-      "X-Origin": `https://momence.com/dashboard/${BENGALURU_MOMENCE_HOST_ID}/memberships/package/${membershipId}`,
-      "X-Idempotence-Key": globalThis.crypto.randomUUID(),
-    },
-    body: JSON.stringify(request.body),
-  });
-
-  const boughtMembershipId = findBoughtMembershipIdFromPayCart(response);
-  if (!boughtMembershipId) {
-    throw new Error("Momence pay-cart did not return a bought membership id.");
-  }
-  return { boughtMembershipId };
-}
-
-export async function bookSessionWithBoughtMembership({
-  hostId,
-  memberId,
-  sessionId,
-  boughtMembershipId,
-}: {
-  hostId: number;
-  memberId: number;
-  sessionId: number;
-  boughtMembershipId: number;
-}) {
-  await momenceDashboardFetch(
-    `/host/${hostId}/auto-book/member/${memberId}/session/${sessionId}`,
-    {
-      method: "POST",
-      headers: {
-        Referer: `https://momence.com/dashboard/${hostId}/sessions/${sessionId}`,
-        "X-Origin": `https://momence.com/dashboard/${hostId}/sessions/${sessionId}`,
-        "X-Idempotence-Key": globalThis.crypto.randomUUID(),
-      },
-      body: JSON.stringify({
-        autoCheckin: false,
-        membershipIds: [boughtMembershipId],
-        addToWaitlist: false,
-        isCapacityOverriden: false,
-        isAgeRestrictionOverridden: false,
-      }),
-    },
-  );
-
-  return { booked: true as const, method: "bought-membership-auto-book" as const };
-}
-
-const BookWithBengaluruMembershipInput = z.object({
-  memberId: z.number().int().positive(),
-  sessionId: z.number().int().positive(),
-  boughtMembershipId: z.number().int().positive(),
-});
-
-export const bookWithBengaluruMembership = createServerFn({ method: "POST" })
-  .inputValidator((i: unknown) => BookWithBengaluruMembershipInput.parse(i))
-  .handler(async ({ data }) =>
-    bookSessionWithBoughtMembership({ hostId: BENGALURU_MOMENCE_HOST_ID, ...data }),
-  );

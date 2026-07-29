@@ -49,7 +49,6 @@ function createDependencies(calls: string[]): SignupAndEnrollDependencies {
       calls.push("enrollOpenBarre");
       assert.equal(memberId, 32166499);
       assert.equal(homeLocationId, 29821);
-      return { boughtMembershipId: null };
     },
     captureLead: async () => {
       calls.push("captureLead");
@@ -72,7 +71,6 @@ describe("signup and enroll helper", () => {
       homeLocationId: 29821,
       enrolled: true,
       enrollError: null,
-      boughtMembershipId: null,
       signedCount: 2,
       availableWaivers: 2,
       leadCaptured: false,

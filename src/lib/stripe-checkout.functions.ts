@@ -4,16 +4,22 @@ import { z } from "zod";
 import {
   buildCompatibleMembershipsRequest,
   buildNewcomersMembershipCheckoutRequest,
+  buildBengaluruIntroMembershipCheckoutRequest,
+  bengaluruIntroMembershipIdForLocation,
   findCompatibleBoughtMembershipId,
   isPaidNewcomersClassName,
+  isBengaluruLocation,
   NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
+  BENGALURU_MOMENCE_HOST_ID,
   type CompatibleMembershipsResponse,
 } from "./momence-booking.helpers";
 import { momenceFetch, requireServerEnv } from "./momence.server";
 import { bookSessionWithMomenceMembership } from "./momence-sessions.functions";
 import {
   buildNewcomersCheckoutSessionParams,
+  buildBengaluruCheckoutSessionParams,
   type NewcomersCheckoutMetadata,
+  type BengaluruCheckoutMetadata,
 } from "./stripe-checkout.helpers";
 
 const STRIPE_API_VERSION = "2026-05-27.dahlia";
@@ -175,6 +181,139 @@ export async function fulfillNewcomersCheckoutSession(
   }
 }
 
+const BENGALURU_INTRO_LABEL = "Bengaluru Intro Pack";
+
+function assertBengaluruCheckoutMatchesExpected(
+  metadata: z.infer<typeof CheckoutMetadataSchema>,
+  expected?: z.infer<typeof CompleteCheckoutInput>,
+) {
+  if (
+    !isBengaluruLocation(metadata.homeLocationId) ||
+    metadata.membershipId !== bengaluruIntroMembershipIdForLocation(metadata.homeLocationId)
+  ) {
+    throw new Error("Stripe Checkout session is not for a Bengaluru intro pack.");
+  }
+  if (!expected) return;
+  if (
+    metadata.memberId !== expected.memberId ||
+    metadata.sessionId !== expected.sessionId ||
+    metadata.homeLocationId !== expected.homeLocationId
+  ) {
+    throw new Error("Stripe Checkout session metadata does not match this booking request.");
+  }
+}
+
+async function findBoughtBengaluruMembershipId({
+  memberId,
+  sessionId,
+  homeLocationId,
+  membershipId,
+}: {
+  memberId: number;
+  sessionId: number;
+  homeLocationId: number;
+  membershipId: number;
+}): Promise<number | null> {
+  const compatibilityRequest = buildCompatibleMembershipsRequest({
+    memberId,
+    sessionId,
+    homeLocationId,
+  });
+  const compatibleMemberships = await momenceFetch<CompatibleMembershipsResponse>(
+    compatibilityRequest.path,
+    {
+      method: "POST",
+      body: JSON.stringify(compatibilityRequest.body),
+    },
+    "bengaluru",
+  );
+  return findCompatibleBoughtMembershipId(compatibleMemberships, membershipId);
+}
+
+async function ensureBengaluruMembership({
+  memberId,
+  sessionId,
+  homeLocationId,
+  membershipId,
+}: {
+  memberId: number;
+  sessionId: number;
+  homeLocationId: number;
+  membershipId: number;
+}) {
+  const existing = await findBoughtBengaluruMembershipId({
+    memberId,
+    sessionId,
+    homeLocationId,
+    membershipId,
+  });
+  if (existing) return;
+
+  const purchaseRequest = buildBengaluruIntroMembershipCheckoutRequest({
+    memberId,
+    homeLocationId,
+    customPaymentNote: "Paid via Stripe Checkout",
+  });
+
+  await momenceFetch(
+    purchaseRequest.path,
+    {
+      method: "POST",
+      body: JSON.stringify(purchaseRequest.body),
+    },
+    "bengaluru",
+  );
+}
+
+export async function fulfillBengaluruCheckoutSession(
+  checkoutSessionId: string,
+  expected?: z.infer<typeof CompleteCheckoutInput>,
+) {
+  const stripe = await getStripeClient();
+  const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+
+  if (checkoutSession.payment_status !== "paid" && checkoutSession.status !== "complete") {
+    throw new Error("Stripe Checkout session is not paid yet.");
+  }
+
+  const metadata = parseCheckoutMetadata(checkoutSession.metadata);
+  assertBengaluruCheckoutMatchesExpected(metadata, expected);
+
+  const bookingInput = {
+    memberId: metadata.memberId,
+    sessionId: metadata.sessionId,
+    homeLocationId: metadata.homeLocationId,
+  };
+
+  await ensureBengaluruMembership({ ...bookingInput, membershipId: metadata.membershipId });
+
+  try {
+    return await bookSessionWithMomenceMembership({
+      ...bookingInput,
+      membershipId: metadata.membershipId,
+      membershipLabel: BENGALURU_INTRO_LABEL,
+      hostId: BENGALURU_MOMENCE_HOST_ID,
+      momenceAccount: "bengaluru",
+    });
+  } catch (error) {
+    if (isAlreadyFulfilledBookingError(error)) {
+      return { booked: true as const, method: "already-booked" as const };
+    }
+    throw error;
+  }
+}
+
+async function fulfillCheckoutSessionByMetadata(checkoutSessionId: string) {
+  const stripe = await getStripeClient();
+  const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+  const metadata = parseCheckoutMetadata(checkoutSession.metadata);
+
+  if (isBengaluruLocation(metadata.homeLocationId)) {
+    return fulfillBengaluruCheckoutSession(checkoutSessionId);
+  }
+  return fulfillNewcomersCheckoutSession(checkoutSessionId);
+}
+
 export async function handleStripeWebhook(rawBody: string, signature: string | null) {
   if (!signature) {
     throw new Error("Missing Stripe signature header.");
@@ -189,7 +328,7 @@ export async function handleStripeWebhook(rawBody: string, signature: string | n
     event.type === "checkout.session.async_payment_succeeded"
   ) {
     const session = event.data.object as Stripe.Checkout.Session;
-    await fulfillNewcomersCheckoutSession(session.id);
+    await fulfillCheckoutSessionByMetadata(session.id);
     return { received: true as const, fulfilled: true as const };
   }
 
@@ -222,5 +361,34 @@ export const completeNewcomersCheckoutBooking = createServerFn({ method: "POST" 
   .inputValidator((i: unknown) => CompleteCheckoutInput.parse(i))
   .handler(async ({ data }) => {
     const result = await fulfillNewcomersCheckoutSession(data.checkoutSessionId, data);
+    return result;
+  });
+
+export const createBengaluruCheckoutSession = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => CheckoutSessionInput.parse(i))
+  .handler(async ({ data }) => {
+    if (!isBengaluruLocation(data.homeLocationId)) {
+      throw new Error("This location does not use the Bengaluru intro pack checkout flow.");
+    }
+
+    const stripe = await getStripeClient();
+    const params = buildBengaluruCheckoutSessionParams(data);
+    const checkoutSession = await stripe.checkout.sessions.create(params);
+
+    if (!checkoutSession.url) {
+      throw new Error("Stripe did not return a Checkout URL.");
+    }
+
+    return {
+      id: checkoutSession.id,
+      url: checkoutSession.url,
+      metadata: params.metadata as BengaluruCheckoutMetadata,
+    };
+  });
+
+export const completeBengaluruCheckoutBooking = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown) => CompleteCheckoutInput.parse(i))
+  .handler(async ({ data }) => {
+    const result = await fulfillBengaluruCheckoutSession(data.checkoutSessionId, data);
     return result;
   });

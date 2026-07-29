@@ -52,6 +52,69 @@ export const BENGALURU_INDIRANAGAR_STRIPE_CHARGE_PRICE_INR = toGstInclusiveInr(
   BENGALURU_INDIRANAGAR_PRICE_INR,
 );
 
+// Lavelle Road's drop-in rate is 1350; the intro pack halves that pre-tax to 675, then adds 5% GST.
+export const BENGALURU_LAVELLE_ROAD_DROP_IN_PRICE_INR = "1350";
+export const BENGALURU_LAVELLE_ROAD_INTRO_PRICE_INR = "675";
+export const BENGALURU_LAVELLE_ROAD_INTRO_STRIPE_CHARGE_PRICE_INR = toGstInclusiveInr(
+  BENGALURU_LAVELLE_ROAD_INTRO_PRICE_INR,
+);
+
+export function bengaluruIntroMembershipIdForLocation(homeLocationId: number): number | null {
+  if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
+    return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;
+  }
+  if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
+    return BENGALURU_INDIRANAGAR_MEMBERSHIP_ID;
+  }
+  return null;
+}
+
+// Drop-in rate shown struck through on the schedule page (pre-tax, matches the studio's
+// posted single-class price - Indiranagar has no discount, so this equals its intro price).
+export function bengaluruDropInPriceInrForLocation(homeLocationId: number): string {
+  return homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
+    ? BENGALURU_LAVELLE_ROAD_DROP_IN_PRICE_INR
+    : BENGALURU_INDIRANAGAR_PRICE_INR;
+}
+
+// Actual Stripe-charged, tax-inclusive intro pack price.
+export function bengaluruIntroChargePriceInrForLocation(homeLocationId: number): string {
+  return homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
+    ? BENGALURU_LAVELLE_ROAD_INTRO_STRIPE_CHARGE_PRICE_INR
+    : BENGALURU_INDIRANAGAR_STRIPE_CHARGE_PRICE_INR;
+}
+
+export function buildBengaluruIntroMembershipCheckoutRequest({
+  memberId,
+  homeLocationId,
+  customPaymentMethodId,
+  customPaymentNote,
+}: {
+  memberId: number;
+  homeLocationId: number;
+  customPaymentMethodId?: number;
+  customPaymentNote?: string;
+}) {
+  const membershipId = bengaluruIntroMembershipIdForLocation(homeLocationId);
+  if (!membershipId) {
+    throw new Error(`No Bengaluru intro pack membership configured for location ${homeLocationId}.`);
+  }
+
+  return buildMembershipCheckoutRequest({
+    memberId,
+    homeLocationId,
+    membershipId,
+    attemptedPriceInCurrency: bengaluruIntroChargePriceInrForLocation(homeLocationId),
+    paymentMethodType: "custom",
+    customPaymentMethodId: customPaymentMethodId ?? MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
+    customPaymentNote,
+  });
+}
+
+// Bengaluru studios sit under a separate Momence host; booking's auto-book dashboard call
+// needs this host id instead of Mumbai's.
+export const BENGALURU_MOMENCE_HOST_ID = 33905;
+
 export function buildOpenBarreCheckoutRequestForLocation({
   memberId,
   homeLocationId,
@@ -145,12 +208,24 @@ export function membershipIdForClassName(className: string): number {
     : OPEN_BARRE_MEMBERSHIP_ID;
 }
 
-export function getSchedulePriceDisplay(className: string): {
+export function getSchedulePriceDisplay(
+  className: string,
+  homeLocationId?: number,
+): {
   originalPriceInCurrency: string | null;
   bookingPriceInCurrency: string;
   label: string;
   slashOriginalPrice: boolean;
 } {
+  if (isBengaluruLocation(homeLocationId)) {
+    return {
+      originalPriceInCurrency: bengaluruDropInPriceInrForLocation(homeLocationId as number),
+      bookingPriceInCurrency: bengaluruIntroChargePriceInrForLocation(homeLocationId as number),
+      label: "Intro Pack",
+      slashOriginalPrice: true,
+    };
+  }
+
   if (isPaidNewcomersClassName(className)) {
     return {
       originalPriceInCurrency: null,
@@ -254,66 +329,4 @@ export function findMembershipIncompatibility(
   );
 
   return match?.incompatibility ?? null;
-}
-
-// Bengaluru studios sit under a separate Momence dashboard host and are not reachable
-// through the public API credentials used for Mumbai (host 13752). Billing and booking
-// for Bengaluru go through the same dashboard session-cookie API the Momence staff UI uses.
-export const BENGALURU_MOMENCE_HOST_ID = 33905;
-
-export type PayCartRequest = {
-  hostId: number;
-  payingMemberId: number;
-  targetMemberId: number;
-  homeLocationId: number;
-  membershipId: number;
-  priceInCurrency?: number;
-  itemGuid: string;
-  paymentMethodGuid: string;
-};
-
-export function buildPayCartRequest({
-  hostId,
-  payingMemberId,
-  targetMemberId,
-  homeLocationId,
-  membershipId,
-  priceInCurrency = 0,
-  itemGuid,
-  paymentMethodGuid,
-}: PayCartRequest) {
-  return {
-    path: `/host/${hostId}/pos/payments/pay-cart`,
-    body: {
-      hostId,
-      payingMemberId,
-      targetMemberId,
-      items: [
-        {
-          guid: itemGuid,
-          type: "membership",
-          quantity: 1,
-          priceInCurrency,
-          isPaymentPlanUsed: false,
-          membershipId,
-          appliedPriceRuleIds: [],
-        },
-      ],
-      paymentMethods: [{ type: "free", weightRelative: 1, guid: paymentMethodGuid }],
-      isEmailSent: false,
-      homeLocationId,
-    },
-  } as const;
-}
-
-export type PayCartResponse = {
-  isPending?: boolean;
-  processedItems?: Array<{ type: string; boughtMembershipId?: number }>;
-};
-
-export function findBoughtMembershipIdFromPayCart(response: PayCartResponse): number | null {
-  const match = (response.processedItems ?? []).find(
-    (item) => item.type === "membership" && typeof item.boughtMembershipId === "number",
-  );
-  return match?.boughtMembershipId ?? null;
 }

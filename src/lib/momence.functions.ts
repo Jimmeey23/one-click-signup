@@ -7,11 +7,8 @@ import {
 } from "./class-format-matchers";
 import {
   buildOpenBarreCheckoutRequestForLocation,
-  BENGALURU_LAVELLE_ROAD_LOCATION_ID,
-  BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID,
   isBengaluruLocation,
 } from "./momence-booking.helpers";
-import { payBengaluruMembershipCart } from "./momence-sessions.functions";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
@@ -423,19 +420,14 @@ const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
     ),
   signMemberWaivers,
   enrollOpenBarre: async ({ memberId, homeLocationId }) => {
-    if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
-      return payBengaluruMembershipCart({
-        memberId,
-        homeLocationId,
-        membershipId: BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID,
-      });
-    }
+    // Bengaluru has no free trial membership - members pay for the intro pack when they
+    // book a class (Stripe checkout on the schedule page), not at signup.
+    if (isBengaluruLocation(homeLocationId)) return;
     const checkoutRequest = buildOpenBarreCheckoutRequestForLocation({ memberId, homeLocationId });
     await momenceFetch(checkoutRequest.path, {
       method: "POST",
       body: JSON.stringify(checkoutRequest.body),
     });
-    return { boughtMembershipId: null };
   },
   captureLead,
   resolveCenterName: (homeLocationId) =>
