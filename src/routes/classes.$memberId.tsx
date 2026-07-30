@@ -1138,6 +1138,12 @@ function CustomerFieldsModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onCancel, saving]);
 
+  useEffect(() => {
+    if (!isFemale) return;
+    if (!values.pregnancyStatus) onChange("pregnancyStatus", "No");
+    if (!values.postNatalStatus) onChange("postNatalStatus", "No");
+  }, [isFemale, values.pregnancyStatus, values.postNatalStatus, onChange]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#050a14]/80 px-4 py-6 backdrop-blur-md sm:items-center">
       <form
