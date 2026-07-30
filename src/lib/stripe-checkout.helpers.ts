@@ -4,6 +4,7 @@ import {
   NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR,
   bengaluruIntroMembershipIdForLocation,
   bengaluruIntroChargePriceInrForLocation,
+  bengaluruStripeProductIdForLocation,
 } from "./momence-booking.helpers.ts";
 
 export type NewcomersCheckoutSessionInput = {
@@ -46,16 +47,24 @@ function buildCheckoutMetadata(
   };
 }
 
+type CheckoutLineItemSource =
+  | { productId: string; productName?: never; productDescription?: never }
+  | { productId?: never; productName: string; productDescription: string };
+
+function productFieldsFor(
+  source: CheckoutLineItemSource,
+): Pick<Stripe.Checkout.SessionCreateParams.LineItem.PriceData, "product" | "product_data"> {
+  if (source.productId != null) return { product: source.productId };
+  return { product_data: { name: source.productName, description: source.productDescription } };
+}
+
 function buildCheckoutSessionParams(
   input: NewcomersCheckoutSessionInput,
-  { membershipId, priceInr, productName, productDescription }: {
-    membershipId: number;
-    priceInr: string;
-    productName: string;
-    productDescription: string;
-  },
+  params: { membershipId: number; priceInr: string } & CheckoutLineItemSource,
 ): Stripe.Checkout.SessionCreateParams {
+  const { membershipId, priceInr } = params;
   const metadata = buildCheckoutMetadata(input, membershipId);
+  const productFields = productFieldsFor(params);
 
   return {
     mode: "payment",
@@ -70,10 +79,7 @@ function buildCheckoutSessionParams(
         price_data: {
           currency: "inr",
           unit_amount: Number(priceInr) * 100,
-          product_data: {
-            name: productName,
-            description: productDescription,
-          },
+          ...productFields,
         },
       },
     ],
@@ -112,7 +118,6 @@ export function buildBengaluruCheckoutSessionParams(
   return buildCheckoutSessionParams(input, {
     membershipId,
     priceInr: bengaluruIntroChargePriceInrForLocation(input.homeLocationId),
-    productName: `${input.className} Intro Pack`,
-    productDescription: "Physique 57 India Bengaluru intro pack.",
+    productId: bengaluruStripeProductIdForLocation(input.homeLocationId),
   });
 }

@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildNewcomersCheckoutSessionParams } from "./stripe-checkout.helpers.ts";
+import {
+  buildBengaluruCheckoutSessionParams,
+  buildNewcomersCheckoutSessionParams,
+} from "./stripe-checkout.helpers.ts";
+import {
+  BENGALURU_INDIRANAGAR_LOCATION_ID,
+  BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID,
+  BENGALURU_LAVELLE_ROAD_LOCATION_ID,
+  BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID,
+} from "./momence-booking.helpers.ts";
 
 describe("Stripe checkout helpers", () => {
   it("builds hosted Checkout params for the newcomers membership", () => {
@@ -39,5 +48,45 @@ describe("Stripe checkout helpers", () => {
       params.line_items?.[0]?.price_data?.product_data?.name,
       "powerCycle Newcomers 2 For 1",
     );
+  });
+
+  it("builds hosted Checkout params for the Lavelle Road Bengaluru intro pack using its Stripe product id", () => {
+    const params = buildBengaluruCheckoutSessionParams({
+      memberId: 15199641,
+      sessionId: 139066783,
+      homeLocationId: BENGALURU_LAVELLE_ROAD_LOCATION_ID,
+      className: "Barre",
+      sessionStartsAt: "2026-06-05T10:30:00.000Z",
+      successUrl: "https://trial.physique57india.com/classes/15199641",
+      cancelUrl: "https://trial.physique57india.com/classes/15199641?locationId=22116",
+    });
+
+    // 675 pre-tax + 5% GST = 709
+    assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 70900);
+    assert.equal(
+      params.line_items?.[0]?.price_data?.product,
+      BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID,
+    );
+    assert.equal(params.line_items?.[0]?.price_data?.product_data, undefined);
+  });
+
+  it("builds hosted Checkout params for the Indiranagar Copper + Cloves package using its Stripe product id", () => {
+    const params = buildBengaluruCheckoutSessionParams({
+      memberId: 15199641,
+      sessionId: 139066783,
+      homeLocationId: BENGALURU_INDIRANAGAR_LOCATION_ID,
+      className: "Barre",
+      sessionStartsAt: "2026-06-05T10:30:00.000Z",
+      successUrl: "https://trial.physique57india.com/classes/15199641",
+      cancelUrl: "https://trial.physique57india.com/classes/15199641?locationId=36372",
+    });
+
+    // 900 pre-tax + 5% GST = 945
+    assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 94500);
+    assert.equal(
+      params.line_items?.[0]?.price_data?.product,
+      BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID,
+    );
+    assert.equal(params.line_items?.[0]?.price_data?.product_data, undefined);
   });
 });
