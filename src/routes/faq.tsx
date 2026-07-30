@@ -375,13 +375,13 @@ const PAGE_COPY = {
     title: "Before you book.",
     eyebrow: "FAQ",
     summary:
-      "Answers are curated from the Physique 57 India brand book and studio policy content so the public FAQ matches the actual class formats and booking rules.",
+      "Browse our FAQs to get all your doubts cleared before you book—so you know exactly what to expect from your class.",
   },
   bengaluru: {
     title: "Before you book Bengaluru",
     eyebrow: "Bengaluru FAQ",
     summary:
-      "Clear answers for Bengaluru members: Barre-only classes, first-class pricing, and the essentials you need before you visit.",
+      "Browse our FAQs to get all your doubts cleared before you book—so you know exactly what to expect from your class.",
   },
 } as const;
 

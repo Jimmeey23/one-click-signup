@@ -98,18 +98,116 @@ function ClassesInfoPage() {
               <div className="p-6">
                 <h2 className="font-display text-3xl">{c.name}</h2>
                 <p className="text-muted-foreground mt-2 leading-relaxed">{c.description}</p>
-                <div className="mt-5 grid gap-2 text-xs">
+                <div className="mt-5 grid gap-2 text-xs sm:grid-cols-2">
                   <p className="rounded-md bg-secondary px-3 py-2">
-                    <span className="font-bold text-foreground">Intensity:</span> {c.intensity}
+                    <span className="font-bold text-foreground">Duration:</span> {c.duration}
                   </p>
                   <p className="rounded-md bg-secondary px-3 py-2">
+                    <span className="font-bold text-foreground">Level:</span> {c.intensity}
+                  </p>
+                  <p className="rounded-md bg-secondary px-3 py-2 sm:col-span-2">
                     <span className="font-bold text-foreground">Best for:</span> {c.bestFor}
+                  </p>
+                  <p className="rounded-md bg-secondary px-3 py-2 sm:col-span-2">
+                    <span className="font-bold text-foreground">Equipment:</span> {c.equipment}
                   </p>
                 </div>
               </div>
             </article>
           ))}
         </div>
+
+        <div className="mt-16 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-7">
+            <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
+              Class levels & eligibility
+            </p>
+            <h2 className="font-display text-2xl mb-4">Every BODY, every level.</h2>
+            <ul className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+              <li>
+                Classes span three levels - Beginner, Intermediate, and Advanced - so you can
+                match a format to your fitness experience and goals.
+              </li>
+              <li>
+                New here? Start with Barre{isBengaluru ? "" : " 57"}
+                {isBengaluru ? "" : " or Mat 57"}. Instructors offer modifications and
+                progressions in every class, so you're never locked out by level.
+              </li>
+              <li>
+                Pregnant, postpartum, or managing an injury, PCOS, thyroid concerns, or
+                menopause? Physique 57's low-impact method is trained for modifications across
+                all of these - always inform your instructor before class begins.
+              </li>
+              <li>
+                While Physique 57 is widely popular among women, the method is built for "Every
+                BODY" - men are welcome at every class and format.
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-7">
+            <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
+              Booking & cancellation
+            </p>
+            <h2 className="font-display text-2xl mb-4">Simple rules, kept fair.</h2>
+            <ul className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+              <li>
+                Book online, through the Physique 57 India app, or by contacting the studio -
+                pre-register up to one hour before class starts to secure your spot.
+              </li>
+              <li>
+                Full class? Join the waitlist - spots are offered first-come, first-served as they
+                open up.
+              </li>
+              <li>
+                Cancel via email, WhatsApp, or the app within the required notice window, or the
+                class is deducted from your package.
+              </li>
+              <li>
+                Unlimited members get up to 2 late cancellations a week before advance booking
+                privileges pause for 7 days.
+              </li>
+              <li>
+                All purchases - single classes, packages, and memberships - are non-refundable to
+                the original payment method; cancelled-in-time classes are credited back to your
+                account instead.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-border bg-secondary p-7">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
+            Private classes
+          </p>
+          <h2 className="font-display text-2xl mb-3">Want it one-on-one?</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+            Physique 57 offers 1-on-1 private sessions across barre, powerCycle, and other class
+            formats, with scheduling flexibility and real-time coaching built around your goals.
+            Virtual private sessions are also available over video call.{" "}
+            {isBengaluru
+              ? "Bengaluru private classes start at ₹3,925 plus taxes."
+              : "In Mumbai, a single studio private class is ₹5,000 plus taxes, and a virtual private class is ₹4,500 plus taxes."}{" "}
+            Packages of 10 private classes are available at discounted rates - contact the studio
+            to book.
+          </p>
+        </div>
+
+        {!isBengaluru && (
+          <div className="mt-6 rounded-2xl border border-border bg-card p-7">
+            <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
+              Physique 57 Juniors
+            </p>
+            <h2 className="font-display text-2xl mb-3">A kids program, built for growing bodies.</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+              Physique 57 Juniors introduces children aged 7-9 and 9-12 to the method in a safe,
+              age-appropriate, and fun way, building strength, flexibility, coordination, and
+              confidence across a 12-week semester of 45-minute classes held twice a week at
+              Kemps Corner and Bandra. 8-class and 12-class packages are available - contact the
+              studio to register.
+            </p>
+          </div>
+        )}
       </section>
       <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>

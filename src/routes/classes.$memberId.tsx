@@ -14,16 +14,11 @@ import {
   Clock3,
   Dumbbell,
   Flame,
-  Footprints,
   HeartPulse,
   List,
   MapPin,
-  Phone,
   ShieldCheck,
   Sparkles,
-  Stethoscope,
-  Target,
-  UserRound,
   X,
   Zap,
 } from "lucide-react";
@@ -1152,14 +1147,14 @@ function CustomerFieldsModal({
         }}
         className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-card shadow-[0_50px_140px_-30px_rgb(8_17_31/0.55)] ring-1 ring-black/[0.06]"
       >
-        <div className="h-[4px] w-full shrink-0 bg-primary-deep" />
+        <div className="h-[4px] w-full shrink-0 bg-[#c9a96e]" />
 
         <button
           type="button"
           onClick={onCancel}
           disabled={saving}
           aria-label="Close profile details"
-          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white/95 text-muted-foreground shadow-[0_4px_16px_-4px_rgb(0_0_0/0.18)] backdrop-blur-sm transition hover:border-primary-deep hover:text-primary-deep hover:shadow-[0_6px_20px_-4px_color-mix(in_oklab,var(--primary-deep)_35%,transparent)] disabled:opacity-50"
+          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white/95 text-muted-foreground shadow-[0_4px_16px_-4px_rgb(0_0_0/0.18)] backdrop-blur-sm transition hover:border-[#c9a96e] hover:text-[#b8944f] disabled:opacity-50"
         >
           <X className="h-4 w-4" />
         </button>
@@ -1193,16 +1188,15 @@ function CustomerFieldsModal({
             </div>
           </aside>
 
-          <div className="flex min-h-0 flex-col overflow-hidden">
-            <div className="shrink-0 border-b border-border/70 bg-gradient-to-b from-secondary/60 to-transparent px-6 pb-5 pt-7 sm:px-8">
-              <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-primary-deep">
-                <span className="h-1 w-1 rounded-full bg-primary-deep" />
+          <div className="flex min-h-0 flex-col overflow-hidden bg-[#f7f5f2]">
+            <div className="shrink-0 border-b border-[#e8e4df] bg-[#f7f5f2] px-6 pb-5 pt-7 sm:px-8">
+              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#b8944f]">
                 Before you book
               </p>
               <h2 className="font-display mt-1 text-[28px] italic tracking-[-0.01em] text-foreground lg:hidden">
                 {session.name}
               </h2>
-              <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-1.5 max-w-md text-sm leading-relaxed text-[#6b6b6b]">
                 A few details our team needs to keep your session safe and personal to you.
               </p>
             </div>
@@ -1213,11 +1207,10 @@ function CustomerFieldsModal({
               </p>
             )}
 
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-6 sm:px-8">
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
               <FieldSection title="Personal details">
                 <SelectField
                   label="Gender"
-                  icon={<UserRound className="h-3.5 w-3.5" />}
                   value={values.gender ?? ""}
                   error={errors.gender}
                   options={[
@@ -1230,40 +1223,26 @@ function CustomerFieldsModal({
                 />
 
                 {isFemale && (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <SelectField
+                  <div className="space-y-2">
+                    <ToggleRow
                       label="Are you currently pregnant?"
-                      value={values.pregnancyStatus ?? ""}
-                      error={errors.pregnancyStatus}
-                      required={isFemale}
-                      options={[
-                        ["No", "No"],
-                        ["Yes", "Yes"],
-                      ]}
-                      onChange={(value) => onChange("pregnancyStatus", value)}
+                      checked={values.pregnancyStatus === "Yes"}
+                      onChange={(checked) => onChange("pregnancyStatus", checked ? "Yes" : "No")}
                     />
-                    <SelectField
-                      label="Post Natal"
-                      value={values.postNatalStatus ?? ""}
-                      error={errors.postNatalStatus}
-                      required={isFemale}
-                      options={[
-                        ["No", "No"],
-                        ["Yes", "Yes"],
-                      ]}
-                      onChange={(value) => onChange("postNatalStatus", value)}
+                    <ToggleRow
+                      label="Are you post-natal?"
+                      checked={values.postNatalStatus === "Yes"}
+                      onChange={(checked) => onChange("postNatalStatus", checked ? "Yes" : "No")}
                     />
                   </div>
                 )}
 
-                <TextField
+                <ChipField
                   label="Fitness Goal"
-                  icon={<Target className="h-3.5 w-3.5" />}
                   value={values.fitnessGoal ?? ""}
                   error={errors.fitnessGoal}
-                  placeholder="Add the member's primary goal"
+                  options={FITNESS_GOAL_SUGGESTIONS}
                   onChange={(value) => onChange("fitnessGoal", value)}
-                  suggestions={{ options: FITNESS_GOAL_SUGGESTIONS }}
                 />
               </FieldSection>
 
@@ -1274,21 +1253,21 @@ function CustomerFieldsModal({
                   error={errors.medicalHistory}
                   required
                   multiline
-                  icon={<Stethoscope className="h-3.5 w-3.5" />}
                   placeholder="Add relevant injuries, restrictions, or 'No concerns'"
                   onChange={(value) => onChange("medicalHistory", value)}
-                  suggestions={{ options: MEDICAL_HISTORY_SUGGESTIONS }}
                 />
+              </FieldSection>
 
+              <FieldSection title="Emergency contact">
                 <TextField
                   label="Emergency Contact Info"
                   value={values.emergencyContactInfo ?? ""}
                   error={errors.emergencyContactInfo}
                   required
-                  icon={<Phone className="h-3.5 w-3.5" />}
                   inputMode="tel"
                   pattern="[0-9]*"
                   maxLength={15}
+                  placeholder="+91 98XXX XXXXX"
                   helperText="Numbers only. Include country code if needed."
                   onChange={(value) => onChange("emergencyContactInfo", sanitizePhoneNumber(value))}
                 />
@@ -1296,7 +1275,6 @@ function CustomerFieldsModal({
                 {requiresShoeSize && (
                   <SelectField
                     label="EU Shoe Size"
-                    icon={<Footprints className="h-3.5 w-3.5" />}
                     value={values.euShoeSize ?? ""}
                     error={errors.euShoeSize}
                     required={requiresShoeSize}
@@ -1308,19 +1286,19 @@ function CustomerFieldsModal({
               </FieldSection>
             </div>
 
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border/70 bg-secondary/50 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-[#e8e4df] bg-[#f7f5f2] px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
               <button
                 type="button"
                 onClick={onCancel}
                 disabled={saving}
-                className="h-12 rounded-[12px] border border-border bg-white px-6 text-sm font-semibold text-muted-foreground transition hover:border-primary-deep/40 hover:text-primary-deep disabled:opacity-50"
+                className="h-12 rounded-[12px] border border-[#e8e4df] bg-white px-6 text-sm font-semibold text-[#6b6b6b] transition hover:border-[#c9a96e] hover:text-[#b8944f] disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="h-12 rounded-[12px] bg-primary-deep px-6 text-sm font-semibold text-primary-foreground shadow-[0_16px_32px_-10px_color-mix(in_oklab,var(--primary-deep)_55%,transparent)] transition hover:bg-[#096ef2] disabled:opacity-50"
+                className="h-12 rounded-[12px] bg-[#1a1a1a] px-6 text-sm font-semibold text-white shadow-[0_16px_32px_-10px_rgb(0_0_0/0.35)] transition hover:bg-[#2a2a2a] disabled:opacity-50"
               >
                 {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
               </button>
@@ -1334,13 +1312,83 @@ function CustomerFieldsModal({
 
 function FieldSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border/70 bg-secondary/40 p-5">
-      <p className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-        <span className="h-3.5 w-[3px] rounded-full bg-primary-deep" />
+    <section>
+      <p className="mb-4 border-b border-[#e8e4df] pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#6b6b6b]">
         {title}
       </p>
-      <div className="space-y-5">{children}</div>
+      <div className="space-y-4">{children}</div>
     </section>
+  );
+}
+
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[#e8e4df] bg-white px-4 py-3 transition hover:border-[#d0ccc7]">
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      <label className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          className="peer sr-only"
+        />
+        <span className="absolute inset-0 rounded-full bg-[#d4d0cb] transition peer-checked:bg-[#c9a96e]" />
+        <span className="absolute left-[3px] h-[18px] w-[18px] rounded-full bg-white shadow-[0_1px_3px_rgb(0_0_0/0.15)] transition peer-checked:translate-x-5" />
+      </label>
+    </div>
+  );
+}
+
+function ChipField({
+  label,
+  value,
+  error,
+  required,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  error?: string;
+  required?: boolean;
+  options: readonly string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <p className="text-[13px] font-bold uppercase tracking-[0.05em] text-[#6b6b6b]">
+        {label}
+        {required && <span className="text-red-600"> *</span>}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((option) => {
+          const selected = value === option;
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={`rounded-full border px-4 py-2 text-xs font-medium normal-case transition ${
+                selected
+                  ? "border-[#c9a96e] bg-[#c9a96e] text-white"
+                  : "border-[#e8e4df] bg-white text-[#6b6b6b] hover:border-[#b8944f] hover:text-foreground"
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+      {error && <p className="mt-1 text-xs font-medium text-red-600">{error}</p>}
+    </div>
   );
 }
 
@@ -1351,12 +1399,10 @@ function TextField({
   required,
   multiline,
   inputMode,
-  icon,
   placeholder,
   pattern,
   maxLength,
   helperText,
-  suggestions,
   onChange,
 }: {
   label: string;
@@ -1365,42 +1411,28 @@ function TextField({
   required?: boolean;
   multiline?: boolean;
   inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
-  icon?: ReactNode;
   placeholder?: string;
   pattern?: string;
   maxLength?: number;
   helperText?: string;
-  suggestions?: { options: readonly string[] };
   onChange: (value: string) => void;
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const baseClass =
-    "mt-1.5 w-full rounded-[12px] border bg-white px-3.5 py-2.5 text-sm font-medium text-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.03)] outline-none transition focus:border-primary-deep focus:ring-2 focus:ring-primary-deep/15";
+    "mt-2 w-full rounded-[12px] border bg-[#f7f5f2] px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-[#b0aaa2] focus:border-[#c9a96e] focus:bg-white focus:ring-2 focus:ring-[#c9a96e]/20";
 
   return (
-    <label
-      htmlFor={id}
-      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-muted-foreground"
-    >
-      <span className="inline-flex items-center gap-1.5">
-        {icon && (
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#063a80] text-white ring-2 ring-white">
-            {icon}
-          </span>
-        )}
-        <span>
-          {label}
-          {required && <span className="text-red-600"> *</span>}
-        </span>
-      </span>
+    <label htmlFor={id} className="block text-[13px] font-medium text-foreground">
+      {label}
+      {required && <span className="text-[#b8944f]"> *</span>}
       {multiline ? (
         <textarea
           id={id}
           value={value}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
-          rows={4}
-          className={`${baseClass} ${error ? "border-red-500" : "border-border"}`}
+          rows={3}
+          className={`${baseClass} resize-vertical min-h-[88px] leading-relaxed ${error ? "border-red-500" : "border-[#e8e4df]"}`}
         />
       ) : (
         <input
@@ -1411,30 +1443,13 @@ function TextField({
           maxLength={maxLength}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
-          className={`${baseClass} ${error ? "border-red-500" : "border-border"}`}
+          className={`${baseClass} ${error ? "border-red-500" : "border-[#e8e4df]"}`}
         />
       )}
       {helperText && !error && (
-        <span className="mt-1 block text-xs font-medium text-muted-foreground">{helperText}</span>
+        <span className="mt-1 block text-xs font-normal text-[#6b6b6b]">{helperText}</span>
       )}
-      {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
-      {suggestions && (
-        <select
-          aria-label={`${label} quick select`}
-          value=""
-          onChange={(event) => {
-            if (event.target.value) onChange(event.target.value);
-          }}
-          className="mt-2 h-9 w-full rounded-[10px] border border-border bg-white px-3 text-xs font-medium normal-case text-muted-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.03)] outline-none transition focus:border-primary-deep focus:ring-2 focus:ring-primary-deep/15"
-        >
-          <option value="">Quick select…</option>
-          {suggestions.options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      )}
+      {error && <span className="mt-1 block text-xs font-normal text-red-600">{error}</span>}
     </label>
   );
 }
@@ -1445,7 +1460,6 @@ function SelectField({
   error,
   required,
   options,
-  icon,
   helperText,
   onChange,
 }: {
@@ -1454,34 +1468,21 @@ function SelectField({
   error?: string;
   required?: boolean;
   options: Array<[string, string]>;
-  icon?: ReactNode;
   helperText?: string;
   onChange: (value: string) => void;
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   return (
-    <label
-      htmlFor={id}
-      className="block text-[13px] font-bold uppercase tracking-[0.05em] text-muted-foreground"
-    >
-      <span className="inline-flex items-center gap-1.5">
-        {icon && (
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#063a80] text-white ring-2 ring-white">
-            {icon}
-          </span>
-        )}
-        <span>
-          {label}
-          {required && <span className="text-red-600"> *</span>}
-        </span>
-      </span>
+    <label htmlFor={id} className="block text-[13px] font-medium text-foreground">
+      {label}
+      {required && <span className="text-[#b8944f]"> *</span>}
       <select
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`mt-1.5 h-11 w-full rounded-[12px] border bg-white px-3.5 text-sm font-medium text-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.03)] outline-none transition focus:border-primary-deep focus:ring-2 focus:ring-primary-deep/15 ${
-          error ? "border-red-500" : "border-border"
+        className={`mt-2 h-11 w-full appearance-none rounded-[12px] border bg-[#f7f5f2] px-4 text-sm text-foreground outline-none transition focus:border-[#c9a96e] focus:bg-white focus:ring-2 focus:ring-[#c9a96e]/20 ${
+          error ? "border-red-500" : "border-[#e8e4df]"
         }`}
       >
         <option value="">Select</option>
@@ -1492,9 +1493,9 @@ function SelectField({
         ))}
       </select>
       {helperText && !error && (
-        <span className="mt-1 block text-xs font-medium text-muted-foreground">{helperText}</span>
+        <span className="mt-1 block text-xs font-normal text-[#6b6b6b]">{helperText}</span>
       )}
-      {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
+      {error && <span className="mt-1 block text-xs font-normal text-red-600">{error}</span>}
     </label>
   );
 }

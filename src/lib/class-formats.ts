@@ -21,6 +21,8 @@ export type ClassFormat = {
   intensity: string;
   bestFor: string;
   description: string;
+  duration: string;
+  equipment: string;
 };
 
 export const CLASS_FORMATS: ClassFormat[] = [
@@ -28,91 +30,111 @@ export const CLASS_FORMATS: ClassFormat[] = [
     key: "barre-57",
     name: "Barre",
     image: barreImage,
-    intensity: "Moderate to high, with modifications",
-    bestFor: "All fitness levels",
+    intensity: "Beginner to intermediate",
+    bestFor: "All fitness levels, and your very first class",
     description:
-      "The signature Physique 57 workout combines precise, controlled movements, isometric holds and targeted strength exercises to sculpt, tone and strengthen the entire body, all set to energising music.",
+      "The signature fundamental barre class and cornerstone of the Physique 57 experience. Muscle-defining arm work, intense thigh and seat sequences, waist-chiseling ab work, and fluid stretches, built on the proprietary Interval Overload method - work a muscle group to fatigue, then immediately stretch it for relief and recovery.",
+    duration: "57 minutes",
+    equipment: "Ballet barre, light dumbbells, resistance bands and loops, body weight",
   },
   {
     key: "power-cycle",
     name: "powerCycle",
     image: cycleImage,
     intensity: "Open level, rider controlled",
-    bestFor: "Low-impact cardio and endurance",
+    bestFor: "Low-impact cardio, endurance, and strong lean legs",
     description:
-      "Rhythm-driven indoor cycling built on cadence, resistance, cardio interval blocks, and real-time riding metrics.",
+      "Rhythm-driven indoor cycling on Stages SC3 bikes that maps the beat of the music to the pedal stroke and emphasises meaningful resistance over pure speed. Tracks your watts, RPM, and kilometres ridden for measurable progress - low-impact cardio that builds cardiac and lung capacity without bulking your legs.",
+    duration: "30 or 45 minutes",
+    equipment: "Stages SC3 indoor bikes with power meters; SPD cleat shoes provided",
   },
   {
     key: "studio-fit",
     name: "Studio FIT",
     image: fitImage,
-    intensity: "High intensity",
-    bestFor: "Strength-based interval training",
+    intensity: "Intermediate to advanced",
+    bestFor: "Building greater muscular strength alongside barre",
     description:
-      "A 50-minute functional interval class combining strength work, endurance blocks, heavy weights, and core conditioning.",
+      "A high-intensity class combining strength-based interval training with endurance work and core conditioning, using progressive heavy weights for functional strength. An excellent complement to barre if you want to build greater muscular strength.",
+    duration: "50 minutes",
+    equipment: "Progressive heavy dumbbells, functional strength equipment",
   },
   {
     key: "cardio-barre",
     name: "Cardio Barre",
     image: cardioImage,
-    intensity: "Intermediate to advanced",
-    bestFor: "Sweat-forward barre",
+    intensity: "Intermediate",
+    bestFor: "Sweat-forward barre with more cardio demand",
     description:
-      "Traditional barre precision meets faster cardiovascular sequences, dynamic intervals, and active recovery.",
+      "Traditional barre exercises combined with cardiovascular training - more intense strength variations at higher repetitions, elevating cardio endurance while toning every muscle group from head to toe with more dynamic movements and intervals than Barre 57.",
+    duration: "57 minutes",
+    equipment: "Ballet barre, light dumbbells, resistance bands",
   },
   {
     key: "cardio-barre-plus",
     name: "Cardio Barre Plus",
     image: cardioBarrePlusImage,
-    intensity: "Advanced cardio barre",
-    bestFor: "A stronger sweat-forward barre challenge",
+    intensity: "Advanced",
+    bestFor: "Regular practitioners seeking a greater challenge",
     description:
-      "A more athletic Cardio Barre progression with longer burn blocks, quicker transitions, and elevated heart-rate intervals while keeping Physique 57 precision.",
+      "An advanced, fast-paced evolution of Cardio Barre with tighter transitions, more complex variations, advanced layering, and compounded movements - the signature format pushed to new levels of intensity and endurance.",
+    duration: "57 minutes",
+    equipment: "Ballet barre, light dumbbells, resistance bands",
   },
   {
     key: "hiit",
     name: "HIIT",
     image: hiitImage,
-    intensity: "High intensity",
-    bestFor: "Cardio intervals and athletic conditioning",
+    intensity: "Advanced",
+    bestFor: "Maximum calorie burn and metabolic conditioning",
     description:
-      "A compact, high-output session alternating cardio bursts, strength drills, active recovery, and core work for a powerful full-body burn.",
+      "Physique 57's take on High-Intensity Interval Training - classic cardio movements like jumping jacks, lunges, and planks transformed into non-stop, heart-pumping sequences. Intense cardio paired with strength training designed to make you sweat and achieve maximum calorie burn.",
+    duration: "45 minutes",
+    equipment: "Body weight, classic cardio equipment",
   },
   {
     key: "mat-57",
     name: "Mat 57",
     image: matImage,
-    intensity: "Moderate to high",
-    bestFor: "Core, posture, flexibility",
+    intensity: "All levels",
+    bestFor: "Core, posture, balance, and flexibility",
     description:
-      "Pilates-inspired floor work that brings Physique 57 sculpting techniques to the mat with posture, balance, and alignment.",
+      "Pilates-style floor work that brings Physique 57's sculpting techniques to the mat - radical ab-blasting sequences that improve posture, core strength, balance, alignment, and flexibility, without using the barre.",
+    duration: "57 minutes",
+    equipment: "Yoga mat recommended; body weight resistance",
   },
   {
     key: "strength-lab",
     name: "StrengthLab",
     image: strengthImage,
-    intensity: "Advanced strength",
-    bestFor: "Experienced strength trainees",
+    intensity: "Advanced (newcomer-friendly with prior strength experience)",
+    bestFor: "Building lean muscle and boosting metabolism",
     description:
-      "A 57-minute circuit-based strength format using heavier weights, specific repetition counts, progressive overload, and power work.",
+      "A comprehensive circuit format blending strength, core, mobility, and stretch work, built on principles of progressive overload. Can be done by a newcomer with relevant strength training experience from the past; otherwise start with barre or Studio FIT first.",
+    duration: "57 minutes",
+    equipment: "Dumbbells, kettlebells, plyo boxes, pull-up bars, resistance bands",
   },
   {
     key: "back-body-blaze",
     name: "Back Body Blaze",
     image: backBodyBlazeImage,
-    intensity: "Advanced posterior-chain strength",
+    intensity: "Intermediate",
     bestFor: "Back, glutes, hamstrings, posture, and power",
     description:
-      "A focused strength format targeting the back body with controlled resistance, glute and hamstring work, posture-focused pulls, and core stability.",
+      "A focused class targeting the triceps, glutes, and back - the most commonly neglected muscle groups. Non-stop sequences with weights strengthen the posterior chain, improving posture and building a strong back.",
+    duration: "57 minutes",
+    equipment: "Dumbbells, resistance bands",
   },
   {
     key: "recovery",
     name: "Recovery",
     image: recoveryImage,
-    intensity: "Low intensity restorative",
-    bestFor: "Mobility, flexibility, reset, and active recovery",
+    intensity: "Low intensity, all levels",
+    bestFor: "Rest days, post-intense training, and flexibility",
     description:
-      "A slower session built around breath, lengthening, mobility, assisted stretch patterns, and restorative movement to help the body reset between stronger classes.",
+      "A total-body restorative stretch session that deeply relaxes the body while optimising muscle strength, symmetry, and recovery, gently guided by the trainer. Ideal for rest days or right after your most intense sessions.",
+    duration: "30 minutes",
+    equipment: "Body weight, guided stretching",
   },
 ];
 

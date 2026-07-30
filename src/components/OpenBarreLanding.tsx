@@ -785,16 +785,6 @@ function KeyBenefitsGrid() {
 
 const NEXT_STEPS = [
   {
-    n: "01",
-    title: "Tell us what suits you",
-    body: "Share your preferred studio and the format you want to begin with.",
-  },
-  {
-    n: "02",
-    title: "We review your preferences",
-    body: "The studio team checks your selected location and preferred format to shape the best first recommendation.",
-  },
-  {
     n: "03",
     title: "You receive a guided confirmation",
     body: "You hear back with the best-fit option, next steps, and booking details needed to secure your first class.",

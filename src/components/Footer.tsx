@@ -51,7 +51,9 @@ export function Footer({
 
           <FooterCol title="Explore">
             <FooterLink to="/">Home</FooterLink>
-            <FooterLink to="/about">About</FooterLink>
+            <FooterLink to="/about" search={studioSearch}>
+              About
+            </FooterLink>
             <FooterLink to="/classes-info" search={studioSearch}>
               Classes
             </FooterLink>
@@ -74,7 +76,7 @@ export function Footer({
             </li>
             <li className="text-sm text-background/70 leading-relaxed mt-3">
               <span className="block text-background font-semibold">Lavelle Road</span>
-              1st Floor, Kenkere House, Vittal Mallya Rd, above Raymonds, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001
+              1st Floor, Kenkere House, Vittal Mallya Rd, Bengaluru, Karnataka 560001
             </li>
             <li className="text-sm text-background/70 leading-relaxed mt-3">
               <span className="block text-background font-semibold">Indiranagar</span>
