@@ -2,6 +2,7 @@ import {
   buildHostMemberCreateRequest,
   type HostMemberCreateRequest,
 } from "./momence-member.helpers";
+import { isPaidNewcomersClassName } from "./momence-booking.helpers";
 
 export type SignupAndEnrollInput = {
   firstName: string;
@@ -122,16 +123,26 @@ export async function runSignupAndEnroll(
 
   let enrolled = false;
   let enrollError: string | null = null;
-  try {
-    await dependencies.enrollOpenBarre({
-      memberId: created.memberId,
-      homeLocationId: data.homeLocationId,
-    });
+  if (data.classType && isPaidNewcomersClassName(data.classType)) {
+    // Strength/powerCycle classes skip the free Open Barre trial - member gets billed for
+    // Newcomers 2 for 1 directly when they book their class instead.
     enrolled = true;
-    console.debug("[debug:signup] open barre enrolled", { memberId: created.memberId });
-  } catch (e) {
-    enrollError = e instanceof Error ? e.message : "Enrollment failed";
-    console.error("Membership enrollment failed:", enrollError);
+    console.debug("[debug:signup] skipped open barre enrollment for paid newcomers class", {
+      memberId: created.memberId,
+      classType: data.classType,
+    });
+  } else {
+    try {
+      await dependencies.enrollOpenBarre({
+        memberId: created.memberId,
+        homeLocationId: data.homeLocationId,
+      });
+      enrolled = true;
+      console.debug("[debug:signup] open barre enrolled", { memberId: created.memberId });
+    } catch (e) {
+      enrollError = e instanceof Error ? e.message : "Enrollment failed";
+      console.error("Membership enrollment failed:", enrollError);
+    }
   }
 
   let leadCaptured = false;

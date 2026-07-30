@@ -32,6 +32,7 @@ import {
   type ClassFormatKey,
 } from "@/lib/class-format-matchers";
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
+import { isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
@@ -1297,7 +1298,11 @@ function SignupCard({
           disabled={loading || !valid}
           className="w-full h-12 rounded-full bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? "Activating membership…" : ctaLabel}
+          {loading
+            ? "Activating membership…"
+            : !isBengaluru && isPaidNewcomersClassName(form.classType)
+              ? "Book My Trial Class"
+              : ctaLabel}
         </button>
       </form>
     </div>
