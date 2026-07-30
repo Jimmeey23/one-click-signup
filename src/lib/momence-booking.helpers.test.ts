@@ -81,17 +81,17 @@ describe("Momence booking helpers", () => {
       slashOriginalPrice: true,
     });
 
-    // 1750 pre-tax + 5% GST = 1838 (the Stripe-charged, post-tax amount)
+    // Displayed price is pre-tax; 5% GST is only added on the Stripe checkout page (1750 -> 1838).
     assert.deepEqual(getSchedulePriceDisplay("powerCycle"), {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: "1838",
+      bookingPriceInCurrency: "1750",
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     });
 
     assert.deepEqual(getSchedulePriceDisplay("Strength Lab Push"), {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: "1838",
+      bookingPriceInCurrency: "1750",
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     });

@@ -59,10 +59,19 @@ function initialFor(name: string): string {
 }
 
 const VISIBLE_DESKTOP = 3;
-// Extra copies of the deck appended so the track always has cards to slide in from the right.
-const TRACK = [...REVIEWS, ...REVIEWS.slice(0, VISIBLE_DESKTOP)];
+const BENGALURU_EXCLUDED_METAS = ["powerCycle", "Strength Lab"];
+const BENGALURU_REVIEWS = REVIEWS.filter(
+  (r) => !BENGALURU_EXCLUDED_METAS.some((excluded) => r.meta?.includes(excluded)),
+);
 
-export function ReviewsCarousel() {
+export function ReviewsCarousel({
+  studioVariant = "mumbai",
+}: {
+  studioVariant?: "mumbai" | "bengaluru";
+}) {
+  const reviews = studioVariant === "bengaluru" ? BENGALURU_REVIEWS : REVIEWS;
+  // Extra copies of the deck appended so the track always has cards to slide in from the right.
+  const track = [...reviews, ...reviews.slice(0, VISIBLE_DESKTOP)];
   const [step, setStep] = useState(0);
   const [animated, setAnimated] = useState(true);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -74,10 +83,10 @@ export function ReviewsCarousel() {
 
   function handleTransitionEnd(event: React.TransitionEvent<HTMLDivElement>) {
     if (event.target !== trackRef.current || event.propertyName !== "transform") return;
-    if (step < REVIEWS.length) return;
+    if (step < reviews.length) return;
     // Loop seamlessly: jump back to the equivalent frame with no transition, then re-enable it.
     setAnimated(false);
-    setStep((s) => s % REVIEWS.length);
+    setStep((s) => s % reviews.length);
     requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
   }
 
@@ -92,7 +101,7 @@ export function ReviewsCarousel() {
           transition: animated ? "transform 700ms cubic-bezier(0.65,0,0.35,1)" : "none",
         }}
       >
-        {TRACK.map((r, i) => (
+        {track.map((r, i) => (
           <article
             key={i}
             className="group w-full shrink-0 basis-full px-2 md:basis-1/3"

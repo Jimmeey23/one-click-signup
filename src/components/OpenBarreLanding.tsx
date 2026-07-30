@@ -538,10 +538,18 @@ export function OpenBarreLanding({
             <div key={i} className="flex gap-12 items-center">
               <Dot /> <span>Barre 57</span>
               <Dot /> <span>FIT</span>
-              <Dot /> <span>Strength Lab</span>
+              {!isBengaluru && (
+                <>
+                  <Dot /> <span>Strength Lab</span>
+                </>
+              )}
               <Dot /> <span>Mat 57</span>
               <Dot /> <span>HIIT</span>
-              <Dot /> <span>powerCycle</span>
+              {!isBengaluru && (
+                <>
+                  <Dot /> <span>powerCycle</span>
+                </>
+              )}
               <Dot /> <span>Cardio Barre</span>
             </div>
           ))}
@@ -610,7 +618,7 @@ export function OpenBarreLanding({
               </h2>
             </div>
           </div>
-          <ReviewsCarousel />
+          <ReviewsCarousel studioVariant={studioVariant} />
         </div>
       </section>
 
@@ -1058,12 +1066,16 @@ function SignupCard({
               value={form.firstName}
               onChange={(v) => setForm({ ...form, firstName: v })}
               required
+              name="given-name"
+              autoComplete="given-name"
             />
             <Field
               label="Last name"
               value={form.lastName}
               onChange={(v) => setForm({ ...form, lastName: v })}
               required
+              name="family-name"
+              autoComplete="family-name"
             />
           </div>
           <Field
@@ -1072,6 +1084,8 @@ function SignupCard({
             value={form.email}
             onChange={(v) => setForm({ ...form, email: v })}
             required
+            name="email"
+            autoComplete="email"
           />
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
@@ -1098,6 +1112,8 @@ function SignupCard({
               <input
                 type="tel"
                 inputMode="numeric"
+                name="tel-national"
+                autoComplete="tel-national"
                 required
                 value={form.phoneNumber}
                 onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
@@ -1185,7 +1201,7 @@ function SignupCard({
                           <img
                             src={classFormat.image}
                             alt=""
-                            className="h-36 w-full object-cover object-top transition-transform duration-500 group-hover/card:scale-105"
+                            className="h-52 w-full object-cover object-top transition-transform duration-500 group-hover/card:scale-105"
                           />
                         </div>
                         <span className="px-2 py-2.5 text-xs font-semibold text-foreground">
@@ -1302,12 +1318,16 @@ function Field({
   onChange,
   type = "text",
   required,
+  name,
+  autoComplete,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   required?: boolean;
+  name?: string;
+  autoComplete?: string;
 }) {
   return (
     <div>
@@ -1318,6 +1338,8 @@ function Field({
       <input
         type={type}
         required={required}
+        name={name}
+        autoComplete={autoComplete}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-11 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"

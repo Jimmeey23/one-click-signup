@@ -233,7 +233,8 @@ export function getSchedulePriceDisplay(
     }
     return {
       originalPriceInCurrency: bengaluruDropInPriceInrForLocation(homeLocationId as number),
-      bookingPriceInCurrency: bengaluruIntroChargePriceInrForLocation(homeLocationId as number),
+      // Pre-tax price - GST is only added when the amount is charged on the Stripe checkout page.
+      bookingPriceInCurrency: BENGALURU_LAVELLE_ROAD_INTRO_PRICE_INR,
       label: "Intro Pack",
       slashOriginalPrice: true,
     };
@@ -242,7 +243,8 @@ export function getSchedulePriceDisplay(
   if (isPaidNewcomersClassName(className)) {
     return {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR,
+      // Pre-tax price - GST is only added when the amount is charged on the Stripe checkout page.
+      bookingPriceInCurrency: NEWCOMERS_2_FOR_1_PRICE_INR,
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     };
