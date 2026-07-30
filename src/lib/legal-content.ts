@@ -113,6 +113,94 @@ export const membershipWaiverDocument: LegalDocument = {
   ],
 };
 
+const bengaluruBusinessIntro = ["Host: Physique 57 Bengaluru", "Business: AMP Fitness LLP"];
+
+export const bengaluruWaiverDocument: LegalDocument = {
+  title: "Waiver",
+  subtitle: "Release cum Indemnity Agreement for Physique 57 Bengaluru / AMP Fitness LLP.",
+  updated: "Waiver - Physique 57 Bengaluru",
+  sections: [
+    { title: "Business Details", paragraphs: bengaluruBusinessIntro },
+    {
+      title: "Age, Capacity, Health Declaration",
+      paragraphs: [
+        "I confirm that I am an adult of at least 18 years of age or am represented by an adult parent or guardian of at least 18 years of age and competent to contract and participate in this exercise class/ program. This informed consent is freely and voluntarily executed, not caused by coercion, undue influence, fraud, misinterpretation, or mistake and shall be binding upon me, my spouse, partner, parents, relatives, legal representatives, heirs, executors, administrators, successors and assignees.",
+        "I confirm and certify that I am in adequate health to participate in any activities at the Studio(s) of AMP Fitness LLP and that I also do not have any illness, disease or other health condition which could potentially put anyone else at risk. I confirm and acknowledge that should this information or position change, it is my sole responsibility to promptly notify the instructors at the Studio(s) of AMP Fitness LLP.",
+      ],
+    },
+    {
+      title: "Personal Property",
+      paragraphs: [
+        "Any personal property brought to Classes is brought at your sole risk as to its theft, damage, or loss. You agree that Physique 57 is in no way responsible for the safekeeping of your personal belongings while you attend Classes or are otherwise at a Physique 57 location.",
+      ],
+    },
+    {
+      title: "Class Policies",
+      paragraphs: [
+        "All cancellations must be given in writing to info@physique57bengaluru.com 12 hours prior to the class booking. All cancellations outside of this time frame will be deducted from your class package.",
+        "Clients will be unable to join a Full or Express Studio class 7-Minutes past the scheduled start time; should this happen, this class will be deducted from your class package.",
+        "Payments can be made online via our app, using a valid credit or debit card.",
+        "All classes, Memberships & Packages must be paid for in advance and are non-refundable.",
+        "Clients can pre-register for class up to one hour prior to the scheduled class time in order to reserve their space in class.",
+        "If the class is full, you will be placed on the waitlist; additions to the class from the waitlist will be on a first come, first served basis.",
+        "Instructor requests will be subject to availability.",
+        "Preferred date and class timings will be subject to availability.",
+      ],
+    },
+  ],
+};
+
+export const bengaluruTermsDocument: LegalDocument = {
+  title: "Terms and Conditions",
+  subtitle: "Membership, cancellation, liability, and general terms for Physique 57 Bengaluru.",
+  updated: "Terms and conditions - Physique 57 Bengaluru",
+  sections: [
+    { title: "Business Details", paragraphs: bengaluruBusinessIntro },
+    {
+      title: "Membership Access and Fees",
+      paragraphs: [
+        "In exchange for the Fees and during the Term of this agreement, you will have access to each Physique 57 location in Bengaluru during regular studio hours and you will have the right to participate in instructional classes offered by the studio subject to availability. Services offered by the studio will include classes in the Physique 57 ® fitness technique.",
+        "The Fees payable under the terms of this Agreement are for the period of time and are in no way related to your actual usage of the Studio facilities.",
+        "For the avoidance of doubt, please note that, you are not, under any circumstances whatsoever, entitled to receive a refund of the Fees or any part thereof, under this membership agreement.",
+        "Physique 57 reserves the right to cancel this membership and terminate this agreement at any time in the event that the member engages in behaviour that is unsafe or objectionable to other members or Physique 57 Staff.",
+        "You shall at all times comply with and be bound by the policies, rules and regulations of Physique 57, as framed and modified from time to time, in all matters, including relating to your access and use of Physique 57's facilities, equipment and generally in relation to the services being provided to you hereunder.",
+      ],
+    },
+    {
+      title: "Personal Property",
+      paragraphs: [
+        "Any personal property brought to a Physique 57 India Studio is brought at your sole risk as to its theft, damage, or loss. You agree that Physique 57 India is in no way responsible for the safekeeping of your personal belongings while you attend Classes or are otherwise at a Physique 57 location.",
+      ],
+    },
+    {
+      title: "Cancellation Policy",
+      paragraphs: [
+        "All cancellations must be given in writing to info@physique57bengaluru.com or via the Physique 57 India app atleast 12 hours prior to the Scheduled Class Start time. All cancellations outside of this time frame will be deducted from your class package.",
+        "Clients will be unable to join a Full Studio class 10-Minutes past the scheduled start time; should this happen, this class will be deducted from your class package.",
+        "Clients will be unable to join an Express Studio class 7-Minutes past the scheduled start time; should this happen, this class will be deducted from your class package.",
+        "Clients will be unable to join a 30 minute Studio Class after the Scheduled Start Time.",
+      ],
+    },
+    {
+      title: "Liability Waiver",
+      paragraphs: [
+        "I confirm that I am an adult of at least 18 years of age or am represented by an adult parent or guardian of at least 18 years of age and competent to contract and participate in this exercise class/ program. This informed consent is freely and voluntarily executed, not caused by coercion, undue influence, fraud, misinterpretation, or mistake and shall be binding upon me, my spouse, partner, parents, relatives, legal representatives, heirs, executors, administrators, successors and assignees. I confirm and certify that I am in adequate health to participate in any activities at the Studio(s) of AMP Fitness LLP and that I also do not have any illness, disease or other health condition which could potentially put anyone else at risk. I confirm and acknowledge that should this information or position change, it is my sole responsibility to promptly notify the instructors at the Studio(s) of AMP Fitness LLP.",
+        "Any personal property brought to Classes is brought at your sole risk as to its theft, damage, or loss. You agree that Physique 57 is in no way responsible for the safekeeping of your personal belongings while you attend Classes or are otherwise at a Physique 57 location.",
+      ],
+    },
+    {
+      title: "General T&C's",
+      paragraphs: [
+        "All classes, memberships & Packages must be paid for in advance and are non-refundable.",
+        "Clients can pre-register for class up to one hour prior to the scheduled class time in order to reserve their space in class.",
+        "If the class is full, you will be placed on the waitlist; additions to the class from the waitlist will be on a first come, first served basis.",
+        "Instructor requests will be subject to availability.",
+        "Preferred date and class timings will be subject to availability.",
+      ],
+    },
+  ],
+};
+
 export const privacyDocument: LegalDocument = {
   title: "Privacy Policy",
   subtitle:

@@ -70,6 +70,7 @@ export type SignupAndEnrollDependencies = {
   signMemberWaivers: (input: {
     memberId: number;
     realSignature: string;
+    homeLocationId: number;
   }) => Promise<{ signedCount: number; availableCount: number }>;
   enrollOpenBarre: (input: { memberId: number; homeLocationId: number }) => Promise<void>;
   captureLead: (payload: LeadCapturePayload) => Promise<{ ok: boolean; error?: string | null }>;
@@ -103,6 +104,7 @@ export async function runSignupAndEnroll(
     const consent = await dependencies.signMemberWaivers({
       memberId: created.memberId,
       realSignature: signatureRealSignature,
+      homeLocationId: data.homeLocationId,
     });
     signed = consent.signedCount;
     availableWaivers = consent.availableCount;

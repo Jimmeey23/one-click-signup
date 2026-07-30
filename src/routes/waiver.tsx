@@ -1,11 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { Footer } from "@/components/Footer";
 import { LegalDocumentArticle } from "@/components/LegalPage";
-import { membershipWaiverDocument, waiverDocument } from "@/lib/legal-content";
+import {
+  bengaluruWaiverDocument,
+  membershipWaiverDocument,
+  waiverDocument,
+} from "@/lib/legal-content";
 
 const logoUrl = "/physique57-logo.png";
 
+const searchSchema = z.object({
+  studio: z.enum(["mumbai", "bengaluru"]).optional(),
+});
+
 export const Route = createFileRoute("/waiver")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Waiver - Physique 57 India" },
@@ -19,6 +29,9 @@ export const Route = createFileRoute("/waiver")({
 });
 
 function WaiverPage() {
+  const { studio } = Route.useSearch();
+  const isBengaluru = studio === "bengaluru";
+
   return (
     <div className="min-h-screen bg-[#f5f5f2] text-foreground">
       <header className="border-b border-[#d9d9d2] bg-white">
@@ -28,11 +41,17 @@ function WaiverPage() {
           </Link>
         </div>
       </header>
-      <LegalDocumentArticle document={waiverDocument} />
-      <div className="border-t border-[#d9d9d2]">
-        <LegalDocumentArticle document={membershipWaiverDocument} />
-      </div>
-      <Footer />
+      {isBengaluru ? (
+        <LegalDocumentArticle document={bengaluruWaiverDocument} studioVariant="bengaluru" />
+      ) : (
+        <>
+          <LegalDocumentArticle document={waiverDocument} />
+          <div className="border-t border-[#d9d9d2]">
+            <LegalDocumentArticle document={membershipWaiverDocument} />
+          </div>
+        </>
+      )}
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>
   );
 }

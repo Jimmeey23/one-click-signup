@@ -4,7 +4,13 @@ import type { LegalDocument } from "@/lib/legal-content";
 
 const logoUrl = "/physique57-logo.png";
 
-export function LegalPage({ document }: { document: LegalDocument }) {
+export function LegalPage({
+  document,
+  studioVariant = "mumbai",
+}: {
+  document: LegalDocument;
+  studioVariant?: "mumbai" | "bengaluru";
+}) {
   return (
     <div className="min-h-screen bg-[#f5f5f2] text-foreground">
       <header className="border-b border-[#d9d9d2] bg-white">
@@ -14,13 +20,19 @@ export function LegalPage({ document }: { document: LegalDocument }) {
           </Link>
         </div>
       </header>
-      <LegalDocumentArticle document={document} />
-      <Footer />
+      <LegalDocumentArticle document={document} studioVariant={studioVariant} />
+      <Footer studioVariant={studioVariant} />
     </div>
   );
 }
 
-export function LegalDocumentArticle({ document }: { document: LegalDocument }) {
+export function LegalDocumentArticle({
+  document,
+  studioVariant = "mumbai",
+}: {
+  document: LegalDocument;
+  studioVariant?: "mumbai" | "bengaluru";
+}) {
   return (
     <article className="mx-auto max-w-4xl px-5 py-10 md:px-6 md:py-14">
       <div className="border border-[#d5d5ce] bg-white shadow-[0_24px_80px_-60px_rgb(0_0_0/0.55)]">
@@ -45,7 +57,9 @@ export function LegalDocumentArticle({ document }: { document: LegalDocument }) 
             </div>
             <div>
               <dt className="font-bold uppercase tracking-[0.18em] text-[#74727c]">Jurisdiction</dt>
-              <dd className="mt-1 text-[#242329]">Mumbai, India</dd>
+              <dd className="mt-1 text-[#242329]">
+                {studioVariant === "bengaluru" ? "Bengaluru, India" : "Mumbai, India"}
+              </dd>
             </div>
           </dl>
         </header>

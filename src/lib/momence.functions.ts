@@ -6,6 +6,7 @@ import {
   type ClassFormatKey,
 } from "./class-format-matchers";
 import {
+  BENGALURU_MOMENCE_HOST_ID,
   buildOpenBarreCheckoutRequestForLocation,
   isBengaluruLocation,
 } from "./momence-booking.helpers";
@@ -375,17 +376,20 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
 async function signMemberWaivers({
   memberId,
   realSignature,
+  homeLocationId,
 }: {
   memberId: number;
   realSignature: string;
+  homeLocationId: number;
 }): Promise<{ signedCount: number; availableCount: number }> {
+  const hostId = isBengaluruLocation(homeLocationId) ? BENGALURU_MOMENCE_HOST_ID : MOMENCE_HOST_ID;
   const res = await momenceDashboardFetch<{ waivers?: DashboardWaiver[] }>(
-    `/host/${MOMENCE_HOST_ID}/members/${memberId}/waivers`,
+    `/host/${hostId}/members/${memberId}/waivers`,
     { method: "GET" },
   );
   const waivers = res.waivers ?? [];
   const signRequests = buildDashboardPublicWaiverSignRequests({
-    hostId: MOMENCE_HOST_ID,
+    hostId,
     memberId,
     realSignature,
     waivers,
