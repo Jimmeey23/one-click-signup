@@ -1188,8 +1188,8 @@ function CustomerFieldsModal({
             </div>
           </aside>
 
-          <div className="flex min-h-0 flex-col overflow-hidden bg-[#f7f5f2]">
-            <div className="shrink-0 border-b border-[#e8e4df] bg-[#f7f5f2] px-6 pb-5 pt-7 sm:px-8">
+          <div className="flex min-h-0 flex-col overflow-hidden bg-white">
+            <div className="shrink-0 border-b border-[#e8e4df] bg-white px-6 pb-5 pt-7 sm:px-8">
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#b8944f]">
                 Before you book
               </p>
@@ -1286,7 +1286,7 @@ function CustomerFieldsModal({
               </FieldSection>
             </div>
 
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-[#e8e4df] bg-[#f7f5f2] px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-[#e8e4df] bg-white px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
               <button
                 type="button"
                 onClick={onCancel}
@@ -1419,7 +1419,7 @@ function TextField({
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const baseClass =
-    "mt-2 w-full rounded-[12px] border bg-[#f7f5f2] px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-[#b0aaa2] focus:border-[#c9a96e] focus:bg-white focus:ring-2 focus:ring-[#c9a96e]/20";
+    "mt-2 w-full rounded-[12px] border bg-white px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-[#b0aaa2] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20";
 
   return (
     <label htmlFor={id} className="block text-[13px] font-medium text-foreground">
@@ -1481,7 +1481,7 @@ function SelectField({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`mt-2 h-11 w-full appearance-none rounded-[12px] border bg-[#f7f5f2] px-4 text-sm text-foreground outline-none transition focus:border-[#c9a96e] focus:bg-white focus:ring-2 focus:ring-[#c9a96e]/20 ${
+        className={`mt-2 h-11 w-full appearance-none rounded-[12px] border bg-white px-4 text-sm text-foreground outline-none transition focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20 ${
           error ? "border-red-500" : "border-[#e8e4df]"
         }`}
       >
