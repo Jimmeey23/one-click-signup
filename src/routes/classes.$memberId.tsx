@@ -125,8 +125,6 @@ type FormatInfo = {
   image: string;
 };
 
-const ACCENT = "#1d7cf2";
-
 function formatInr(amountInRupees: string | number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -723,38 +721,38 @@ function ClassesPage() {
   if (bookingId !== null && !customFieldsSession) return <BookingLoader />;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,#e7f0ff_0%,#f4f8ff_45%,#f4f8ff_100%)] text-[#172033]">
-      <header className="sticky top-0 z-30 border-b border-[#d9e7fb] bg-white/85 shadow-[0_1px_0_rgb(29_124_242/0.06)] backdrop-blur-md">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_120%_60%_at_50%_-10%,color-mix(in_oklab,var(--primary)_10%,var(--background))_0%,var(--background)_45%,var(--background)_100%)] text-foreground">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
           <Link to="/" className="flex items-center gap-3">
             <img src={logoUrl} alt="Physique 57" className="h-9 w-auto" />
           </Link>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#63708a]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Member #{memberId}
           </span>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
-        <section className="mb-8 rounded-[28px] border border-[#d9e7fb] bg-white/90 p-4 shadow-[0_24px_60px_rgb(29_124_242/0.1)] backdrop-blur-sm md:p-6">
+        <section className="mb-8 rounded-[28px] border border-border bg-card/90 p-4 shadow-[var(--shadow-card)] backdrop-blur-sm md:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#1d7cf2]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary-deep">
                 {currentLoc.name.split(",")[0]}
               </p>
-              <h1 className="font-display mt-0.5 text-[34px] italic leading-none tracking-[-0.01em] text-[#101828]">
+              <h1 className="font-display mt-0.5 text-[34px] italic leading-none tracking-[-0.01em] text-foreground">
                 Class schedule
               </h1>
-              <div className="mt-2 h-[3px] w-8 rounded-full bg-gradient-to-r from-[#123f7a] to-[#7db8ff]" />
+              <div className="mt-2 h-[3px] w-8 rounded-full bg-primary" />
             </div>
-            <div className="flex shrink-0 overflow-hidden rounded-full border border-[#d3e3fb] bg-[#f5f9ff] p-1 shadow-inner shadow-white">
+            <div className="flex shrink-0 overflow-hidden rounded-full border border-border bg-secondary p-1">
               <button
                 type="button"
                 onClick={() => switchViewMode("day")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "day"
-                    ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
-                    : "text-[#42526b] hover:bg-white"
+                    ? "bg-foreground text-background shadow-[0_8px_18px_rgb(0_0_0/0.16)]"
+                    : "text-muted-foreground hover:bg-background"
                 }`}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
@@ -765,8 +763,8 @@ function ClassesPage() {
                 onClick={() => switchViewMode("week")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "week"
-                    ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
-                    : "text-[#42526b] hover:bg-white"
+                    ? "bg-foreground text-background shadow-[0_8px_18px_rgb(0_0_0/0.16)]"
+                    : "text-muted-foreground hover:bg-background"
                 }`}
               >
                 <List className="h-4 w-4" aria-hidden="true" />
@@ -777,8 +775,8 @@ function ClassesPage() {
                 onClick={() => switchViewMode("month")}
                 className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
                   viewMode === "month"
-                    ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] text-white shadow-[0_8px_18px_rgb(29_124_242/0.28)]"
-                    : "text-[#42526b] hover:bg-white"
+                    ? "bg-foreground text-background shadow-[0_8px_18px_rgb(0_0_0/0.16)]"
+                    : "text-muted-foreground hover:bg-background"
                 }`}
               >
                 <CalendarDays className="h-4 w-4" aria-hidden="true" />
@@ -787,11 +785,11 @@ function ClassesPage() {
             </div>
           </div>
 
-          <div className="mt-5 flex items-center gap-3 rounded-[20px] border border-[#d9e7fb] bg-gradient-to-b from-[#f7faff] to-[#f2f7ff] p-2 shadow-[inset_0_1px_0_rgb(255_255_255/0.8)]">
+          <div className="mt-5 flex items-center gap-3 rounded-[20px] border border-border bg-secondary/60 p-2">
             <button
               type="button"
               onClick={goPreviousRange}
-              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#d3e3fb] bg-white text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2] sm:flex"
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70 transition hover:border-primary-deep hover:text-primary-deep sm:flex"
               aria-label={`Previous ${viewMode}`}
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
@@ -804,16 +802,16 @@ function ClassesPage() {
               }
             >
               {viewMode === "month" ? (
-                <div className="flex min-h-[64px] items-center justify-between gap-4 rounded-[16px] bg-white px-5 shadow-[0_10px_22px_rgb(29_124_242/0.1)] ring-1 ring-[#deebfd]">
+                <div className="flex min-h-[64px] items-center justify-between gap-4 rounded-[16px] bg-card px-5 shadow-[var(--shadow-card)] ring-1 ring-border">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#6f7f99]">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                       Calendar month
                     </span>
-                    <span className="font-display mt-0.5 block text-2xl italic tracking-[-0.01em] text-[#101828]">
+                    <span className="font-display mt-0.5 block text-2xl italic tracking-[-0.01em] text-foreground">
                       {monthLabel}
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_14px_rgb(29_124_242/0.22)]">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-background">
                     <CalendarDays className="h-4 w-4" aria-hidden="true" />
                     {visibleSessions.length} {visibleSessions.length === 1 ? "class" : "classes"}
                   </span>
@@ -830,8 +828,8 @@ function ClassesPage() {
                       }}
                       className={`min-h-[64px] rounded-[18px] px-2 text-center transition duration-150 ${
                         selected
-                          ? "bg-white text-[#1d7cf2] shadow-[0_10px_24px_rgb(29_124_242/0.16)] ring-1 ring-[#d7e8ff]"
-                          : "text-[#6f7f99] hover:bg-white/70 hover:text-[#42526b]"
+                          ? "bg-card text-primary-deep shadow-[var(--shadow-card)] ring-1 ring-primary/40"
+                          : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                       }`}
                     >
                       <span className="block text-[11px] font-semibold uppercase leading-none">
@@ -839,14 +837,14 @@ function ClassesPage() {
                       </span>
                       <span
                         className={`mt-1 block text-lg font-semibold leading-none ${
-                          selected ? "text-[#1d7cf2]" : "text-[#42526b]"
+                          selected ? "text-primary-deep" : "text-foreground/80"
                         }`}
                       >
                         {item.day}
                       </span>
                       <span className="mt-2 flex justify-center gap-1" aria-hidden="true">
                         <span
-                          className={`h-1 w-5 rounded-full transition ${selected ? "bg-gradient-to-r from-[#123f7a] to-[#1d7cf2]" : "bg-[#d0d9e8]"}`}
+                          className={`h-1 w-5 rounded-full transition ${selected ? "bg-primary" : "bg-border"}`}
                         />
                       </span>
                     </button>
@@ -857,21 +855,21 @@ function ClassesPage() {
             <button
               type="button"
               onClick={goNextRange}
-              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#d3e3fb] bg-white text-[#2a3b57] shadow-[0_8px_18px_rgb(30_24_70/0.05)] transition hover:border-[#1d7cf2] hover:text-[#1d7cf2] sm:flex"
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground/70 transition hover:border-primary-deep hover:text-primary-deep sm:flex"
               aria-label={`Next ${viewMode}`}
             >
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2 rounded-[18px] border border-[#e3ebf7] bg-[#fbfcff] p-3.5">
-            <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b98b0]">
+          <div className="mt-5 flex flex-wrap items-center gap-2 rounded-[18px] border border-border bg-secondary/40 p-3.5">
+            <span className="mr-1 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
               Your booking
             </span>
-            <span className="inline-flex h-9 items-center rounded-full border border-[#1d7cf2] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-4 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+            <span className="inline-flex h-9 items-center rounded-full bg-foreground px-4 text-xs font-semibold uppercase tracking-[0.14em] text-background">
               {currentLoc.name.split(",")[0]}
             </span>
-            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-[#d9e7fb] bg-white px-4 text-xs font-semibold uppercase tracking-[0.1em] text-[#3a4b66]">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-4 text-xs font-semibold uppercase tracking-[0.1em] text-foreground/80">
               <img
                 src={classFormatForKey(activeClassType).image}
                 alt=""
@@ -883,11 +881,15 @@ function ClassesPage() {
         </section>
 
         {bookErr && (
-          <p className="mb-5 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{bookErr}</p>
+          <p className="mb-5 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {bookErr}
+          </p>
         )}
 
         {loadError && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{loadError}</p>
+          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {loadError}
+          </p>
         )}
 
         {!sessions &&
@@ -904,8 +906,8 @@ function ClassesPage() {
         )}
 
         {sessions && viewMode !== "month" && sessions.length === 0 && (
-          <div className="rounded-[26px] border border-dashed border-[#d9e7fb] bg-white/60 p-12 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
-            <p className="font-display text-xl italic text-[#101828]">Nothing on the books yet</p>
+          <div className="rounded-[26px] border border-dashed border-border bg-card/60 p-12 text-center text-muted-foreground">
+            <p className="font-display text-xl italic text-foreground">Nothing on the books yet</p>
             <p className="mt-1.5 text-sm">
               No upcoming classes in this {viewMode} view at this studio.
             </p>
@@ -913,8 +915,8 @@ function ClassesPage() {
         )}
 
         {sessions && viewMode !== "month" && sessions.length > 0 && grouped.length === 0 && (
-          <div className="rounded-[26px] border border-dashed border-[#d9e7fb] bg-white/60 p-12 text-center text-[#65636d] shadow-[0_20px_55px_rgb(30_24_70/0.05)]">
-            <p className="font-display text-xl italic text-[#101828]">No classes on this date</p>
+          <div className="rounded-[26px] border border-dashed border-border bg-card/60 p-12 text-center text-muted-foreground">
+            <p className="font-display text-xl italic text-foreground">No classes on this date</p>
             <p className="mt-1.5 text-sm">Show all classes to browse the full schedule.</p>
           </div>
         )}
@@ -924,11 +926,11 @@ function ClassesPage() {
             {grouped.map(({ day, items, relative }) => (
               <section key={day} className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-display shrink-0 text-2xl italic tracking-[-0.01em] text-[#101828]">
+                  <h2 className="font-display shrink-0 text-2xl italic tracking-[-0.01em] text-foreground">
                     {relative}
                   </h2>
-                  <span className="h-px flex-1 bg-[#dbe7f9]" />
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6f7f99]">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {items.length} {items.length === 1 ? "class" : "classes"}
                   </span>
                 </div>
@@ -970,7 +972,7 @@ function ClassesPage() {
         />
       )}
 
-      <Footer />
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>
   );
 }
@@ -1509,22 +1511,22 @@ function SessionCard({
   const priceDisplay = getSchedulePriceDisplay(s.name, locationId);
 
   return (
-    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-[#d9e7fb] bg-white p-4 shadow-[0_10px_28px_rgb(29_124_242/0.06)] transition duration-200 hover:-translate-y-0.5 hover:border-[#b7d3fa] hover:shadow-[0_20px_44px_rgb(29_124_242/0.14)] md:grid-cols-[154px_minmax(0,1fr)_188px]">
+    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-border bg-card p-4 shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_20px_44px_-16px_color-mix(in_oklab,var(--primary)_45%,transparent)] md:grid-cols-[154px_minmax(0,1fr)_188px]">
       <div className="flex items-start gap-4 md:block">
         <ClassImageInfoTrigger format={format} durationInMinutes={s.durationInMinutes} />
         <div className="md:hidden">
-          <h3 className="font-display mt-1 text-[26px] italic leading-[1.05] tracking-[-0.01em] text-[#101828]">
+          <h3 className="font-display mt-1 text-[26px] italic leading-[1.05] tracking-[-0.01em] text-foreground">
             {s.name}
           </h3>
         </div>
       </div>
 
       <div className="min-w-0">
-        <h3 className="font-display hidden text-[32px] italic leading-[1.05] tracking-[-0.01em] text-[#101828] md:block">
+        <h3 className="font-display hidden text-[32px] italic leading-[1.05] tracking-[-0.01em] text-foreground md:block">
           {s.name}
         </h3>
 
-        <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-relaxed text-[#5c6b78]">
+        <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-relaxed text-muted-foreground">
           {format.teaser}
         </p>
 
@@ -1532,24 +1534,26 @@ function SessionCard({
           <img
             src={teacherImage}
             alt={s.teacherName ? `${s.teacherName} instructor thumbnail` : ""}
-            className="h-8 w-8 rounded-full border border-white object-cover object-top shadow-[0_6px_14px_rgb(29_124_242/0.16)]"
+            className="h-8 w-8 rounded-full border border-card object-cover object-top shadow-[var(--shadow-card)]"
             aria-hidden={!s.teacherName}
           />
-          <span className="font-medium text-[#22314a]">{s.teacherName ?? "Studio Instructor"}</span>
+          <span className="font-medium text-foreground/80">
+            {s.teacherName ?? "Studio Instructor"}
+          </span>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_6px_14px_rgb(29_124_242/0.22)] [&_svg]:h-3.5 [&_svg]:w-3.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-background [&_svg]:h-3.5 [&_svg]:w-3.5">
             {format.icon}
             {format.family}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e3e9f2] bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#5b6c86] [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-[#1d7cf2]">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-foreground/70 [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-primary-deep">
             {format.levelIcon}
             {format.level}
           </span>
         </div>
 
-        <div className="mt-4 grid gap-2 text-[14px] font-medium text-[#596a86] lg:grid-cols-3">
+        <div className="mt-4 grid gap-2 text-[14px] font-medium text-foreground/70 lg:grid-cols-3">
           <ScheduleMeta icon={<CalendarDays className="h-4 w-4" />} text={dateLabel} />
           <ScheduleMeta
             icon={<Clock3 className="h-4 w-4" />}
@@ -1559,38 +1563,38 @@ function SessionCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-[#e8eef8] pt-4 md:flex-col md:items-end md:justify-between md:border-l md:border-t-0 md:border-l-[#e8eef8] md:pl-5 md:pt-1">
+      <div className="flex items-center justify-between gap-4 border-t border-border pt-4 md:flex-col md:items-end md:justify-between md:border-l md:border-t-0 md:border-l-border md:pl-5 md:pt-1">
         <div className="text-right">
           {priceDisplay.originalPriceInCurrency && (
             <p
-              className={`relative inline-block text-sm font-bold text-[#8a8791] ${
+              className={`relative inline-block text-sm font-bold text-muted-foreground ${
                 priceDisplay.slashOriginalPrice
-                  ? "after:absolute after:left-[-5px] after:right-[-5px] after:top-1/2 after:h-[2px] after:-rotate-12 after:rounded-full after:bg-red-500 after:content-['']"
+                  ? "after:absolute after:left-[-5px] after:right-[-5px] after:top-1/2 after:h-[2px] after:-rotate-12 after:rounded-full after:bg-destructive after:content-['']"
                   : ""
               }`}
             >
               {formatInr(priceDisplay.originalPriceInCurrency)}
             </p>
           )}
-          <p className="mt-0.5 text-4xl font-semibold tracking-[-0.05em] text-[#172033]">
+          <p className="mt-0.5 text-4xl font-semibold tracking-[-0.05em] text-foreground">
             {formatInr(priceDisplay.bookingPriceInCurrency)}
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1d7cf2]">
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-primary-deep">
             {priceDisplay.label}
           </p>
           {s.spotsLeft != null && (
             <p
               className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
                 isFull
-                  ? "bg-red-50 text-red-600"
+                  ? "bg-destructive/10 text-destructive"
                   : s.spotsLeft <= 3
-                    ? "bg-[#eef5ff] text-[#1d7cf2]"
-                    : "bg-[#f4f6fa] text-[#75839b]"
+                    ? "bg-primary/15 text-primary-deep"
+                    : "bg-secondary text-muted-foreground"
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isFull ? "bg-red-500" : s.spotsLeft <= 3 ? "bg-[#1d7cf2]" : "bg-[#a3afc4]"
+                  isFull ? "bg-destructive" : s.spotsLeft <= 3 ? "bg-primary" : "bg-muted-foreground/50"
                 }`}
               />
               {isFull ? "Full" : `${s.spotsLeft} spots left`}
@@ -1600,7 +1604,7 @@ function SessionCard({
         <button
           onClick={onBook}
           disabled={loading || isFull}
-          className="h-[50px] min-w-[138px] rounded-[12px] bg-gradient-to-r from-[#123f7a] to-[#1d7cf2] px-6 text-base font-semibold text-white shadow-[0_12px_26px_rgb(29_124_242/0.28)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1d7cf2] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
+          className="h-[50px] min-w-[138px] rounded-[12px] bg-foreground px-6 text-base font-semibold text-background shadow-[0_12px_26px_-8px_rgb(0_0_0/0.35)] transition hover:bg-primary-deep hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 md:w-full"
         >
           {loading
             ? requiresPayment
@@ -2050,7 +2054,7 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
         </div>
       </main>
 
-      <Footer />
+      <Footer studioVariant={isBengaluruLocation(booked.location.id) ? "bengaluru" : "mumbai"} />
     </div>
   );
 }

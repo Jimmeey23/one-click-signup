@@ -481,7 +481,7 @@ export function OpenBarreLanding({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <Header studioVariant={studioVariant} />
 
       <section className="relative overflow-hidden">
         <div
@@ -614,12 +614,13 @@ export function OpenBarreLanding({
         </div>
       </section>
 
-      <Footer />
+      <Footer studioVariant={studioVariant} />
     </div>
   );
 }
 
-function Header() {
+function Header({ studioVariant }: { studioVariant: StudioVariant }) {
+  const isBengaluru = studioVariant === "bengaluru";
   return (
     <header className="absolute top-0 inset-x-0 z-20">
       <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
@@ -630,16 +631,30 @@ function Header() {
           <Link to="/about" className="hover:text-primary transition">
             About
           </Link>
-          <Link to="/classes-info" className="hover:text-primary transition">
+          <Link
+            to="/classes-info"
+            search={isBengaluru ? { studio: "bengaluru" } : undefined}
+            className="hover:text-primary transition"
+          >
             Classes
           </Link>
-          <Link to="/bengaluru" className="hover:text-primary transition">
-            Bengaluru
-          </Link>
-          <Link to="/faq" className="hover:text-primary transition">
+          {!isBengaluru && (
+            <Link to="/bengaluru" className="hover:text-primary transition">
+              Bengaluru
+            </Link>
+          )}
+          <Link
+            to="/faq"
+            search={isBengaluru ? { studio: "bengaluru" } : undefined}
+            className="hover:text-primary transition"
+          >
             FAQ
           </Link>
-          <Link to="/contact" className="hover:text-primary transition">
+          <Link
+            to="/contact"
+            search={isBengaluru ? { studio: "bengaluru" } : undefined}
+            className="hover:text-primary transition"
+          >
             Contact
           </Link>
         </nav>
@@ -852,7 +867,7 @@ const BENGALURU_STUDIOS = [
     name: "Lavelle Road, Bengaluru",
     neighborhood: "Shanthala Nagar, Bengaluru",
     location: "Lavelle Road",
-    phone: "070220 43667",
+    phone: "097696 65757",
     hours: "Daily: 6:00 AM - 8:30 PM",
     address:
       "1st Floor, Kenkere House, Vittal Mallya Rd, above Raymonds, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001",
@@ -861,7 +876,7 @@ const BENGALURU_STUDIOS = [
     name: "Indiranagar, Bengaluru",
     neighborhood: "Domlur, Bengaluru",
     location: "Indiranagar",
-    phone: "090084 26703",
+    phone: "097696 65757",
     hours: "Daily: 6:00 AM - 8:00 PM",
     address:
       "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",

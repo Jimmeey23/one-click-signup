@@ -103,7 +103,7 @@ function ClassesInfoPage() {
           ))}
         </div>
       </section>
-      <Footer />
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>
   );
 }

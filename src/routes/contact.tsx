@@ -49,11 +49,11 @@ function ContactPage() {
               <iframe title={`Map of ${s.name}`} src={`https://www.google.com/maps?q=${encodeURIComponent(s.name)}&output=embed`} className="w-full h-64 border-0" loading="lazy" />
               <div className="p-6">
                 <h2 className="font-display text-3xl mb-2">{s.name}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {"address" in s ? s.address : s.name}
-                </p>
+                <p className="text-sm text-muted-foreground">{s.address}</p>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                  <a className="text-primary-deep underline" href={`tel:${"phone" in s ? s.phone.replace(/\s/g, "") : ""}`}>{"phone" in s ? s.phone : ""}</a>
+                  <a className="text-primary-deep underline" href={`tel:+91${s.phone.replace(/\s/g, "")}`}>
+                    +91 {s.phone}
+                  </a>
                   <a className="text-primary-deep underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name)}`} target="_blank" rel="noreferrer">Get directions</a>
                 </div>
               </div>
@@ -62,11 +62,11 @@ function ContactPage() {
         </div>
         <div className="grid md:grid-cols-3 gap-6 mt-10">
           <InfoCard title="Email" body="info@physique57india.com" href="mailto:info@physique57india.com" />
-          <InfoCard title="Phone" body="+91 97690 72866" href="tel:+919769665757" />
+          <InfoCard title="Phone" body="+91 97696 65757" href="tel:+919769665757" />
           <InfoCard title="WhatsApp" body="Chat with us" href="https://wa.me/919769665757" />
         </div>
       </section>
-      <Footer />
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>
   );
 }

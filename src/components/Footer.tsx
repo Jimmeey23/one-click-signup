@@ -2,7 +2,14 @@ import { Link } from "@tanstack/react-router";
 
 const logoUrl = "/physique57-logo.png";
 
-export function Footer() {
+export function Footer({
+  studioVariant = "mumbai",
+}: {
+  studioVariant?: "mumbai" | "bengaluru";
+}) {
+  const isBengaluru = studioVariant === "bengaluru";
+  const studioSearch = isBengaluru ? { studio: "bengaluru" as const } : undefined;
+
   return (
     <footer className="bg-foreground text-background pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6">
@@ -10,7 +17,8 @@ export function Footer() {
           <div>
             <img src={logoUrl} alt="Physique 57" className="h-12 w-auto brightness-0 invert" />
             <p className="mt-4 text-sm text-background/60 max-w-xs leading-relaxed">
-              The legendary 57-minute barre-based workout - now in Mumbai.
+              The legendary 57-minute barre-based workout - now in{" "}
+              {isBengaluru ? "Bengaluru" : "Mumbai"}.
             </p>
             <div className="mt-5 flex gap-3">
               <Social href="https://www.instagram.com/physique57india/" label="Instagram">
@@ -43,20 +51,41 @@ export function Footer() {
           <FooterCol title="Explore">
             <FooterLink to="/">Home</FooterLink>
             <FooterLink to="/about">About</FooterLink>
-            <FooterLink to="/classes-info">Classes</FooterLink>
-            <FooterLink to="/faq">FAQ</FooterLink>
-            <FooterLink to="/contact">Contact</FooterLink>
+            <FooterLink to="/classes-info" search={studioSearch}>
+              Classes
+            </FooterLink>
+            <FooterLink to="/faq" search={studioSearch}>
+              FAQ
+            </FooterLink>
+            <FooterLink to="/contact" search={studioSearch}>
+              Contact
+            </FooterLink>
           </FooterCol>
 
           <FooterCol title="Studios">
-            <li className="text-sm text-background/70 leading-relaxed">
-              <span className="block text-background font-semibold">Kemps Corner</span>
-              Kwality House, 1st Floor, August Kranti Marg, Mumbai
-            </li>
-            <li className="text-sm text-background/70 leading-relaxed mt-3">
-              <span className="block text-background font-semibold">Bandra</span>
-              Supreme HQ, Off Linking Road, Bandra West, Mumbai
-            </li>
+            {isBengaluru ? (
+              <>
+                <li className="text-sm text-background/70 leading-relaxed">
+                  <span className="block text-background font-semibold">Lavelle Road</span>
+                  Lavelle Road, Bengaluru
+                </li>
+                <li className="text-sm text-background/70 leading-relaxed mt-3">
+                  <span className="block text-background font-semibold">Indiranagar</span>
+                  Indiranagar, Bengaluru
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="text-sm text-background/70 leading-relaxed">
+                  <span className="block text-background font-semibold">Kemps Corner</span>
+                  Kwality House, 1st Floor, August Kranti Marg, Mumbai
+                </li>
+                <li className="text-sm text-background/70 leading-relaxed mt-3">
+                  <span className="block text-background font-semibold">Bandra</span>
+                  Supreme HQ, Off Linking Road, Bandra West, Mumbai
+                </li>
+              </>
+            )}
           </FooterCol>
 
           <FooterCol title="Get in touch">
@@ -73,7 +102,7 @@ export function Footer() {
                 href="tel:+919769665757"
                 className="text-sm text-background/70 hover:text-primary transition"
               >
-                +91 +91 9769665757
+                +91 97696 65757
               </a>
             </li>
             <li>
@@ -136,16 +165,22 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
 
 function FooterLink({
   to,
+  search,
   children,
   itemClassName,
 }: {
   to: string;
+  search?: { studio: "bengaluru" };
   children: React.ReactNode;
   itemClassName?: string;
 }) {
   return (
     <li className={itemClassName}>
-      <Link to={to as never} className="text-sm text-background/70 hover:text-primary transition">
+      <Link
+        to={to as never}
+        search={search as never}
+        className="text-sm text-background/70 hover:text-primary transition"
+      >
         {children}
       </Link>
     </li>

@@ -169,7 +169,7 @@ function FAQPage() {
           })}
         </div>
       </main>
-      <Footer />
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>
   );
 }
