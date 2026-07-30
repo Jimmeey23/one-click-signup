@@ -1144,22 +1144,22 @@ function CustomerFieldsModal({
   }, [onCancel, saving]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/70 px-4 py-6 backdrop-blur-md sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#050a14]/80 px-4 py-6 backdrop-blur-md sm:items-center">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           onSubmit();
         }}
-        className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-card shadow-[0_40px_120px_rgb(8_17_31/0.45)] ring-1 ring-black/5"
+        className="relative flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-[32px] bg-card shadow-[0_50px_140px_-30px_rgb(8_17_31/0.55)] ring-1 ring-black/[0.06]"
       >
-        <div className="h-[5px] w-full shrink-0 bg-primary" />
+        <div className="h-[4px] w-full shrink-0 bg-primary-deep" />
 
         <button
           type="button"
           onClick={onCancel}
           disabled={saving}
           aria-label="Close profile details"
-          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/90 text-muted-foreground shadow-sm transition hover:border-primary hover:text-primary-deep disabled:opacity-50"
+          className="absolute right-5 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white/95 text-muted-foreground shadow-[0_4px_16px_-4px_rgb(0_0_0/0.18)] backdrop-blur-sm transition hover:border-primary-deep hover:text-primary-deep hover:shadow-[0_6px_20px_-4px_color-mix(in_oklab,var(--primary-deep)_35%,transparent)] disabled:opacity-50"
         >
           <X className="h-4 w-4" />
         </button>
@@ -1180,10 +1180,11 @@ function CustomerFieldsModal({
             </span>
 
             <div className="absolute inset-x-0 bottom-0 p-7">
+              <div className="mb-4 h-px w-10 bg-gradient-to-r from-white/70 to-transparent" />
               <p className="font-display text-[15px] italic leading-snug text-white/85">
                 “Every detail helps your instructor coach you safer, stronger.”
               </p>
-              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.28em] text-white/55">
+              <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.28em] text-white/55">
                 Physique 57 India
               </p>
               <h2 className="font-display mt-1 text-[34px] italic leading-[1.05] text-white">
@@ -1193,8 +1194,9 @@ function CustomerFieldsModal({
           </aside>
 
           <div className="flex min-h-0 flex-col overflow-hidden">
-            <div className="shrink-0 border-b border-border px-6 pb-5 pt-7 sm:px-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-primary-deep">
+            <div className="shrink-0 border-b border-border/70 bg-gradient-to-b from-secondary/60 to-transparent px-6 pb-5 pt-7 sm:px-8">
+              <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-primary-deep">
+                <span className="h-1 w-1 rounded-full bg-primary-deep" />
                 Before you book
               </p>
               <h2 className="font-display mt-1 text-[28px] italic tracking-[-0.01em] text-foreground lg:hidden">
@@ -1206,115 +1208,119 @@ function CustomerFieldsModal({
             </div>
 
             {submitError && (
-              <p className="mx-6 mt-4 shrink-0 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-8">
+              <p className="mx-6 mt-4 shrink-0 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-8">
                 {submitError}
               </p>
             )}
 
-            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-6 sm:px-8">
-              <SelectField
-                label="Gender"
-                icon={<UserRound className="h-3.5 w-3.5" />}
-                value={values.gender ?? ""}
-                error={errors.gender}
-                options={[
-                  ["Male", "Male"],
-                  ["Female", "Female"],
-                  ["Non-binary", "Non-binary"],
-                  ["Prefer not to say", "Prefer not to say"],
-                ]}
-                onChange={(value) => onChange("gender", value)}
-              />
-
-              {isFemale && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SelectField
-                    label="Are you currently pregnant?"
-                    value={values.pregnancyStatus ?? ""}
-                    error={errors.pregnancyStatus}
-                    required={isFemale}
-                    options={[
-                      ["No", "No"],
-                      ["Yes", "Yes"],
-                    ]}
-                    onChange={(value) => onChange("pregnancyStatus", value)}
-                  />
-                  <SelectField
-                    label="Post Natal"
-                    value={values.postNatalStatus ?? ""}
-                    error={errors.postNatalStatus}
-                    required={isFemale}
-                    options={[
-                      ["No", "No"],
-                      ["Yes", "Yes"],
-                    ]}
-                    onChange={(value) => onChange("postNatalStatus", value)}
-                  />
-                </div>
-              )}
-
-              <TextField
-                label="Fitness Goal"
-                icon={<Target className="h-3.5 w-3.5" />}
-                value={values.fitnessGoal ?? ""}
-                error={errors.fitnessGoal}
-                placeholder="Add the member's primary goal"
-                onChange={(value) => onChange("fitnessGoal", value)}
-                suggestions={{ options: FITNESS_GOAL_SUGGESTIONS }}
-              />
-
-              <TextField
-                label="Medical History"
-                value={values.medicalHistory ?? ""}
-                error={errors.medicalHistory}
-                required
-                multiline
-                icon={<Stethoscope className="h-3.5 w-3.5" />}
-                placeholder="Add relevant injuries, restrictions, or 'No concerns'"
-                onChange={(value) => onChange("medicalHistory", value)}
-                suggestions={{ options: MEDICAL_HISTORY_SUGGESTIONS }}
-              />
-
-              <TextField
-                label="Emergency Contact Info"
-                value={values.emergencyContactInfo ?? ""}
-                error={errors.emergencyContactInfo}
-                required
-                icon={<Phone className="h-3.5 w-3.5" />}
-                inputMode="tel"
-                pattern="[0-9]*"
-                maxLength={15}
-                helperText="Numbers only. Include country code if needed."
-                onChange={(value) => onChange("emergencyContactInfo", sanitizePhoneNumber(value))}
-              />
-
-              {requiresShoeSize && (
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-6 sm:px-8">
+              <FieldSection title="Personal details">
                 <SelectField
-                  label="EU Shoe Size"
-                  icon={<Footprints className="h-3.5 w-3.5" />}
-                  value={values.euShoeSize ?? ""}
-                  error={errors.euShoeSize}
-                  required={requiresShoeSize}
-                  helperText="Required for powerCycle classes."
-                  options={EU_SHOE_SIZE_OPTIONS}
-                  onChange={(value) => onChange("euShoeSize", value)}
+                  label="Gender"
+                  icon={<UserRound className="h-3.5 w-3.5" />}
+                  value={values.gender ?? ""}
+                  error={errors.gender}
+                  options={[
+                    ["Male", "Male"],
+                    ["Female", "Female"],
+                    ["Non-binary", "Non-binary"],
+                    ["Prefer not to say", "Prefer not to say"],
+                  ]}
+                  onChange={(value) => onChange("gender", value)}
                 />
-              )}
+
+                {isFemale && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <SelectField
+                      label="Are you currently pregnant?"
+                      value={values.pregnancyStatus ?? ""}
+                      error={errors.pregnancyStatus}
+                      required={isFemale}
+                      options={[
+                        ["No", "No"],
+                        ["Yes", "Yes"],
+                      ]}
+                      onChange={(value) => onChange("pregnancyStatus", value)}
+                    />
+                    <SelectField
+                      label="Post Natal"
+                      value={values.postNatalStatus ?? ""}
+                      error={errors.postNatalStatus}
+                      required={isFemale}
+                      options={[
+                        ["No", "No"],
+                        ["Yes", "Yes"],
+                      ]}
+                      onChange={(value) => onChange("postNatalStatus", value)}
+                    />
+                  </div>
+                )}
+
+                <TextField
+                  label="Fitness Goal"
+                  icon={<Target className="h-3.5 w-3.5" />}
+                  value={values.fitnessGoal ?? ""}
+                  error={errors.fitnessGoal}
+                  placeholder="Add the member's primary goal"
+                  onChange={(value) => onChange("fitnessGoal", value)}
+                  suggestions={{ options: FITNESS_GOAL_SUGGESTIONS }}
+                />
+              </FieldSection>
+
+              <FieldSection title="Health & safety">
+                <TextField
+                  label="Medical History"
+                  value={values.medicalHistory ?? ""}
+                  error={errors.medicalHistory}
+                  required
+                  multiline
+                  icon={<Stethoscope className="h-3.5 w-3.5" />}
+                  placeholder="Add relevant injuries, restrictions, or 'No concerns'"
+                  onChange={(value) => onChange("medicalHistory", value)}
+                  suggestions={{ options: MEDICAL_HISTORY_SUGGESTIONS }}
+                />
+
+                <TextField
+                  label="Emergency Contact Info"
+                  value={values.emergencyContactInfo ?? ""}
+                  error={errors.emergencyContactInfo}
+                  required
+                  icon={<Phone className="h-3.5 w-3.5" />}
+                  inputMode="tel"
+                  pattern="[0-9]*"
+                  maxLength={15}
+                  helperText="Numbers only. Include country code if needed."
+                  onChange={(value) => onChange("emergencyContactInfo", sanitizePhoneNumber(value))}
+                />
+
+                {requiresShoeSize && (
+                  <SelectField
+                    label="EU Shoe Size"
+                    icon={<Footprints className="h-3.5 w-3.5" />}
+                    value={values.euShoeSize ?? ""}
+                    error={errors.euShoeSize}
+                    required={requiresShoeSize}
+                    helperText="Required for powerCycle classes."
+                    options={EU_SHOE_SIZE_OPTIONS}
+                    onChange={(value) => onChange("euShoeSize", value)}
+                  />
+                )}
+              </FieldSection>
             </div>
 
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border bg-muted px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border/70 bg-secondary/50 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
               <button
                 type="button"
                 onClick={onCancel}
                 disabled={saving}
-                className="h-12 rounded-[12px] border border-border bg-white px-6 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary-deep disabled:opacity-50"
+                className="h-12 rounded-[12px] border border-border bg-white px-6 text-sm font-semibold text-muted-foreground transition hover:border-primary-deep/40 hover:text-primary-deep disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="h-12 rounded-[12px] bg-primary px-6 text-sm font-semibold text-white shadow-[0_12px_26px_rgb(18_63_122/0.28)] transition hover:brightness-110 disabled:opacity-50"
+                className="h-12 rounded-[12px] bg-primary-deep px-6 text-sm font-semibold text-primary-foreground shadow-[0_16px_32px_-10px_color-mix(in_oklab,var(--primary-deep)_55%,transparent)] transition hover:brightness-110 disabled:opacity-50"
               >
                 {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
               </button>
@@ -1323,6 +1329,18 @@ function CustomerFieldsModal({
         </div>
       </form>
     </div>
+  );
+}
+
+function FieldSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-border/70 bg-secondary/40 p-5">
+      <p className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+        <span className="h-3.5 w-[3px] rounded-full bg-primary-deep" />
+        {title}
+      </p>
+      <div className="space-y-5">{children}</div>
+    </section>
   );
 }
 
@@ -1357,7 +1375,7 @@ function TextField({
 }) {
   const id = `customer-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   const baseClass =
-    "mt-1.5 w-full rounded-[12px] border bg-white px-3.5 py-2.5 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+    "mt-1.5 w-full rounded-[12px] border bg-white px-3.5 py-2.5 text-sm font-medium text-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.03)] outline-none transition focus:border-primary-deep focus:ring-2 focus:ring-primary-deep/15";
 
   return (
     <label
@@ -1366,7 +1384,7 @@ function TextField({
     >
       <span className="inline-flex items-center gap-1.5">
         {icon && (
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary-deep">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-deep text-primary-foreground">
             {icon}
           </span>
         )}
@@ -1401,22 +1419,21 @@ function TextField({
       )}
       {error && <span className="mt-1 block text-xs font-medium text-red-600">{error}</span>}
       {suggestions && (
-        <span className="mt-2 flex flex-wrap items-center gap-1.5 normal-case">
+        <select
+          aria-label={`${label} quick select`}
+          value=""
+          onChange={(event) => {
+            if (event.target.value) onChange(event.target.value);
+          }}
+          className="mt-2 h-9 w-full rounded-[10px] border border-border bg-white px-3 text-xs font-medium normal-case text-muted-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.03)] outline-none transition focus:border-primary-deep focus:ring-2 focus:ring-primary-deep/15"
+        >
+          <option value="">Quick select…</option>
           {suggestions.options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onChange(option)}
-              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
-                value === option
-                  ? "border-primary bg-primary text-white"
-                  : "border-border bg-white text-muted-foreground hover:border-primary hover:text-primary-deep"
-              }`}
-            >
+            <option key={option} value={option}>
               {option}
-            </button>
+            </option>
           ))}
-        </span>
+        </select>
       )}
     </label>
   );
@@ -1450,7 +1467,7 @@ function SelectField({
     >
       <span className="inline-flex items-center gap-1.5">
         {icon && (
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary-deep">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-deep text-primary-foreground">
             {icon}
           </span>
         )}
@@ -1463,7 +1480,7 @@ function SelectField({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`mt-1.5 h-11 w-full rounded-[12px] border bg-white px-3.5 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 ${
+        className={`mt-1.5 h-11 w-full rounded-[12px] border bg-white px-3.5 text-sm font-medium text-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.03)] outline-none transition focus:border-primary-deep focus:ring-2 focus:ring-primary-deep/15 ${
           error ? "border-red-500" : "border-border"
         }`}
       >

@@ -160,7 +160,7 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
     ogDescription: "Sign up for Bengaluru studios and claim 50% off your first Barre class.",
     heroLocationLine: "Bengaluru",
     statLabel: "format",
-    signupCta: "Book Bengaluru Class",
+    signupCta: "Book Your Trial Class",
     landingNote:
       "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile.",
   },
@@ -1252,6 +1252,7 @@ function SignupCard({
                 I consent to receive class-related communications and agree to the{" "}
                 <Link
                   to="/waiver"
+                  search={isBengaluru ? { studio: "bengaluru" } : undefined}
                   className="font-semibold text-primary-deep underline underline-offset-2"
                 >
                   Waiver
@@ -1259,6 +1260,7 @@ function SignupCard({
                 and{" "}
                 <Link
                   to="/privacy"
+                  search={isBengaluru ? { studio: "bengaluru" } : undefined}
                   className="font-semibold text-primary-deep underline underline-offset-2"
                 >
                   Privacy Policy

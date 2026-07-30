@@ -81,7 +81,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "What is the brand's philosophy?",
-        a: '"Workout because you love your body, not because you hate it." Physique 57 exists to sculpt bodies and change lives through a welcoming, science-backed method — for every fitness level.',
+        a: '"Workout because you love your body, not because you hate it." Physique 57 exists to sculpt bodies and change lives through a welcoming, science-backed method - for every fitness level.',
         icon: Sparkles,
       },
     ],
@@ -97,12 +97,12 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "What is Interval Overload?",
-        a: "Physique 57's proprietary, scientifically proven technique — isometric, repetitive movements taken to fatigue, immediately followed by a deep stretch for relief and recovery. It's repeated across every muscle group each class.",
+        a: "Physique 57's proprietary, scientifically proven technique - isometric, repetitive movements taken to fatigue, immediately followed by a deep stretch for relief and recovery. It's repeated across every muscle group each class.",
         icon: Repeat,
       },
       {
         q: "Do I need any dance or barre experience?",
-        a: "No. The barre is used purely as a fitness apparatus, not a ballet tool — zero dance background is required. Every movement is taught from scratch by your instructor.",
+        a: "No. The barre is used purely as a fitness apparatus, not a ballet tool - zero dance background is required. Every movement is taught from scratch by your instructor.",
         icon: CircleHelp,
       },
       {
@@ -112,7 +112,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Why are classes 57 minutes long?",
-        a: "Long enough for a complete, effective full-body workout, and short enough to fit a real schedule — every minute is choreographed with a purpose, right down to the final stretch.",
+        a: "Long enough for a complete, effective full-body workout, and short enough to fit a real schedule - every minute is choreographed with a purpose, right down to the final stretch.",
         icon: Timer,
       },
     ],
@@ -123,12 +123,12 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "What class formats are offered in Mumbai?",
-        a: "Barre 57, Cardio Barre, Cardio Barre Plus, Studio FIT, HIIT, Mat 57, StrengthLab, Back Body Blaze, Recovery, and powerCycle — a full spread across cardio, strength, and recovery formats.",
+        a: "Barre 57, Cardio Barre, Cardio Barre Plus, Studio FIT, HIIT, Mat 57, StrengthLab, Back Body Blaze, Recovery, and powerCycle - a full spread across cardio, strength, and recovery formats.",
         icon: Dumbbell,
       },
       {
         q: "What is Barre 57?",
-        a: "The signature fundamental barre class and the cornerstone of the Physique 57 experience — muscle-defining arm work, intense thigh and seat sequences, waist-chiselling ab work, and fluid stretches, all in 57 minutes.",
+        a: "The signature fundamental barre class and the cornerstone of the Physique 57 experience - muscle-defining arm work, intense thigh and seat sequences, waist-chiselling ab work, and fluid stretches, all in 57 minutes.",
         icon: Sparkles,
       },
       {
@@ -138,12 +138,12 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Is there a class for children?",
-        a: "Yes — Physique 57 Juniors runs at the Kemps Corner and Bandra studios for two age groups (7-9 and 9-12 years), with 45-minute classes twice a week across a 12-week semester.",
+        a: "Yes - Physique 57 Juniors runs at the Kemps Corner and Bandra studios for two age groups (7-9 and 9-12 years), with 45-minute classes twice a week across a 12-week semester.",
         icon: Baby,
       },
       {
         q: "What's the best class to start with?",
-        a: "Barre 57 is the ideal first class — it teaches the foundational barre moves and the Interval Overload method that every other format builds on. Mat 57 and Recovery are gentle alternatives if you'd rather ease in.",
+        a: "Barre 57 is the ideal first class - it teaches the foundational barre moves and the Interval Overload method that every other format builds on. Mat 57 and Recovery are gentle alternatives if you'd rather ease in.",
         icon: Star,
       },
     ],
@@ -154,7 +154,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "How are Physique 57 instructors trained?",
-        a: "Instructors go through one of the most rigorous training programmes in Indian fitness — competitive auditions, intensive choreography training, and technical critiques, certified over 3 months directly by the brand's team.",
+        a: "Instructors go through one of the most rigorous training programmes in Indian fitness - competitive auditions, intensive choreography training, and technical critiques, certified over 3 months directly by the brand's team.",
         icon: GraduationCap,
       },
       {
@@ -169,7 +169,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Is the method scientifically validated?",
-        a: "Yes — the Adelphi University training study evaluated the Physique 57 method directly, confirming meaningful gains in fitness and body composition within just weeks of consistent attendance.",
+        a: "Yes - the Adelphi University training study evaluated the Physique 57 method directly, confirming meaningful gains in fitness and body composition within just weeks of consistent attendance.",
         icon: Award,
       },
       {
@@ -185,7 +185,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "What is the Newcomers offer in Mumbai?",
-        a: "First-time members can book the Newcomers 2-for-1 package — two classes for the price of one — a great way to try the method before committing to a larger package.",
+        a: "First-time members can book the Newcomers 2-for-1 package - two classes for the price of one - a great way to try the method before committing to a larger package.",
         icon: Sparkles,
       },
       {
@@ -195,7 +195,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "How early should I arrive?",
-        a: "Arrive before the scheduled start time so there's enough time for check-in and setup — instructors like to greet you before class begins.",
+        a: "Arrive before the scheduled start time so there's enough time for check-in and setup - instructors like to greet you before class begins.",
         icon: Clock3,
       },
       {
@@ -210,7 +210,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "How can I contact the studio?",
-        a: "Email info@physique57india.com, call or WhatsApp +91 97696 65757, or visit one of the Mumbai studios directly — the team is always happy to help.",
+        a: "Email info@physique57india.com, call or WhatsApp +91 97696 65757, or visit one of the Mumbai studios directly - the team is always happy to help.",
         icon: Phone,
       },
     ],
@@ -239,7 +239,7 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "What is the brand's philosophy?",
-        a: '"Workout because you love your body, not because you hate it." Physique 57 exists to sculpt bodies and change lives through a welcoming, science-backed method — for every fitness level.',
+        a: '"Workout because you love your body, not because you hate it." Physique 57 exists to sculpt bodies and change lives through a welcoming, science-backed method - for every fitness level.',
         icon: Sparkles,
       },
     ],
@@ -255,12 +255,12 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "What is Interval Overload?",
-        a: "Physique 57's proprietary, scientifically proven technique — isometric, repetitive movements taken to fatigue, immediately followed by a deep stretch for relief and recovery. It's repeated across every muscle group each class.",
+        a: "Physique 57's proprietary, scientifically proven technique - isometric, repetitive movements taken to fatigue, immediately followed by a deep stretch for relief and recovery. It's repeated across every muscle group each class.",
         icon: Repeat,
       },
       {
         q: "Do I need any dance or barre experience?",
-        a: "No. The barre is used purely as a fitness apparatus, not a ballet tool — zero dance background is required. Every movement is taught from scratch by your instructor.",
+        a: "No. The barre is used purely as a fitness apparatus, not a ballet tool - zero dance background is required. Every movement is taught from scratch by your instructor.",
         icon: CircleHelp,
       },
       {
@@ -270,7 +270,7 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Why are classes 57 minutes long?",
-        a: "Long enough for a complete, effective full-body workout, and short enough to fit a real schedule — every minute is choreographed with a purpose, right down to the final stretch.",
+        a: "Long enough for a complete, effective full-body workout, and short enough to fit a real schedule - every minute is choreographed with a purpose, right down to the final stretch.",
         icon: Timer,
       },
     ],
@@ -281,22 +281,22 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "What class formats are offered in Bengaluru?",
-        a: "Bengaluru studios are Barre-first — every class is built around Physique 57's signature Barre format, so every booking gives you the full sculpting, toning method from your very first visit.",
+        a: "Bengaluru studios are Barre-first - every class is built around Physique 57's signature Barre format, so every booking gives you the full sculpting, toning method from your very first visit.",
         icon: Dumbbell,
       },
       {
         q: "What is Barre?",
-        a: "Barre is the signature Physique 57 workout with precise, controlled movements, isometric holds, and targeted strength exercises to sculpt, tone, and strengthen the whole body — no dance experience required.",
+        a: "Barre is the signature Physique 57 workout with precise, controlled movements, isometric holds, and targeted strength exercises to sculpt, tone, and strengthen the whole body - no dance experience required.",
         icon: Sparkles,
       },
       {
         q: "Is Bengaluru Barre-only?",
-        a: "Yes, for now — Lavelle Road and Indiranagar both focus on Barre-first bookings, giving new members a consistent, deep introduction to the method before other formats roll out.",
+        a: "Yes, for now - Lavelle Road and Indiranagar both focus on Barre-first bookings, giving new members a consistent, deep introduction to the method before other formats roll out.",
         icon: CircleHelp,
       },
       {
         q: "What's the best class to start with?",
-        a: 'Your first Barre class doubles as your introduction to the Interval Overload method — instructors will walk you through every position, so there\'s no separate "beginner" class needed.',
+        a: 'Your first Barre class doubles as your introduction to the Interval Overload method - instructors will walk you through every position, so there\'s no separate "beginner" class needed.',
         icon: Star,
       },
     ],
@@ -307,7 +307,7 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "How are Physique 57 instructors trained?",
-        a: "Instructors go through one of the most rigorous training programmes in Indian fitness — competitive auditions, intensive choreography training, and technical critiques, certified over 3 months directly by the brand's team.",
+        a: "Instructors go through one of the most rigorous training programmes in Indian fitness - competitive auditions, intensive choreography training, and technical critiques, certified over 3 months directly by the brand's team.",
         icon: GraduationCap,
       },
       {
@@ -322,7 +322,7 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Is the method scientifically validated?",
-        a: "Yes — the Adelphi University training study evaluated the Physique 57 method directly, confirming meaningful gains in fitness and body composition within just weeks of consistent attendance.",
+        a: "Yes - the Adelphi University training study evaluated the Physique 57 method directly, confirming meaningful gains in fitness and body composition within just weeks of consistent attendance.",
         icon: Award,
       },
       {
@@ -338,17 +338,17 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "What is the Bengaluru intro offer?",
-        a: "New members get 50% off their first class at Lavelle Road, or the Copper + Cloves single-class package at Indiranagar — the easiest way to feel the method before booking a full package.",
+        a: "New members get 50% off their first class at Lavelle Road, or the Copper + Cloves single-class package at Indiranagar - the easiest way to feel the method before booking a full package.",
         icon: Sparkles,
       },
       {
         q: "What is the cancellation policy?",
-        a: "Cancellation rules follow the studio's standard booking policy — check the app or ask the front desk to confirm the notice window before your class.",
+        a: "Cancellation rules follow the studio's standard booking policy - check the app or ask the front desk to confirm the notice window before your class.",
         icon: CalendarCheck,
       },
       {
         q: "How early should I arrive?",
-        a: "Arrive before class starts so there's time for check-in, studio guidance, and a calm start — especially important for your very first Barre class.",
+        a: "Arrive before class starts so there's time for check-in, studio guidance, and a calm start - especially important for your very first Barre class.",
         icon: Clock3,
       },
       {
@@ -363,7 +363,7 @@ const BENGALURU_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "How can I contact the studio?",
-        a: "Email info@physique57india.com, call or WhatsApp +91 97696 65757, or visit Lavelle Road or Indiranagar directly — the team is always happy to help.",
+        a: "Email info@physique57bengaluru.com, call or WhatsApp +91 97696 65757, or visit Lavelle Road or Indiranagar directly - the team is always happy to help.",
         icon: Phone,
       },
     ],
@@ -378,7 +378,7 @@ const PAGE_COPY = {
       "Answers are curated from the Physique 57 India brand book and studio policy content so the public FAQ matches the actual class formats and booking rules.",
   },
   bengaluru: {
-    title: "Before you book Bengaluru Barre.",
+    title: "Before you book Bengaluru",
     eyebrow: "Bengaluru FAQ",
     summary:
       "Clear answers for Bengaluru members: Barre-only classes, first-class pricing, and the essentials you need before you visit.",

@@ -61,7 +61,19 @@ function ContactPage() {
           ))}
         </div>
         <div className="grid md:grid-cols-3 gap-6 mt-10">
-          <InfoCard title="Email" body="info@physique57india.com" href="mailto:info@physique57india.com" />
+          {isBengaluru ? (
+            <InfoCard
+              title="Email"
+              body="info@physique57bengaluru.com"
+              href="mailto:info@physique57bengaluru.com"
+            />
+          ) : (
+            <InfoCard
+              title="Email"
+              body="info@physique57india.com"
+              href="mailto:info@physique57india.com"
+            />
+          )}
           <InfoCard title="Phone" body="+91 97696 65757" href="tel:+919769665757" />
           <InfoCard title="WhatsApp" body="Chat with us" href="https://wa.me/919769665757" />
         </div>

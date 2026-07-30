@@ -11,9 +11,9 @@
 ## Global Constraints
 
 - Spec: `docs/superpowers/specs/2026-07-27-booking-flow-polish-design.md`
-- Test runner: this repo uses Node's built-in test runner via `npx tsx --test <file>` (see existing `src/lib/*.test.ts` files) — there is no vitest/jest installed. Do not add one.
-- No new UI framework/toast library — the dormant `sonner`/`Toaster` scaffold stays untouched.
-- Design tokens (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `bg-primary`, `text-primary-deep`, `text-muted-foreground`) are the established Tailwind convention elsewhere in `classes.$memberId.tsx` (see `ThankYou`, lines ~1884-2001) — new/restyled UI must use these, not new hardcoded hex values.
+- Test runner: this repo uses Node's built-in test runner via `npx tsx --test <file>` (see existing `src/lib/*.test.ts` files) - there is no vitest/jest installed. Do not add one.
+- No new UI framework/toast library - the dormant `sonner`/`Toaster` scaffold stays untouched.
+- Design tokens (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `bg-primary`, `text-primary-deep`, `text-muted-foreground`) are the established Tailwind convention elsewhere in `classes.$memberId.tsx` (see `ThankYou`, lines ~1884-2001) - new/restyled UI must use these, not new hardcoded hex values.
 
 ---
 
@@ -37,7 +37,7 @@ npm install -D @types/canvas-confetti
 
 - [ ] **Step 2: Write the failing test for the pure scheduling logic**
 
-`canvas-confetti` itself needs a real `<canvas>`/DOM and is not meaningfully unit-testable, so `src/lib/confetti.ts` isolates the *decision* (how many bursts, from which origins, whether to skip for reduced motion) behind a small function that accepts the confetti caller as a parameter — this part is what gets tested.
+`canvas-confetti` itself needs a real `<canvas>`/DOM and is not meaningfully unit-testable, so `src/lib/confetti.ts` isolates the *decision* (how many bursts, from which origins, whether to skip for reduced motion) behind a small function that accepts the confetti caller as a parameter - this part is what gets tested.
 
 Create `src/lib/confetti.test.ts`:
 
@@ -64,7 +64,7 @@ describe("confetti", () => {
 - [ ] **Step 3: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/confetti.test.ts`
-Expected: FAIL — `confetti.ts` doesn't exist yet.
+Expected: FAIL - `confetti.ts` doesn't exist yet.
 
 - [ ] **Step 4: Implement `src/lib/confetti.ts`**
 
@@ -127,7 +127,7 @@ In the `ThankYou` function body (starts ~line 1867), add a fired-once effect rig
   }, []);
 ```
 
-(`useRef`/`useEffect` are already imported in this file for other state — confirm the import line includes both; add if missing.)
+(`useRef`/`useEffect` are already imported in this file for other state - confirm the import line includes both; add if missing.)
 
 - [ ] **Step 7: Manual verification**
 
@@ -142,7 +142,7 @@ git commit -m "feat: fire dual-side confetti on successful class booking"
 
 ---
 
-### Task 2: respond.io contact — map center + class type as custom fields
+### Task 2: respond.io contact - map center + class type as custom fields
 
 **Files:**
 - Modify: `src/lib/signup-and-enroll.helpers.ts` (`LeadCapturePayload` type, `SignupAndEnrollInput` type, `runSignupAndEnroll`)
@@ -155,7 +155,7 @@ git commit -m "feat: fire dual-side confetti on successful class booking"
 
 - [ ] **Step 1: Write the failing test for `LeadCapturePayload`/`runSignupAndEnroll` threading `classType`**
 
-Open `src/lib/signup-and-enroll.helpers.test.ts`, find the test that asserts on the `captureLead` dependency call (it currently checks the payload passed to the injected `captureLead` mock). Add a new assertion field. If the existing test's fixture `SignupAndEnrollInput` doesn't include `classType`, add it there too. Add this case (adapt to match the file's existing mock-dependency style — read the file first to match its exact `dependencies` mock shape):
+Open `src/lib/signup-and-enroll.helpers.test.ts`, find the test that asserts on the `captureLead` dependency call (it currently checks the payload passed to the injected `captureLead` mock). Add a new assertion field. If the existing test's fixture `SignupAndEnrollInput` doesn't include `classType`, add it there too. Add this case (adapt to match the file's existing mock-dependency style - read the file first to match its exact `dependencies` mock shape):
 
 ```ts
 it("threads classType through to the captureLead payload", async () => {
@@ -195,7 +195,7 @@ it("threads classType through to the captureLead payload", async () => {
 - [ ] **Step 2: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/signup-and-enroll.helpers.test.ts`
-Expected: FAIL — `classType` not accepted on `SignupAndEnrollInput`/not present on the captured payload (TypeScript compile error or `undefined` assertion failure depending on how `tsx` handles the extra field).
+Expected: FAIL - `classType` not accepted on `SignupAndEnrollInput`/not present on the captured payload (TypeScript compile error or `undefined` assertion failure depending on how `tsx` handles the extra field).
 
 - [ ] **Step 3: Add `classType` to the types and thread it through**
 
@@ -258,7 +258,7 @@ git commit -m "feat: thread classType into LeadCapturePayload"
 
 - [ ] **Step 6: Write the failing test for the respond.io contact body**
 
-`syncRespondIoContactAndConversation` is a `momence.functions.ts`-local `async function` that calls `fetch` directly (via `callRespondIo`) — it's not currently exported or easily testable in isolation. Extract the *request-body construction* into a pure, exported, testable function first.
+`syncRespondIoContactAndConversation` is a `momence.functions.ts`-local `async function` that calls `fetch` directly (via `callRespondIo`) - it's not currently exported or easily testable in isolation. Extract the *request-body construction* into a pure, exported, testable function first.
 
 Create/extend a test file `src/lib/momence.functions.test.ts` (check if one already exists via `ls src/lib/momence.functions.test.ts`; if not, create it):
 
@@ -310,7 +310,7 @@ describe("respond.io contact body", () => {
 - [ ] **Step 7: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/momence.functions.test.ts`
-Expected: FAIL — `buildRespondIoContactBody` is not exported (doesn't exist yet).
+Expected: FAIL - `buildRespondIoContactBody` is not exported (doesn't exist yet).
 
 - [ ] **Step 8: Extract and export the pure builder, use it in `syncRespondIoContactAndConversation`**
 
@@ -358,7 +358,7 @@ Then change the body of the `/contact/create_or_update/${identifier}` call (curr
       }),
 ```
 
-**Note for whoever implements this:** respond.io's v2 custom-fields wire format needs a one-time confirmation against a real account (does `/contact/create_or_update` accept ad-hoc `customFields: [{name, value}]`, or does it require pre-registered field IDs?). If a live call to this endpoint returns a 4xx specifically about `customFields`, fall back to appending `` `Center: ${center}` `` and `` `Class: ${classType}` `` to the existing tags array in the follow-up `/contact/${identifier}/tag` call (~line 171) instead, and remove `customFields` from this body. Do not guess silently — if you hit that error, note it in the PR description.
+**Note for whoever implements this:** respond.io's v2 custom-fields wire format needs a one-time confirmation against a real account (does `/contact/create_or_update` accept ad-hoc `customFields: [{name, value}]`, or does it require pre-registered field IDs?). If a live call to this endpoint returns a 4xx specifically about `customFields`, fall back to appending `` `Center: ${center}` `` and `` `Class: ${classType}` `` to the existing tags array in the follow-up `/contact/${identifier}/tag` call (~line 171) instead, and remove `customFields` from this body. Do not guess silently - if you hit that error, note it in the PR description.
 
 - [ ] **Step 9: Run the test again to confirm it passes**
 
@@ -377,11 +377,11 @@ git commit -m "feat: map center and classType as respond.io contact custom field
 ### Task 3: Restyle the Member Profile modal (`CustomerFieldsModal`)
 
 **Files:**
-- Modify: `src/routes/classes.$memberId.tsx` (`CustomerFieldsModal`, `TextField`, `SelectField` — lines ~1074-1470)
+- Modify: `src/routes/classes.$memberId.tsx` (`CustomerFieldsModal`, `TextField`, `SelectField` - lines ~1074-1470)
 
-**Interfaces:** None — pure visual change, no prop/behavior changes to any of these three components.
+**Interfaces:** None - pure visual change, no prop/behavior changes to any of these three components.
 
-This is a visual-only task with no meaningful unit test (it's JSX/Tailwind classes) — verify manually.
+This is a visual-only task with no meaningful unit test (it's JSX/Tailwind classes) - verify manually.
 
 - [ ] **Step 1: Replace hardcoded hex colors with design tokens in `CustomerFieldsModal`**
 
@@ -396,7 +396,7 @@ In the modal shell (~lines 1106-1285), apply this hex → token mapping consiste
 | `text-[#7d8aa0]` (field label) | `text-muted-foreground` |
 | `border-[#e8eef6]`, `border-[#e2e9f2]`, `border-[#dedee5]`, `border-[#dde5ee]`, `border-[#d7e0ec]` | `border-border` |
 | `text-[#1d7cf2]` / `#123f7a` (accent blue) | `text-primary-deep` |
-| `bg-gradient-to-r from-[#123f7a] to-[#1d7cf2]` (submit button, top accent bar) | `bg-primary` (drop the gradient — flat `bg-primary` matches the rest of the app's buttons, e.g. `ThankYou`'s `bg-primary` badge) |
+| `bg-gradient-to-r from-[#123f7a] to-[#1d7cf2]` (submit button, top accent bar) | `bg-primary` (drop the gradient - flat `bg-primary` matches the rest of the app's buttons, e.g. `ThankYou`'s `bg-primary` badge) |
 | `bg-[#fbfcff]` (footer bar) | `bg-muted` (if `bg-muted` isn't a defined token in this project's Tailwind config, use `bg-background`) |
 
 Apply this mapping to every occurrence in the modal shell, `TextField`, and `SelectField` (find all via `grep -n '#[0-9a-f]\{3,6\}' src/routes/classes.\$memberId.tsx` restricted to the ~1074-1470 line range).
@@ -441,7 +441,7 @@ git commit -m "style: restyle Member Profile modal with design tokens and icon c
 **Files:**
 - Modify: `src/routes/classes.$memberId.tsx` (`ClassesPage`, around the `booked` state at line 402 and its setters at ~510/~619)
 
-**Interfaces:** None — internal effect, no new exports.
+**Interfaces:** None - internal effect, no new exports.
 
 - [ ] **Step 1: Add the history-trap effect**
 
@@ -464,7 +464,7 @@ This pushes one history marker as soon as `booked` becomes truthy (covers both t
 
 - [ ] **Step 2: Manual verification**
 
-Run `npm run dev`, complete a booking (both the free-membership path and, if you have a way to trigger it in a test/staging Stripe mode, the paid path), land on the ThankYou screen, then click the browser's Back button. Confirm the page does not navigate back to the schedule/form — it stays on ThankYou. Then click "Book another class" (`onAnother`) and confirm Back now behaves normally again (no leftover trap).
+Run `npm run dev`, complete a booking (both the free-membership path and, if you have a way to trigger it in a test/staging Stripe mode, the paid path), land on the ThankYou screen, then click the browser's Back button. Confirm the page does not navigate back to the schedule/form - it stays on ThankYou. Then click "Book another class" (`onAnother`) and confirm Back now behaves normally again (no leftover trap).
 
 - [ ] **Step 3: Commit**
 
@@ -482,7 +482,7 @@ git commit -m "fix: trap browser back button on the booking ThankYou screen"
 - Test: create `src/components/open-barre-landing-attribution.test.ts` for the pure, extractable parsing logic
 
 **Interfaces:**
-- Produces: `parseAttributionFromSearch(search: string): StoredAttribution` — a pure function extracted from the existing inline `URLSearchParams` parsing, so it's unit-testable without a DOM/router.
+- Produces: `parseAttributionFromSearch(search: string): StoredAttribution` - a pure function extracted from the existing inline `URLSearchParams` parsing, so it's unit-testable without a DOM/router.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -520,7 +520,7 @@ describe("attribution capture", () => {
 - [ ] **Step 2: Run it to confirm it fails**
 
 Run: `npx tsx --test src/components/open-barre-landing-attribution.test.ts`
-Expected: FAIL — `parseAttributionFromSearch` is not exported yet.
+Expected: FAIL - `parseAttributionFromSearch` is not exported yet.
 
 - [ ] **Step 3: Extract and export the parsing function; extend `StoredAttribution`**
 
@@ -642,7 +642,7 @@ Do the same in the final `onSubmit`'s `trackingPayload` (~lines 374-386):
 
 - [ ] **Step 6: Add the four fields to the server-side types they flow into**
 
-In `src/lib/signup-and-enroll.helpers.ts`, add `utmTerm?: string; utmContent?: string; gclid?: string; fbclid?: string;` to both `SignupAndEnrollInput` and `LeadCapturePayload` (same spot as Task 2's `classType` addition — if Task 2 already ran, add these alongside it). In `runSignupAndEnroll`'s `captureLead` call block, pass them through the same way as the existing `utmSource`/`utmMedium`/`utmCampaign`.
+In `src/lib/signup-and-enroll.helpers.ts`, add `utmTerm?: string; utmContent?: string; gclid?: string; fbclid?: string;` to both `SignupAndEnrollInput` and `LeadCapturePayload` (same spot as Task 2's `classType` addition - if Task 2 already ran, add these alongside it). In `runSignupAndEnroll`'s `captureLead` call block, pass them through the same way as the existing `utmSource`/`utmMedium`/`utmCampaign`.
 
 In `src/lib/momence.functions.ts`'s `captureLead` function, add `utm_term: payload.utmTerm ?? "", utm_content: payload.utmContent ?? "", gclid: payload.gclid ?? "", fbclid: payload.fbclid ?? "",` to the `leadBody` object (~line 222-241), alongside the existing `utm_source`/`utm_medium`/`utm_campaign` lines. Also add matching fields to the `captureLeadPartial` server fn's input schema and body construction if it constructs a separate `leadBody` (check the file for a second `SignupInput`/partial-lead zod schema and mirror the same four fields there).
 
@@ -667,5 +667,5 @@ git commit -m "feat: capture utm_term, utm_content, gclid, fbclid attribution"
 ## Self-Review Notes
 
 - **Spec coverage:** All 5 spec sections have a task. §2's respond.io custom-field format uncertainty is explicitly flagged inline in Task 2 Step 8 rather than silently assumed.
-- **Type consistency:** `LeadCapturePayload`/`SignupAndEnrollInput` are extended twice (Task 2 for `classType`, Task 5 for the four attribution fields) — if executed out of order, whichever task runs second should find the type already partially extended and just add its own fields, not clobber the other's.
+- **Type consistency:** `LeadCapturePayload`/`SignupAndEnrollInput` are extended twice (Task 2 for `classType`, Task 5 for the four attribution fields) - if executed out of order, whichever task runs second should find the type already partially extended and just add its own fields, not clobber the other's.
 - **No placeholders:** every step has real, copy-pasteable code.

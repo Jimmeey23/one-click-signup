@@ -61,9 +61,9 @@ export const BENGALURU_LAVELLE_ROAD_INTRO_STRIPE_CHARGE_PRICE_INR = toGstInclusi
   BENGALURU_LAVELLE_ROAD_INTRO_PRICE_INR,
 );
 
-// Stripe test-mode product ids backing the Bengaluru intro pack checkout line items.
-export const BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID = "prod_UyjpW399aCpQng";
-export const BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID = "prod_Uyjr6VxHfi6KBE";
+// Stripe product ids backing the Bengaluru intro pack checkout line items.
+export const BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID = "prod_UykA65J7aUXlLe";
+export const BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID = "prod_UykBa2v6q915IL";
 
 export function bengaluruStripeProductIdForLocation(homeLocationId: number): string {
   return homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID

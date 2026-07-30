@@ -2,19 +2,19 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `/bengaluru` signup route for Kenkere House with its own Momence host, membership product (New Client Intro Pack, ₹1350→₹675, 50% off), barre-only class formats, and lead-capture webhook — while Pop Up and Copper & Cloves show a WhatsApp-contact fallback instead of the signup form.
+**Goal:** Add a `/bengaluru` signup route for Kenkere House with its own Momence host, membership product (New Client Intro Pack, ₹1350→₹675, 50% off), barre-only class formats, and lead-capture webhook - while Pop Up and Copper & Cloves show a WhatsApp-contact fallback instead of the signup form.
 
-**Architecture:** Introduces one new pure-data module (`src/lib/momence-cities.ts`) as the single source of truth for which Momence host, locations, and pricing belong to which city. Every place that currently hardcodes a single host/location/membership assumption gets a small city-aware wrapper on top of its existing logic — the existing Mumbai code paths are preserved untouched, Bengaluru is additive. The booking/payment mechanism itself (Stripe → Momence custom-payment checkout → dashboard-cookie auto-book) is unchanged; only *which* membership/host/price it uses becomes resolvable from `homeLocationId`.
+**Architecture:** Introduces one new pure-data module (`src/lib/momence-cities.ts`) as the single source of truth for which Momence host, locations, and pricing belong to which city. Every place that currently hardcodes a single host/location/membership assumption gets a small city-aware wrapper on top of its existing logic - the existing Mumbai code paths are preserved untouched, Bengaluru is additive. The booking/payment mechanism itself (Stripe → Momence custom-payment checkout → dashboard-cookie auto-book) is unchanged; only *which* membership/host/price it uses becomes resolvable from `homeLocationId`.
 
 **Tech Stack:** React 18 + TanStack Start/Router, TypeScript, Tailwind, `node:test` via `npx tsx --test <file>`, existing Stripe + Momence integrations.
 
 ## Global Constraints
 
 - Spec: `docs/superpowers/specs/2026-07-27-bengaluru-signup-route-design.md`
-- No real subdomain — this is a path route (`/bengaluru`) on the existing domain.
-- Momence OAuth credentials (`MOMENCE_CLIENT_ID/SECRET/USERNAME/PASSWORD`) and the dashboard cookie (`MOMENCE_ALL_COOKIES`) are **shared** across Mumbai and Bengaluru hosts — do not add per-city variants of these.
-- One new secret is needed: `MOMENCE_API_TOKEN_BLR` (value `qy71rOk8en`, the Bengaluru lead-capture webhook token) — add it to your local `.env` (not committed) before manually testing lead capture against host 33905; it also needs to be added to the deployed environment (Vercel) before this ships to production.
-- `GST_RATE` changes from `0.18` to `0.05` globally — this changes the **live** Mumbai Newcomers 2-for-1 Stripe charge amount (₹2065 → ₹1838). This is intentional per your confirmation, not a bug.
+- No real subdomain - this is a path route (`/bengaluru`) on the existing domain.
+- Momence OAuth credentials (`MOMENCE_CLIENT_ID/SECRET/USERNAME/PASSWORD`) and the dashboard cookie (`MOMENCE_ALL_COOKIES`) are **shared** across Mumbai and Bengaluru hosts - do not add per-city variants of these.
+- One new secret is needed: `MOMENCE_API_TOKEN_BLR` (value `qy71rOk8en`, the Bengaluru lead-capture webhook token) - add it to your local `.env` (not committed) before manually testing lead capture against host 33905; it also needs to be added to the deployed environment (Vercel) before this ships to production.
+- `GST_RATE` changes from `0.18` to `0.05` globally - this changes the **live** Mumbai Newcomers 2-for-1 Stripe charge amount (₹2065 → ₹1838). This is intentional per your confirmation, not a bug.
 - Test runner: `npx tsx --test <file>` (no vitest/jest).
 
 ---
@@ -83,7 +83,7 @@ describe("Momence city config", () => {
 - [ ] **Step 2: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/momence-cities.test.ts`
-Expected: FAIL — module doesn't exist.
+Expected: FAIL - module doesn't exist.
 
 - [ ] **Step 3: Implement `src/lib/momence-cities.ts`**
 
@@ -176,7 +176,7 @@ In `src/lib/momence.server.ts`, replace the hardcoded `LOCATIONS` export (lines 
 export { LOCATIONS } from "./momence-locations";
 ```
 
-(Keep the `export const MOMENCE_HOST_ID = 13752;` line at the top — Task 2 changes how it's *used*, not this declaration.)
+(Keep the `export const MOMENCE_HOST_ID = 13752;` line at the top - Task 2 changes how it's *used*, not this declaration.)
 
 - [ ] **Step 6: Run the full existing test suite once to confirm nothing broke**
 
@@ -234,7 +234,7 @@ it("keeps the Mumbai host for a Mumbai member", () => {
 - [ ] **Step 2: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/momence-customer-fields.helpers.test.ts`
-Expected: FAIL — `buildCustomerFieldsDataRequest` doesn't accept `homeLocationId` yet, path is still hardcoded to `MOMENCE_CUSTOM_FIELDS_HOST_ID` (13752) for both cases.
+Expected: FAIL - `buildCustomerFieldsDataRequest` doesn't accept `homeLocationId` yet, path is still hardcoded to `MOMENCE_CUSTOM_FIELDS_HOST_ID` (13752) for both cases.
 
 - [ ] **Step 3: Update `buildCustomerFieldsDataRequest`**
 
@@ -265,7 +265,7 @@ export function buildCustomerFieldsDataRequest({
 }
 ```
 
-(Keep everything else in the function body identical — only the `path` line and the added parameter change. `MOMENCE_CUSTOM_FIELDS_HOST_ID` can be deleted if nothing else in the file references it — check with `grep -n MOMENCE_CUSTOM_FIELDS_HOST_ID src/lib/momence-customer-fields.helpers.ts` after this edit.)
+(Keep everything else in the function body identical - only the `path` line and the added parameter change. `MOMENCE_CUSTOM_FIELDS_HOST_ID` can be deleted if nothing else in the file references it - check with `grep -n MOMENCE_CUSTOM_FIELDS_HOST_ID src/lib/momence-customer-fields.helpers.ts` after this edit.)
 
 - [ ] **Step 4: Run the test again to confirm it passes**
 
@@ -289,7 +289,7 @@ In `src/routes/classes.$memberId.tsx`, update the `saveCustomerFieldsFn` call (~
       });
 ```
 
-(`locationId` is already in scope in this component from `Route.useSearch()` — confirm via the existing usage at line 607/618 in the same file.)
+(`locationId` is already in scope in this component from `Route.useSearch()` - confirm via the existing usage at line 607/618 in the same file.)
 
 - [ ] **Step 6: Update `signMemberWaivers` to resolve the host from `homeLocationId`**
 
@@ -328,7 +328,7 @@ In `src/lib/signup-and-enroll.helpers.ts`:
 - Update the `SignupAndEnrollDependencies` type (~line 62): `signMemberWaivers: (input: { memberId: number; realSignature: string; homeLocationId: number }) => Promise<{ signedCount: number; availableCount: number }>;`
 - Update the call in `runSignupAndEnroll` (~line 95): add `homeLocationId: data.homeLocationId,` to the object passed in.
 
-In `src/lib/momence.functions.ts`, `signMemberWaivers` is already wired directly as `signupAndEnrollDependencies.signMemberWaivers` (~line 336) — its signature now matches the updated dependency type automatically since both were changed to accept `homeLocationId`.
+In `src/lib/momence.functions.ts`, `signMemberWaivers` is already wired directly as `signupAndEnrollDependencies.signMemberWaivers` (~line 336) - its signature now matches the updated dependency type automatically since both were changed to accept `homeLocationId`.
 
 - [ ] **Step 8: Update `bookSessionWithMomenceMembership` to resolve its dashboard host**
 
@@ -389,7 +389,7 @@ git commit -m "feat: resolve Momence dashboard host id from homeLocationId inste
 - Produces: `NEW_CLIENT_INTRO_PACK_MEMBERSHIP_ID`, `NEW_CLIENT_INTRO_PACK_PRICE_INR`, `NEW_CLIENT_INTRO_PACK_FULL_PRICE_INR`, `NEW_CLIENT_INTRO_PACK_APPLIED_PRICE_RULE_ID`, `BENGALURU_CUSTOM_PAYMENT_METHOD_ID`, `NEW_CLIENT_INTRO_PACK_STRIPE_CHARGE_PRICE_INR`, `buildNewClientIntroPackCheckoutRequest`, `isPaidClassForLocation(locationId, className)`, `membershipIdForLocationAndClassName(locationId, className)`, `getSchedulePriceDisplayForLocation(locationId, className)`.
 - Consumes: `cityForLocationId` from Task 1.
 
-- [ ] **Step 1: Update the existing GST test to reflect the 5% fix (this test SHOULD now fail against old code — that's expected, it documents the intentional change)**
+- [ ] **Step 1: Update the existing GST test to reflect the 5% fix (this test SHOULD now fail against old code - that's expected, it documents the intentional change)**
 
 In `src/lib/momence-booking.helpers.test.ts`, find:
 
@@ -427,7 +427,7 @@ assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 183800);
 - [ ] **Step 2: Run these to confirm they now fail against current code (0.18 GST)**
 
 Run: `npx tsx --test src/lib/momence-booking.helpers.test.ts src/lib/stripe-checkout.helpers.test.ts`
-Expected: FAIL — current `GST_RATE = 0.18` produces `2065`/`206500`, not `1838`/`183800`.
+Expected: FAIL - current `GST_RATE = 0.18` produces `2065`/`206500`, not `1838`/`183800`.
 
 - [ ] **Step 3: Fix `GST_RATE` and add the new constants**
 
@@ -524,7 +524,7 @@ it("shows the struck-through 50%-off price for Bengaluru", () => {
 - [ ] **Step 6: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/momence-booking.helpers.test.ts`
-Expected: FAIL — none of `appliedPriceRuleIds`, `buildNewClientIntroPackCheckoutRequest`, `isPaidClassForLocation`, `membershipIdForLocationAndClassName`, `getSchedulePriceDisplayForLocation` exist yet.
+Expected: FAIL - none of `appliedPriceRuleIds`, `buildNewClientIntroPackCheckoutRequest`, `isPaidClassForLocation`, `membershipIdForLocationAndClassName`, `getSchedulePriceDisplayForLocation` exist yet.
 
 - [ ] **Step 7: Implement**
 
@@ -724,7 +724,7 @@ describe("Stripe checkout helpers", () => {
 - [ ] **Step 2: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/stripe-checkout.helpers.test.ts`
-Expected: FAIL — `buildPaidCheckoutSessionParams` doesn't exist; `buildNewcomersCheckoutSessionParams` doesn't take `membershipId`.
+Expected: FAIL - `buildPaidCheckoutSessionParams` doesn't exist; `buildNewcomersCheckoutSessionParams` doesn't take `membershipId`.
 
 - [ ] **Step 3: Implement the registry and generalized builder**
 
@@ -1072,7 +1072,7 @@ export const completeNewcomersCheckoutBooking = createServerFn({ method: "POST" 
   });
 ```
 
-Note: exported server-fn names (`createNewcomersCheckoutSession`, `completeNewcomersCheckoutBooking`) are kept as-is even though they're no longer Newcomers-specific, to avoid touching every import site in `classes.$memberId.tsx` — Task 5 adds the new `membershipId` field to the call, not a rename.
+Note: exported server-fn names (`createNewcomersCheckoutSession`, `completeNewcomersCheckoutBooking`) are kept as-is even though they're no longer Newcomers-specific, to avoid touching every import site in `classes.$memberId.tsx` - Task 5 adds the new `membershipId` field to the call, not a rename.
 
 - [ ] **Step 6: Run the full test suite for touched files**
 
@@ -1096,7 +1096,7 @@ git commit -m "refactor: generalize Stripe checkout to a paid-membership-product
 **Interfaces:**
 - Consumes: `isPaidClassForLocation`, `membershipIdForLocationAndClassName`, `getSchedulePriceDisplayForLocation` from Task 3; `allBookableLocations`, `mapsQueryForLocationId` from Task 1.
 
-This task has no isolated unit test — `classes.$memberId.tsx` is a route component with heavy DOM/network dependencies. Verify manually per Step 6.
+This task has no isolated unit test - `classes.$memberId.tsx` is a route component with heavy DOM/network dependencies. Verify manually per Step 6.
 
 - [ ] **Step 1: Swap imports**
 
@@ -1190,7 +1190,7 @@ At line ~1461 (`SessionCard`), change:
   const priceDisplay = getSchedulePriceDisplayForLocation(locationId, s.name);
 ```
 
-`SessionCard` needs a `locationId` prop added the same way `requiresPayment` was already a prop — add `locationId: number` to its prop type and pass `locationId={locationId}` from the render call site (~line 900-909), alongside the existing `requiresPayment` prop.
+`SessionCard` needs a `locationId` prop added the same way `requiresPayment` was already a prop - add `locationId: number` to its prop type and pass `locationId={locationId}` from the render call site (~line 900-909), alongside the existing `requiresPayment` prop.
 
 Replace `bookingLocationForId` (~lines 1826-1833):
 
@@ -1209,7 +1209,7 @@ function bookingLocationForId(locationId: number): BookedClass["location"] {
 Run `npm run dev`. Since there's no way to sign up a real Bengaluru member end-to-end without live Momence credentials for host 33905, verify what's testable locally:
 1. Existing Mumbai flow still works end-to-end (signup → schedule → book a free Barre class → ThankYou) with no regressions.
 2. Existing Mumbai paid flow (powerCycle/strength class) still redirects to Stripe with the ₹1838 (post-GST-fix) amount, and completes booking on return.
-3. Manually visit `/classes/999?locationId=22116` (a fake memberId is fine for this UI-only check) and confirm the page doesn't crash resolving `currentLoc`/`classTypeOptionsForLocation` for the Bengaluru location id — it should show "Kenkere House" as the studio and only Barre-format classes in the type filter.
+3. Manually visit `/classes/999?locationId=22116` (a fake memberId is fine for this UI-only check) and confirm the page doesn't crash resolving `currentLoc`/`classTypeOptionsForLocation` for the Bengaluru location id - it should show "Kenkere House" as the studio and only Barre-format classes in the type filter.
 
 - [ ] **Step 7: Commit**
 
@@ -1224,14 +1224,14 @@ git commit -m "feat: make classes/\$memberId route city-aware for pricing and pa
 
 **Files:**
 - Modify: `src/lib/momence.functions.ts` (`captureLead`)
-- Test: `src/lib/momence.functions.test.ts` (created in the other in-flight plan's Task 2 — if that hasn't run yet, create it here)
+- Test: `src/lib/momence.functions.test.ts` (created in the other in-flight plan's Task 2 - if that hasn't run yet, create it here)
 
 **Interfaces:**
 - Consumes: `hostIdForLocationId` from Task 1.
 
 - [ ] **Step 1: Write the failing test for the webhook URL/token selection**
 
-`captureLead` makes a live `fetch` call, so isolate the *URL and token selection* into a small pure function first. Add to `src/lib/momence.functions.test.ts` (create the file if Task 2 of the other plan hasn't landed yet — same file, just add this describe block):
+`captureLead` makes a live `fetch` call, so isolate the *URL and token selection* into a small pure function first. Add to `src/lib/momence.functions.test.ts` (create the file if Task 2 of the other plan hasn't landed yet - same file, just add this describe block):
 
 ```ts
 import { leadWebhookConfigForLocation } from "./momence.functions.ts";
@@ -1257,7 +1257,7 @@ describe("lead webhook config", () => {
 - [ ] **Step 2: Run it to confirm it fails**
 
 Run: `npx tsx --test src/lib/momence.functions.test.ts`
-Expected: FAIL — `leadWebhookConfigForLocation` doesn't exist.
+Expected: FAIL - `leadWebhookConfigForLocation` doesn't exist.
 
 - [ ] **Step 3: Extract and use it in `captureLead`**
 
@@ -1276,7 +1276,7 @@ export function leadWebhookConfigForLocation(
 }
 ```
 
-In `captureLead` (~lines 215-292), `payload` doesn't currently carry `homeLocationId` directly — it has `center` (the resolved name). Add `homeLocationId?: number` to `LeadCapturePayload` (alongside the `classType` field from the other in-flight plan's Task 2, if that's landed — otherwise add both fields together here) and pass it from `runSignupAndEnroll`'s `captureLead` call (in `signup-and-enroll.helpers.ts`, alongside the other fields at ~line 134, add `homeLocationId: data.homeLocationId,`).
+In `captureLead` (~lines 215-292), `payload` doesn't currently carry `homeLocationId` directly - it has `center` (the resolved name). Add `homeLocationId?: number` to `LeadCapturePayload` (alongside the `classType` field from the other in-flight plan's Task 2, if that's landed - otherwise add both fields together here) and pass it from `runSignupAndEnroll`'s `captureLead` call (in `signup-and-enroll.helpers.ts`, alongside the other fields at ~line 134, add `homeLocationId: data.homeLocationId,`).
 
 Then in `captureLead`, replace the hardcoded token/URL:
 
@@ -1320,7 +1320,7 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
     // ... rest of the function (error handling, respond.io sync, additional webhook forward, return) is unchanged ...
 ```
 
-(Note the request no longer needs an `Authorization: Bearer` header for this call, matching the existing code's pattern — confirm by reading the current fetch call at ~line 243-250: if it already sends the token in the body only, keep that; if it also sends an `Authorization` header, keep that header too, just switch the value source from `token` (the env-derived constant) to the resolved `token` here.)
+(Note the request no longer needs an `Authorization: Bearer` header for this call, matching the existing code's pattern - confirm by reading the current fetch call at ~line 243-250: if it already sends the token in the body only, keep that; if it also sends an `Authorization` header, keep that header too, just switch the value source from `token` (the env-derived constant) to the resolved `token` here.)
 
 - [ ] **Step 4: Run the test again to confirm it passes**
 
@@ -1352,7 +1352,7 @@ git commit -m "feat: resolve lead-capture webhook URL and token per city"
 
 **Interfaces:**
 - Consumes: `cityForLocationId` from Task 1.
-- Produces: `SignupAndEnrollInput.city?: CityKey` (defaults to resolving from `homeLocationId` if omitted — see Step 3).
+- Produces: `SignupAndEnrollInput.city?: CityKey` (defaults to resolving from `homeLocationId` if omitted - see Step 3).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1458,7 +1458,7 @@ import { cityForLocationId } from "./momence-cities";
   }
 ```
 
-Also update the caller in `OpenBarreLanding.tsx`'s `onSubmit` (~line 406): it currently does `if (!result.enrolled) { ...error...; return; }` — this must NOT treat Bengaluru's expected `enrolled: false` as a failure. Change the check to only apply for Mumbai. In `src/components/OpenBarreLanding.tsx`, near the `onSubmit` result handling:
+Also update the caller in `OpenBarreLanding.tsx`'s `onSubmit` (~line 406): it currently does `if (!result.enrolled) { ...error...; return; }` - this must NOT treat Bengaluru's expected `enrolled: false` as a failure. Change the check to only apply for Mumbai. In `src/components/OpenBarreLanding.tsx`, near the `onSubmit` result handling:
 
 ```ts
       if (city !== "bengaluru" && !result.enrolled) {
@@ -1471,7 +1471,7 @@ Also update the caller in `OpenBarreLanding.tsx`'s `onSubmit` (~line 406): it cu
       }
 ```
 
-(`city` here is the new prop added in Task 8 — if Task 8 hasn't run yet when this task executes, add a `city: CityKey = "mumbai"` prop to `OpenBarreLanding` now as a minimal stub so this compiles; Task 8 will build the rest of the city-aware UI on top of it.)
+(`city` here is the new prop added in Task 8 - if Task 8 hasn't run yet when this task executes, add a `city: CityKey = "mumbai"` prop to `OpenBarreLanding` now as a minimal stub so this compiles; Task 8 will build the rest of the city-aware UI on top of it.)
 
 - [ ] **Step 4: Run the tests again to confirm they pass**
 
@@ -1495,7 +1495,7 @@ git commit -m "feat: skip free-membership enrollment for Bengaluru signups"
 **Interfaces:**
 - Consumes: `CityKey`, `CITY_LOCATIONS` from Task 1; `NEW_CLIENT_INTRO_PACK_FULL_PRICE_INR`, `NEW_CLIENT_INTRO_PACK_PRICE_INR` from Task 3; `city` prop stub from Task 7.
 
-This task is UI-only for the studio-picker/copy changes — verify manually.
+This task is UI-only for the studio-picker/copy changes - verify manually.
 
 - [ ] **Step 1: Add the `city` prop and switch the studio picker's data source**
 
@@ -1576,7 +1576,7 @@ Add the import: `import { DEFAULT_WHATSAPP_PHONE } from "@/lib/whatsapp-contact.
 
 - [ ] **Step 3: Swap Bengaluru copy and add the struck-through price block**
 
-Near the hero copy (search for `"Your first Barre 57 class is complimentary"` — the exact JSX location varies, it's rendered once near the top of the form), branch on `city`:
+Near the hero copy (search for `"Your first Barre 57 class is complimentary"` - the exact JSX location varies, it's rendered once near the top of the form), branch on `city`:
 
 ```tsx
           <p className="...">
@@ -1598,11 +1598,11 @@ Near the submit button, add the price block for Bengaluru only:
           )}
 ```
 
-(Match the exact surrounding markup/classes to whatever's already there for the submit button area — read the ~30 lines above the `<button type="submit">` in the file before inserting, so indentation and container structure stay consistent.)
+(Match the exact surrounding markup/classes to whatever's already there for the submit button area - read the ~30 lines above the `<button type="submit">` in the file before inserting, so indentation and container structure stay consistent.)
 
 - [ ] **Step 4: Thread `city` into the signup submission**
 
-In `onSubmit` (~line 388), the `signup({ data: {...} })` call needs `city` so `runSignupAndEnroll` can resolve it — but note `SignupAndEnrollInput` resolves city from `homeLocationId` via `cityForLocationId` (Task 7's `runSignupAndEnroll` change reads `data.homeLocationId`, not a separate `city` field) — so no explicit `city` field is needed in the payload itself. Just make sure the `if (city !== "bengaluru" && !result.enrolled)` check added in Task 7 Step 3 uses this component's `city` prop (it already does, once Task 7's stub is in place).
+In `onSubmit` (~line 388), the `signup({ data: {...} })` call needs `city` so `runSignupAndEnroll` can resolve it - but note `SignupAndEnrollInput` resolves city from `homeLocationId` via `cityForLocationId` (Task 7's `runSignupAndEnroll` change reads `data.homeLocationId`, not a separate `city` field) - so no explicit `city` field is needed in the payload itself. Just make sure the `if (city !== "bengaluru" && !result.enrolled)` check added in Task 7 Step 3 uses this component's `city` prop (it already does, once Task 7's stub is in place).
 
 - [ ] **Step 5: Manual verification**
 
@@ -1626,7 +1626,7 @@ git commit -m "feat: make OpenBarreLanding city-aware (studio picker, copy, pric
 **Files:**
 - Create: `src/routes/bengaluru.tsx`
 
-**Interfaces:** None — leaf route, no exports consumed elsewhere.
+**Interfaces:** None - leaf route, no exports consumed elsewhere.
 
 - [ ] **Step 1: Create the route**
 
@@ -1668,7 +1668,7 @@ function BengaluruLanding() {
 
 - [ ] **Step 2: Regenerate the route tree**
 
-TanStack Start's route-tree generation runs automatically via the dev server / build (`routeTree.gen.ts` is auto-generated — do not hand-edit it, per `src/routes/README.md`). Run:
+TanStack Start's route-tree generation runs automatically via the dev server / build (`routeTree.gen.ts` is auto-generated - do not hand-edit it, per `src/routes/README.md`). Run:
 
 ```bash
 npm run dev
@@ -1681,7 +1681,7 @@ and confirm in the terminal output that the route generator picks up `bengaluru.
 With `npm run dev` running, visit `http://localhost:5173/bengaluru` (or whatever port Vite prints) and confirm:
 - Page loads with the Bengaluru meta title/description (check via browser tab title and view-source).
 - Studio picker, copy, and price block match Task 8's verification.
-- Filling the form and selecting Kenkere House, then submitting, creates a member (check server logs for `[debug:signup] member created`) and redirects to `/classes/$memberId?locationId=22116&classType=barre-57` — full end-to-end payment/booking on that page requires live Bengaluru Momence credentials and is out of scope for local manual testing; confirm at least that the redirect happens and the schedule page doesn't crash.
+- Filling the form and selecting Kenkere House, then submitting, creates a member (check server logs for `[debug:signup] member created`) and redirects to `/classes/$memberId?locationId=22116&classType=barre-57` - full end-to-end payment/booking on that page requires live Bengaluru Momence credentials and is out of scope for local manual testing; confirm at least that the redirect happens and the schedule page doesn't crash.
 
 - [ ] **Step 4: Commit**
 
@@ -1694,7 +1694,7 @@ git commit -m "feat: add /bengaluru signup route for Kenkere House"
 
 ## Self-Review Notes
 
-- **Spec coverage:** All 7 spec sections (city config, host resolution, membership/pricing, Stripe generalization, route/form, enrollment skip, lead-capture) map to Tasks 1-9 (Task 5 additionally covers a scope gap found during planning — `classes.$memberId.tsx` itself must resolve locations/pricing/paid-status per-city, since it's the exact page Bengaluru members land on after signup; the original spec's "out of scope" note only excluded adding *new URL prefill* to that route, not city-awareness of its existing booking logic).
+- **Spec coverage:** All 7 spec sections (city config, host resolution, membership/pricing, Stripe generalization, route/form, enrollment skip, lead-capture) map to Tasks 1-9 (Task 5 additionally covers a scope gap found during planning - `classes.$memberId.tsx` itself must resolve locations/pricing/paid-status per-city, since it's the exact page Bengaluru members land on after signup; the original spec's "out of scope" note only excluded adding *new URL prefill* to that route, not city-awareness of its existing booking logic).
 - **Placeholder scan:** No TBD/TODO left; the one open item (respond.io custom-fields wire format, carried from the other in-flight plan) is explicitly flagged with a concrete fallback, not silently assumed.
 - **Type consistency:** `homeLocationId` is threaded consistently as a required `number` parameter everywhere it's newly added (`signMemberWaivers`, `buildCustomerFieldsDataRequest`, `SaveCustomerFieldsInput`) rather than mixed optional/required across tasks. `CityKey`/`CITY_LOCATIONS`/`hostIdForLocationId`/`cityForLocationId` names are used identically in every task that consumes them (Tasks 2, 3, 6, 7, 8 all import from `momence-cities.ts` verbatim).
-- **Task order matters:** Tasks 1→2→3→4→5 must run in that order (each depends on exports from the previous). Tasks 6, 7, 8 each depend on Task 1 and Task 3 but not on each other or on Task 5 — they can run in parallel if using subagent-driven development, aside from the small `city` prop stub noted in Task 7 Step 3 (needed only if Task 7 runs before Task 8). Task 9 depends on Task 8.
+- **Task order matters:** Tasks 1→2→3→4→5 must run in that order (each depends on exports from the previous). Tasks 6, 7, 8 each depend on Task 1 and Task 3 but not on each other or on Task 5 - they can run in parallel if using subagent-driven development, aside from the small `city` prop stub noted in Task 7 Step 3 (needed only if Task 7 runs before Task 8). Task 9 depends on Task 8.

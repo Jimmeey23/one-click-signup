@@ -9,6 +9,7 @@ export function Footer({
 }) {
   const isBengaluru = studioVariant === "bengaluru";
   const studioSearch = isBengaluru ? { studio: "bengaluru" as const } : undefined;
+  const contactEmail = isBengaluru ? "info@physique57bengaluru.com" : "info@physique57india.com";
 
   return (
     <footer className="bg-foreground text-background pt-16 pb-8">
@@ -73,21 +74,21 @@ export function Footer({
             </li>
             <li className="text-sm text-background/70 leading-relaxed mt-3">
               <span className="block text-background font-semibold">Lavelle Road</span>
-              Lavelle Road, Bengaluru
+              1st Floor, Kenkere House, Vittal Mallya Rd, above Raymonds, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001
             </li>
             <li className="text-sm text-background/70 leading-relaxed mt-3">
               <span className="block text-background font-semibold">Indiranagar</span>
-              Indiranagar, Bengaluru
+              1226, 12th Main Road, HAL 2nd Stage, Indiranagar, Bengaluru 560038
             </li>
           </FooterCol>
 
           <FooterCol title="Get in touch">
             <li>
               <a
-                href="mailto:info@physique57india.com"
+                href={`mailto:${contactEmail}`}
                 className="text-sm text-background/70 hover:text-primary transition"
               >
-                info@physique57india.com
+                {contactEmail}
               </a>
             </li>
             <li>
@@ -108,11 +109,15 @@ export function Footer({
                 WhatsApp us
               </a>
             </li>
-            <FooterLink to="/terms" itemClassName="pt-3">
+            <FooterLink to="/terms" search={studioSearch} itemClassName="pt-3">
               Terms of Service
             </FooterLink>
-            <FooterLink to="/waiver">Waiver</FooterLink>
-            <FooterLink to="/privacy">Privacy Policy</FooterLink>
+            <FooterLink to="/waiver" search={studioSearch}>
+              Waiver
+            </FooterLink>
+            <FooterLink to="/privacy" search={studioSearch}>
+              Privacy Policy
+            </FooterLink>
           </FooterCol>
         </div>
 
