@@ -419,7 +419,7 @@ function FAQPage() {
           </p>
         </div>
 
-        <div className="space-y-14">
+        <Accordion type="single" collapsible className="space-y-14">
           {categories.map((category, categoryIndex) => {
             const CategoryIcon = category.icon;
             return (
@@ -434,7 +434,7 @@ function FAQPage() {
                   <div className="h-px flex-1 bg-gradient-to-r from-[#e6e0f7] to-transparent" />
                 </div>
 
-                <Accordion type="multiple" className="grid gap-4">
+                <div className="grid gap-4">
                   {category.items.map((f, i) => {
                     const Icon = f.icon;
                     return (
@@ -456,11 +456,11 @@ function FAQPage() {
                       </AccordionItem>
                     );
                   })}
-                </Accordion>
+                </div>
               </section>
             );
           })}
-        </div>
+        </Accordion>
       </main>
       <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>

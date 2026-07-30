@@ -159,7 +159,7 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
     ogTitle: "Physique 57 Bengaluru - First class 50% off",
     ogDescription: "Sign up for Bengaluru studios and claim 50% off your first Barre class.",
     heroLocationLine: "Bengaluru",
-    statLabel: "format",
+    statLabel: "formats",
     signupCta: "Book Your Trial Class",
     landingNote:
       "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile.",
@@ -510,7 +510,7 @@ export function OpenBarreLanding({
             </p>
             <div className="mt-10 grid grid-cols-3 gap-6 max-w-md">
               <Stat n="57" label="minutes" />
-              <Stat n={isBengaluru ? "1" : "3"} label={studioConfig.statLabel} />
+              <Stat n={isBengaluru ? "8" : "3"} label={studioConfig.statLabel} />
               <Stat n="∞" label="energy" />
             </div>
           </div>

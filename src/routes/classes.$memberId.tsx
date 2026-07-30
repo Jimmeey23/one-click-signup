@@ -1320,7 +1320,7 @@ function CustomerFieldsModal({
               <button
                 type="submit"
                 disabled={saving}
-                className="h-12 rounded-[12px] bg-primary-deep px-6 text-sm font-semibold text-primary-foreground shadow-[0_16px_32px_-10px_color-mix(in_oklab,var(--primary-deep)_55%,transparent)] transition hover:brightness-110 disabled:opacity-50"
+                className="h-12 rounded-[12px] bg-primary-deep px-6 text-sm font-semibold text-primary-foreground shadow-[0_16px_32px_-10px_color-mix(in_oklab,var(--primary-deep)_55%,transparent)] transition hover:bg-[#096ef2] disabled:opacity-50"
               >
                 {saving ? "Saving..." : requiresPayment ? "Save & pay" : "Save & book"}
               </button>
@@ -1384,7 +1384,7 @@ function TextField({
     >
       <span className="inline-flex items-center gap-1.5">
         {icon && (
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-deep text-primary-foreground">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#063a80] text-white ring-2 ring-white">
             {icon}
           </span>
         )}
@@ -1467,7 +1467,7 @@ function SelectField({
     >
       <span className="inline-flex items-center gap-1.5">
         {icon && (
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-deep text-primary-foreground">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#063a80] text-white ring-2 ring-white">
             {icon}
           </span>
         )}
