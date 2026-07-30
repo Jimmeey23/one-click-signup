@@ -1,4 +1,4 @@
-import barreImage from "@/assets/116 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1541 (2).jpg";
+import barreImage from "@/assets/DSC_2963.jpg";
 import fitImage from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
 import strengthImage from "@/assets/2094 _ Physique57 _ Trainer Shots _ _04A1305.jpg";
 import backBodyBlazeImage from "@/assets/2123 _ Physique57 _ Trainer Shots _ _56A1916.jpg";

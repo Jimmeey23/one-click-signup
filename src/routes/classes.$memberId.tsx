@@ -1877,11 +1877,7 @@ function groupSessionsByDate(sessions: SessionDTO[]): Map<string, SessionDTO[]> 
 
 function bookingLocationForId(locationId: number): BookedClass["location"] {
   const location = LOCATIONS.find((l) => l.id === locationId) ?? LOCATIONS[0];
-  const mapsQ =
-    location.name === "Kwality House, Kemps Corner"
-      ? "Physique 57 India Kwality House Kemps Corner Mumbai"
-      : "Physique 57 India Supreme HQ Bandra Mumbai";
-  return { id: location.id, name: location.name, mapsQ };
+  return { id: location.id, name: location.name, mapsQ: location.address };
 }
 
 function storePaidCheckoutSession(session: SessionDTO) {

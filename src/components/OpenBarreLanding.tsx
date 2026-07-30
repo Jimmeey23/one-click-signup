@@ -638,11 +638,6 @@ function Header({ studioVariant }: { studioVariant: StudioVariant }) {
           >
             Classes
           </Link>
-          {!isBengaluru && (
-            <Link to="/bengaluru" className="hover:text-primary transition">
-              Bengaluru
-            </Link>
-          )}
           <Link
             to="/faq"
             search={isBengaluru ? { studio: "bengaluru" } : undefined}
@@ -848,7 +843,7 @@ const MUMBAI_STUDIOS = [
     name: "Kwality House, Kemps Corner",
     neighborhood: "Grant Road, Mumbai",
     location: "Kemps Corner",
-    phone: "097696 65757",
+    phone: "97696 65757",
     hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
     address: "Kwality House, August Kranti Rd, below Kemps Corner, Grant Road, Mumbai 400036",
   },
@@ -856,7 +851,7 @@ const MUMBAI_STUDIOS = [
     name: "Supreme HQ, Bandra",
     neighborhood: "Bandra West, Mumbai",
     location: "Bandra West",
-    phone: "097696 65757",
+    phone: "97696 65757",
     hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
     address: "203, Supreme Headquarters, Junction of 14th & 33rd Rd, opposite Monkey Bar, Bandra West, Mumbai 400050",
   },
@@ -867,7 +862,7 @@ const BENGALURU_STUDIOS = [
     name: "Lavelle Road, Bengaluru",
     neighborhood: "Shanthala Nagar, Bengaluru",
     location: "Lavelle Road",
-    phone: "097696 65757",
+    phone: "97696 65757",
     hours: "Daily: 6:00 AM - 8:30 PM",
     address:
       "1st Floor, Kenkere House, Vittal Mallya Rd, above Raymonds, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001",
@@ -876,7 +871,7 @@ const BENGALURU_STUDIOS = [
     name: "Indiranagar, Bengaluru",
     neighborhood: "Domlur, Bengaluru",
     location: "Indiranagar",
-    phone: "097696 65757",
+    phone: "97696 65757",
     hours: "Daily: 6:00 AM - 8:00 PM",
     address:
       "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",

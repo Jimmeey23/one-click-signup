@@ -30,9 +30,14 @@ export const Route = createFileRoute("/classes-info")({
   component: ClassesInfoPage,
 });
 
+const BENGALURU_EXCLUDED_FORMATS = new Set(["power-cycle", "strength-lab"]);
+
 function ClassesInfoPage() {
   const { studio } = Route.useSearch();
   const isBengaluru = studio === "bengaluru";
+  const classFormats = isBengaluru
+    ? CLASS_FORMATS.filter((c) => !BENGALURU_EXCLUDED_FORMATS.has(c.key))
+    : CLASS_FORMATS;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -57,27 +62,30 @@ function ClassesInfoPage() {
           {isBengaluru ? "Built for Bengaluru in 57 minutes." : "Built for results in 57 minutes."}
         </h1>
         <div className="mb-10 grid gap-4 rounded-2xl border border-border bg-secondary p-6 md:grid-cols-2">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-primary-deep font-bold mb-2">
-              Mumbai studios
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle,
-              and StrengthLab.
-            </p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-primary-deep font-bold mb-2">
-              Bengaluru studios
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Lavelle Road and Indiranagar focus on Barre-first bookings and Bengaluru-specific
-              introductory offers.
-            </p>
-          </div>
+          {isBengaluru ? (
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-deep font-bold mb-2">
+                Bengaluru studios
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Lavelle Road and Indiranagar focus on Barre-first bookings and Bengaluru-specific
+                introductory offers.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-primary-deep font-bold mb-2">
+                Mumbai studios
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle,
+                and StrengthLab.
+              </p>
+            </div>
+          )}
         </div>
         <div className="grid md:grid-cols-2 gap-6">
-          {CLASS_FORMATS.map((c) => (
+          {classFormats.map((c) => (
             <article
               key={c.name}
               className="bg-card border border-border rounded-lg overflow-hidden shadow-[var(--shadow-card)]"

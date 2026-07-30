@@ -220,6 +220,17 @@ export function getSchedulePriceDisplay(
   slashOriginalPrice: boolean;
 } {
   if (isBengaluruLocation(homeLocationId)) {
+    // Indiranagar's intro pack has no discount (900 pre-tax === its drop-in rate), so show
+    // the plain 900 with no strikethrough. The 945 GST-inclusive amount is only what Stripe
+    // actually charges, sourced separately in buildBengaluruIntroMembershipCheckoutRequest.
+    if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
+      return {
+        originalPriceInCurrency: null,
+        bookingPriceInCurrency: BENGALURU_INDIRANAGAR_PRICE_INR,
+        label: "Intro Pack",
+        slashOriginalPrice: false,
+      };
+    }
     return {
       originalPriceInCurrency: bengaluruDropInPriceInrForLocation(homeLocationId as number),
       bookingPriceInCurrency: bengaluruIntroChargePriceInrForLocation(homeLocationId as number),

@@ -63,29 +63,22 @@ export function Footer({
           </FooterCol>
 
           <FooterCol title="Studios">
-            {isBengaluru ? (
-              <>
-                <li className="text-sm text-background/70 leading-relaxed">
-                  <span className="block text-background font-semibold">Lavelle Road</span>
-                  Lavelle Road, Bengaluru
-                </li>
-                <li className="text-sm text-background/70 leading-relaxed mt-3">
-                  <span className="block text-background font-semibold">Indiranagar</span>
-                  Indiranagar, Bengaluru
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="text-sm text-background/70 leading-relaxed">
-                  <span className="block text-background font-semibold">Kemps Corner</span>
-                  Kwality House, 1st Floor, August Kranti Marg, Mumbai
-                </li>
-                <li className="text-sm text-background/70 leading-relaxed mt-3">
-                  <span className="block text-background font-semibold">Bandra</span>
-                  Supreme HQ, Off Linking Road, Bandra West, Mumbai
-                </li>
-              </>
-            )}
+            <li className="text-sm text-background/70 leading-relaxed">
+              <span className="block text-background font-semibold">Kemps Corner</span>
+              Kwality House, 1st Floor, August Kranti Marg, Mumbai
+            </li>
+            <li className="text-sm text-background/70 leading-relaxed mt-3">
+              <span className="block text-background font-semibold">Bandra</span>
+              Supreme HQ, Off Linking Road, Bandra West, Mumbai
+            </li>
+            <li className="text-sm text-background/70 leading-relaxed mt-3">
+              <span className="block text-background font-semibold">Lavelle Road</span>
+              Lavelle Road, Bengaluru
+            </li>
+            <li className="text-sm text-background/70 leading-relaxed mt-3">
+              <span className="block text-background font-semibold">Indiranagar</span>
+              Indiranagar, Bengaluru
+            </li>
           </FooterCol>
 
           <FooterCol title="Get in touch">
