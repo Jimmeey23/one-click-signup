@@ -30,7 +30,7 @@ export const VARIANT_COPY: Record<Variant, { headline: string; ctaLabel: string 
     ctaLabel: "Activate Your Trial",
   },
   b: {
-    headline: "Your first class is free. See why everyone's talking.",
-    ctaLabel: "Claim My Free Class",
+    headline: "",
+    ctaLabel: "Claim My Trial Class",
   },
 };
