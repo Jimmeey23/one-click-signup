@@ -383,21 +383,33 @@ async function signMemberWaivers({
   homeLocationId: number;
 }): Promise<{ signedCount: number; availableCount: number }> {
   const hostId = isBengaluruLocation(homeLocationId) ? BENGALURU_MOMENCE_HOST_ID : MOMENCE_HOST_ID;
-  const res = await momenceDashboardFetch<{ waivers?: DashboardWaiver[] }>(
-    `/host/${hostId}/members/${memberId}/waivers`,
-    { method: "GET" },
-  );
-  const waivers = res.waivers ?? [];
+
+  let waivers: DashboardWaiver[] = [];
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const res = await momenceDashboardFetch<{ waivers?: DashboardWaiver[] }>(
+      `/host/${hostId}/members/${memberId}/waivers`,
+      { method: "GET" },
+    );
+    waivers = res.waivers ?? [];
+    if (waivers.length > 0) break;
+    // Momence provisions a fresh member's waiver records asynchronously, so the
+    // very first read right after createMember can briefly return none.
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    }
+  }
+
+  if (waivers.length === 0) {
+    throw new Error("No Momence waiver records were available for this member.");
+  }
+
   const signRequests = buildDashboardPublicWaiverSignRequests({
     hostId,
     memberId,
     realSignature,
     waivers,
   });
-
-  if (waivers.length === 0) {
-    throw new Error("No Momence waiver records were available for this member.");
-  }
 
   await Promise.all(
     signRequests.map((request) =>

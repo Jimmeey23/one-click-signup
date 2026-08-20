@@ -21,6 +21,7 @@ describe("respond.io contact body", () => {
       customFields: [
         { name: "center", value: "Kwality House, Kemps Corner" },
         { name: "classType", value: "Barre" },
+        { name: "whatsappConsent", value: "not_opted_in" },
       ],
     });
   });
@@ -37,6 +38,7 @@ describe("respond.io contact body", () => {
     assert.deepEqual(body.customFields, [
       { name: "center", value: "Kwality House, Kemps Corner" },
       { name: "classType", value: "Barre" },
+      { name: "whatsappConsent", value: "not_opted_in" },
     ]);
   });
 });

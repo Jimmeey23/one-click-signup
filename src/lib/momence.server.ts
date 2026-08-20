@@ -144,8 +144,11 @@ function getCookieValue(cookies: string, name: string): string | undefined {
     ?.slice(name.length + 1);
 }
 
-export async function momenceDashboardFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const cookies = await requireServerEnv("MOMENCE_ALL_COOKIES");
+async function doDashboardFetch<T>(
+  path: string,
+  init: RequestInit,
+  cookies: string,
+): Promise<{ ok: boolean; status: number; text: string; parse: () => T }> {
   const csrfToken = getCookieValue(cookies, "csrf_token");
   const res = await fetch(`${DASHBOARD_BASE}${path}`, {
     ...init,
@@ -160,10 +163,29 @@ export async function momenceDashboardFetch<T>(path: string, init: RequestInit =
     },
   });
   const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`Momence dashboard ${path} ${res.status}: ${text}`);
+  return {
+    ok: res.ok,
+    status: res.status,
+    text,
+    parse: () => (text ? (JSON.parse(text) as T) : ({} as T)),
+  };
+}
+
+export async function momenceDashboardFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const { getMomenceCookies } = await import("./momence-auth.server");
+
+  const cookies = await getMomenceCookies();
+  const first = await doDashboardFetch<T>(path, init, cookies);
+  if (first.ok) return first.parse();
+
+  if (first.status === 401) {
+    const refreshedCookies = await getMomenceCookies(true);
+    const retry = await doDashboardFetch<T>(path, init, refreshedCookies);
+    if (retry.ok) return retry.parse();
+    throw new Error(`Momence dashboard ${path} ${retry.status}: ${retry.text}`);
   }
-  return text ? (JSON.parse(text) as T) : ({} as T);
+
+  throw new Error(`Momence dashboard ${path} ${first.status}: ${first.text}`);
 }
 
 export {
