@@ -188,6 +188,7 @@ export function OpenBarreLanding({
   const [studioSelected, setStudioSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [waiverFailed, setWaiverFailed] = useState(false);
   const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
   const [variant] = useState(() => getVariant());
   const variantCopy = VARIANT_COPY[variant];
@@ -474,10 +475,34 @@ export function OpenBarreLanding({
       });
     } catch (e2) {
       console.error("[debug:signup] signup threw:", e2);
-      setError(e2 instanceof Error ? e2.message : "Signup failed");
+      const message = e2 instanceof Error ? e2.message : "Signup failed";
+      if (message.includes("Waiver and policy consent could not be recorded")) {
+        setWaiverFailed(true);
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  if (waiverFailed) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <Header studioVariant={studioVariant} />
+        <div className="flex-1 flex items-center justify-center px-6 py-24">
+          <div className="max-w-md text-center space-y-4">
+            <h1 className="font-display text-3xl md:text-4xl tracking-tight">
+              Thank you for your interest!
+            </h1>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              A member from our team will reach out to you shortly.
+            </p>
+          </div>
+        </div>
+        <Footer studioVariant={studioVariant} />
+      </div>
+    );
   }
 
   return (

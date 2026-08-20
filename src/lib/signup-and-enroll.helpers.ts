@@ -55,6 +55,13 @@ export type LeadCapturePayload = {
   stage?: "partial" | "completed";
 };
 
+export class WaiverConsentError extends Error {
+  constructor(message = "Waiver and policy consent could not be recorded in Momence. Please contact the studio team before booking.") {
+    super(message);
+    this.name = "WaiverConsentError";
+  }
+}
+
 export type SignupAndEnrollResult = {
   memberId: number;
   homeLocationId: number;
@@ -116,9 +123,7 @@ export async function runSignupAndEnroll(
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Waiver consent failed";
     console.error("Waiver consent failed:", msg);
-    throw new Error(
-      "Waiver and policy consent could not be recorded in Momence. Please contact the studio team before booking.",
-    );
+    throw new WaiverConsentError();
   }
 
   let enrolled = false;
