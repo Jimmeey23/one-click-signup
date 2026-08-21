@@ -2,7 +2,10 @@ import {
   buildHostMemberCreateRequest,
   type HostMemberCreateRequest,
 } from "./momence-member.helpers";
-import { isPaidNewcomersClassName } from "./momence-booking.helpers";
+import {
+  isPaidNewcomersClassName,
+  momenceHomeLocationIdForLocation,
+} from "./momence-booking.helpers";
 
 export type SignupAndEnrollInput = {
   firstName: string;
@@ -56,7 +59,9 @@ export type LeadCapturePayload = {
 };
 
 export class WaiverConsentError extends Error {
-  constructor(message = "Waiver and policy consent could not be recorded in Momence. Please contact the studio team before booking.") {
+  constructor(
+    message = "Waiver and policy consent could not be recorded in Momence. Please contact the studio team before booking.",
+  ) {
     super(message);
     this.name = "WaiverConsentError";
   }
@@ -101,7 +106,7 @@ export async function runSignupAndEnroll(
     lastName: data.lastName,
     email: data.email,
     phoneNumber: phoneE164,
-    homeLocationId: data.homeLocationId,
+    homeLocationId: momenceHomeLocationIdForLocation(data.homeLocationId),
   });
   const created = await dependencies.createMember(createMemberRequest);
   console.debug("[debug:signup] member created", { memberId: created.memberId });

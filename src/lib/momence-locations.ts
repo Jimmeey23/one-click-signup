@@ -27,7 +27,17 @@ export const BENGALURU_LOCATIONS = [
     id: 36372,
     name: "Indiranagar, Bengaluru",
     phone: "97696 65757",
-    address: "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",
+    address:
+      "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",
+  },
+  {
+    // Plash is represented in Momence by a schedule tag rather than a standalone location.
+    id: 383332,
+    name: "Plash Pilates, Sadashivnagar",
+    phone: "97696 65757",
+    address:
+      "72/14, 2nd Main Rd, next to namdharis fresh, Vyalikaval, Kodandarampura, Malleshwaram, Bengaluru, Karnataka 560003",
+    scheduleTagId: 383332,
   },
 ] as const;
 

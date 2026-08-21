@@ -1,10 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
-import {
-  classTypeValueForClassFormatKey,
-  type ClassFormatKey,
-} from "./class-format-matchers";
+import { classTypeValueForClassFormatKey, type ClassFormatKey } from "./class-format-matchers";
 import {
   BENGALURU_MOMENCE_HOST_ID,
   buildOpenBarreCheckoutRequestForLocation,
@@ -219,10 +216,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
       }),
     });
     if (!created.ok) {
-      console.error(
-        "Respond.io contact creation failed",
-        `${created.status} ${created.text}`,
-      );
+      console.error("Respond.io contact creation failed", `${created.status} ${created.text}`);
       return;
     }
   } catch (error) {
@@ -262,10 +256,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[retry]));
           continue;
         }
-        console.error(
-          `Respond.io ${attempt.path} failed`,
-          `${response.status} ${response.text}`,
-        );
+        console.error(`Respond.io ${attempt.path} failed`, `${response.status} ${response.text}`);
         break;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown Respond.io error";
@@ -280,10 +271,18 @@ const BENGALURU_LEADS_HOST_ID = 33905;
 const BENGALURU_LEADS_SOURCE_ID = "11615";
 const BENGALURU_LEADS_FALLBACK_TOKEN = "qy71rOk8en";
 
+export function webhookCenterForLocationId(homeLocationId: number | undefined): string {
+  if (homeLocationId === 22116) return "Kenkere House";
+  if (homeLocationId === 36372) return "The Studio - By Copper & Cloves";
+  if (homeLocationId === 383332) return "Plash Pilates";
+  if (!homeLocationId) return "Physique 57 India";
+  return LOCATIONS.find((location) => location.id === homeLocationId)?.name ?? "Physique 57 India";
+}
+
 async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
   const isBengaluru = payload.abVariant === "bengaluru";
   const token = isBengaluru
-    ? (process.env.MOMENCE_API_TOKEN_BLR?.trim() || BENGALURU_LEADS_FALLBACK_TOKEN)
+    ? process.env.MOMENCE_API_TOKEN_BLR?.trim() || BENGALURU_LEADS_FALLBACK_TOKEN
     : process.env.MOMENCE_API_TOKEN;
   if (!token) {
     console.warn("MOMENCE_API_TOKEN not set - skipping lead capture");
@@ -305,8 +304,12 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       whatsapp_consent_at: payload.whatsappConsentAt ?? "",
       event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? "prospect"}_${Date.now()}`,
       utm_source: payload.utmSource ?? "website",
-      utm_medium: payload.utmMedium ?? (payload.abVariant === "bengaluru" ? "bengaluru-landing" : "trial-landing"),
-      utm_campaign: payload.utmCampaign ?? (payload.abVariant === "bengaluru" ? "bengaluru-first-class-offer" : "open-barre-trial"),
+      utm_medium:
+        payload.utmMedium ??
+        (payload.abVariant === "bengaluru" ? "bengaluru-landing" : "trial-landing"),
+      utm_campaign:
+        payload.utmCampaign ??
+        (payload.abVariant === "bengaluru" ? "bengaluru-first-class-offer" : "open-barre-trial"),
       utm_term: payload.utmTerm ?? "",
       utm_content: payload.utmContent ?? "",
       gclid: payload.gclid ?? "",
@@ -322,14 +325,17 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
     };
 
     const leadsHostId = isBengaluru ? BENGALURU_LEADS_HOST_ID : 13752;
-    const res = await fetch(`https://api.momence.com/integrations/customer-leads/${leadsHostId}/collect`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const res = await fetch(
+      `https://api.momence.com/integrations/customer-leads/${leadsHostId}/collect`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(leadBody),
       },
-      body: JSON.stringify(leadBody),
-    });
+    );
     if (!res.ok) {
       const t = await res.text();
       console.error("Lead capture failed:", res.status, t);
@@ -446,8 +452,7 @@ const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
     });
   },
   captureLead,
-  resolveCenterName: (homeLocationId) =>
-    LOCATIONS.find((l) => l.id === homeLocationId)?.name ?? "Physique 57 India",
+  resolveCenterName: webhookCenterForLocationId,
 };
 
 export const signupAndEnroll = createServerFn({ method: "POST" })
@@ -495,7 +500,7 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       lastName: memberRequest.body.lastName,
       email: data.email,
       phoneE164,
-      center: LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India",
+      center: webhookCenterForLocationId(data.homeLocationId),
       waiverAccepted: true,
       whatsappConsent: data.whatsappConsent ?? false,
       whatsappConsentAt: data.whatsappConsentAt,
@@ -529,9 +534,7 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => PartialLeadInput.parse(input))
   .handler(async ({ data }) => {
     const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
-    const center = data.homeLocationId
-      ? (LOCATIONS.find((l) => l.id === data.homeLocationId)?.name ?? "Physique 57 India")
-      : "Physique 57 India";
+    const center = webhookCenterForLocationId(data.homeLocationId);
 
     const lead = await captureLead({
       firstName: data.firstName,

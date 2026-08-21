@@ -11,6 +11,7 @@ import {
   findCompatibleBoughtMembershipId,
   findMembershipIncompatibility,
   OPEN_BARRE_MEMBERSHIP_ID,
+  BENGALURU_PLASH_PILATES_LOCATION_ID,
   isBengaluruLocation,
   type CompatibleMembershipsResponse,
 } from "./momence-booking.helpers";
@@ -57,18 +58,18 @@ export const listSessions = createServerFn({ method: "POST" })
     const start = new Date();
     const end = new Date(Date.now() + data.daysAhead * 24 * 60 * 60 * 1000);
     const isBengaluru = isBengaluruLocation(data.locationId);
+    const isPlashPilates = data.locationId === BENGALURU_PLASH_PILATES_LOCATION_ID;
     const params = new URLSearchParams({
       page: "0",
       pageSize: isBengaluru ? "200" : "100",
       sortBy: "startsAt",
       sortOrder: "ASC",
-      locationId: String(data.locationId),
+      ...(!isPlashPilates ? { locationId: String(data.locationId) } : {}),
       startAfter: start.toISOString(),
       startBefore: end.toISOString(),
-      ...(isBengaluru
-        ? { includeCancelled: "false", includeChildLocations: "true" }
-        : {}),
+      ...(isBengaluru ? { includeCancelled: "false", includeChildLocations: "true" } : {}),
     });
+    if (isPlashPilates) params.append("tagIds[]", "383332");
     const res = await momenceFetch<{ payload: HostSession[] }>(
       `/host/sessions?${params.toString()}`,
       {},

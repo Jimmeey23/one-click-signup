@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildRespondIoContactBody } from "./momence.functions.ts";
+import { buildRespondIoContactBody, webhookCenterForLocationId } from "./momence.functions.ts";
 
 describe("respond.io contact body", () => {
   it("includes center and classType as custom fields alongside name/email/phone", () => {
@@ -40,5 +40,13 @@ describe("respond.io contact body", () => {
       { name: "classType", value: "Barre" },
       { name: "whatsappConsent", value: "not_opted_in" },
     ]);
+  });
+});
+
+describe("Bengaluru webhook center mapping", () => {
+  it("uses the required center labels for every Bengaluru destination", () => {
+    assert.equal(webhookCenterForLocationId(22116), "Kenkere House");
+    assert.equal(webhookCenterForLocationId(36372), "The Studio - By Copper & Cloves");
+    assert.equal(webhookCenterForLocationId(383332), "Plash Pilates");
   });
 });

@@ -34,6 +34,7 @@ import {
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
 import { isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
+import { MomenceWidget } from "@/components/MomenceWidget";
 import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
@@ -51,7 +52,7 @@ import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.jpg"
 import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg";
 import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
 
-const logoUrl = "/physique57-logo.png";
+const logoUrl = "/physique57-logo-dark.png";
 
 const HERO_QUOTES = [
   "Meet the workout your body will thank you for.",
@@ -147,11 +148,13 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
     description:
       "Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
     ogTitle: "Physique 57 India - Discover the workout everyone talks about.",
-    ogDescription: "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
+    ogDescription:
+      "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
     heroLocationLine: "Mumbai · Bengaluru",
     statLabel: "studios",
     signupCta: "Claim Your Trial Class",
-    landingNote: "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile.",
+    landingNote:
+      "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile.",
   },
   bengaluru: {
     title: "Physique 57 Bengaluru - First class 50% off",
@@ -189,6 +192,7 @@ export function OpenBarreLanding({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waiverFailed, setWaiverFailed] = useState(false);
+  const [schedulePreviewLocationId, setSchedulePreviewLocationId] = useState(22116);
   const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
   const [variant] = useState(() => getVariant());
   const variantCopy = VARIANT_COPY[variant];
@@ -241,7 +245,8 @@ export function OpenBarreLanding({
     if (phoneNumber) updates.phoneNumber = phoneNumber;
 
     const countryCode = params.get("countryCode") || params.get("country_code");
-    const countryIso = params.get("countryIso") || params.get("country_iso") || params.get("country");
+    const countryIso =
+      params.get("countryIso") || params.get("country_iso") || params.get("country");
     const dial = params.get("dial");
 
     if (dial) {
@@ -274,7 +279,10 @@ export function OpenBarreLanding({
     if (center && !locationId) {
       const normalized = center.toLowerCase().replace(/[^a-z0-9]/g, "");
       const matched = LOCATIONS.find((loc) =>
-        loc.name.toLowerCase().replace(/[^a-z0-9]/g, "").includes(normalized),
+        loc.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "")
+          .includes(normalized),
       );
       if (matched) {
         updates.homeLocationId = matched.id as number;
@@ -303,7 +311,9 @@ export function OpenBarreLanding({
 
   useEffect(() => {
     const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
-    setForm((prev) => (prev.signatureName === fullName ? prev : { ...prev, signatureName: fullName }));
+    setForm((prev) =>
+      prev.signatureName === fullName ? prev : { ...prev, signatureName: fullName },
+    );
   }, [form.firstName, form.lastName]);
 
   useEffect(() => {
@@ -366,6 +376,7 @@ export function OpenBarreLanding({
     variant,
     routeSource,
     submitPartialLead,
+    isBengaluru,
   ]);
 
   function handleSignChange(isSigned: boolean) {
@@ -374,6 +385,13 @@ export function OpenBarreLanding({
       waiverSignedTrackedRef.current = true;
       trackWaiverSigned({ variant });
     }
+  }
+
+  function handleViewSchedule(locationId: number) {
+    setSchedulePreviewLocationId(locationId);
+    window.requestAnimationFrame(() => {
+      document.getElementById("bengaluru-schedule")?.scrollIntoView({ behavior: "smooth" });
+    });
   }
 
   const valid = useMemo(
@@ -509,12 +527,17 @@ export function OpenBarreLanding({
     <div className="min-h-screen bg-background text-foreground">
       <Header studioVariant={studioVariant} />
 
-      <section className="relative overflow-hidden">
+      <section className="hero-shell relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="hero-image absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${groupBarre})` }}
           aria-hidden
         />
+        <div
+          className="hero-glow absolute -left-32 top-1/3 h-80 w-80 rounded-full bg-primary/20 blur-3xl"
+          aria-hidden
+        />
+        <div className="hero-grid absolute inset-0 opacity-20" aria-hidden />
         <div
           className="absolute inset-0"
           style={{
@@ -523,18 +546,19 @@ export function OpenBarreLanding({
           }}
           aria-hidden
         />
-        <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24 grid lg:grid-cols-[0.9fr_1.25fr] gap-12 lg:gap-14 items-start text-white">
-          <div className="pt-4">
-            <p className="text-[11px] uppercase tracking-[0.35em] text-primary font-bold mb-6">
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-6 pt-32 pb-16 lg:pt-36 lg:pb-24 grid lg:grid-cols-[0.88fr_1.12fr] gap-12 lg:gap-16 items-start text-white">
+          <div className="pt-2 lg:sticky lg:top-32">
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold mb-7 backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
               {studioConfig.heroLocationLine}
             </p>
-            <h1 className="font-display text-[clamp(2.25rem,5.5vw,4.25rem)] leading-[1.05] tracking-tight">
+            <h1 className="max-w-xl font-display text-[clamp(3rem,6vw,5.5rem)] leading-[0.94] tracking-[-0.035em] text-balance">
               {heroQuote}
             </h1>
-            <p className="mt-8 max-w-md text-base md:text-lg text-white/75 leading-relaxed">
+            <p className="mt-7 max-w-lg text-base md:text-lg text-white/72 leading-relaxed text-pretty">
               {studioConfig.description}
             </p>
-            <div className="mt-10 grid grid-cols-3 gap-6 max-w-md">
+            <div className="mt-9 grid grid-cols-3 gap-3 max-w-lg border-t border-white/15 pt-7">
               <Stat n="57" label="minutes" />
               <Stat n={isBengaluru ? "8" : "3"} label={studioConfig.statLabel} />
               <Stat n="∞" label="energy" />
@@ -554,11 +578,12 @@ export function OpenBarreLanding({
             onStudioSelectedChange={setStudioSelected}
             ctaLabel={isBengaluru ? studioConfig.signupCta : variantCopy.ctaLabel}
             studioVariant={studioVariant}
+            onViewSchedule={handleViewSchedule}
           />
         </div>
       </section>
 
-      <section className="bg-foreground text-background overflow-hidden py-6 border-y border-border/20">
+      <section className="bg-foreground text-background overflow-hidden py-5 border-y border-white/10">
         <div className="flex gap-12 animate-marquee whitespace-nowrap font-display text-3xl md:text-4xl italic">
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex gap-12 items-center">
@@ -582,7 +607,7 @@ export function OpenBarreLanding({
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
+      <section className="section-wash max-w-7xl mx-auto px-5 sm:px-6 py-20 lg:py-28">
         <div className="max-w-2xl mb-14">
           <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
             The Physique 57 Method & Key Benefits
@@ -591,8 +616,8 @@ export function OpenBarreLanding({
             Engineered to <em className="italic">reshape</em> you in 57 minutes.
           </h2>
           <p className="mt-5 text-base text-muted-foreground leading-relaxed">
-            The proven advantages that make Physique 57 India the preferred choice for fast,
-            visible results and sustainable transformation.
+            The proven advantages that make Physique 57 India the preferred choice for fast, visible
+            results and sustainable transformation.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
@@ -620,17 +645,33 @@ export function OpenBarreLanding({
       </section>
 
       <FlippingGallery
-        slots={[
-          [heroBike, trainer2, cycleShot],
-          [intenseFace, trainer3, sculptSide],
-          [kettlebellPink, trainer4, trainerLunge],
-          [sculptSide, trainerArm, heroBike],
-        ]}
+        slots={
+          isBengaluru
+            ? [
+                [groupBarre, trainer2, trainerLunge],
+                [intenseFace, trainer3, sculptSide],
+                [kettlebellPink, trainer4, lunge],
+                [sculptSide, trainerArm, groupBarre],
+              ]
+            : [
+                [heroBike, trainer2, cycleShot],
+                [intenseFace, trainer3, sculptSide],
+                [kettlebellPink, trainer4, trainerLunge],
+                [sculptSide, trainerArm, heroBike],
+              ]
+        }
       />
 
       <WhatHappensNext />
 
-      <StudioLocations studioVariant={studioVariant} />
+      <StudioLocations studioVariant={studioVariant} onViewSchedule={handleViewSchedule} />
+
+      {isBengaluru && (
+        <BengaluruSchedulePreview
+          locationId={schedulePreviewLocationId}
+          onLocationChange={setSchedulePreviewLocationId}
+        />
+      )}
 
       <section className="bg-secondary py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
@@ -644,7 +685,23 @@ export function OpenBarreLanding({
               </h2>
             </div>
           </div>
-          <ReviewsCarousel studioVariant={studioVariant} />
+          {isBengaluru ? (
+            <MomenceWidget
+              containerId="momence-plugin-reviews"
+              src="https://momence.com/plugin/reviews/reviews.js"
+              attrs={{
+                host_id: "33905",
+                is_profile_picture_enabled: "true",
+                is_text_only_enabled: "true",
+                is_session_and_teacher_info_enabled: "true",
+                layout: "horizontal",
+                signature: "959604fd4a03ccec0aaf901acf989c81a4ce3ab9a7e4e4325f0dc469ac918f94",
+              }}
+              className="momence-reviews min-h-56"
+            />
+          ) : (
+            <ReviewsCarousel studioVariant={studioVariant} />
+          )}
         </div>
       </section>
 
@@ -656,10 +713,10 @@ export function OpenBarreLanding({
 function Header({ studioVariant }: { studioVariant: StudioVariant }) {
   const isBengaluru = studioVariant === "bengaluru";
   return (
-    <header className="absolute top-0 inset-x-0 z-20">
-      <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+    <header className="absolute top-0 inset-x-0 z-20 border-b border-white/10 bg-black/10 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logoUrl} alt="Physique 57" className="h-10 w-auto brightness-0 invert" />
+          <img src={logoUrl} alt="Physique 57" className="brand-logo h-10 w-auto" />
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-[0.2em] text-white/70 font-bold">
           <Link to="/about" className="hover:text-primary transition">
@@ -689,7 +746,7 @@ function Header({ studioVariant }: { studioVariant: StudioVariant }) {
         </nav>
         <a
           href="#signup"
-          className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-white/10 text-white border border-white/25 backdrop-blur-md text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition"
+          className="hidden sm:inline-flex h-11 px-6 items-center rounded-full bg-primary text-foreground border border-primary/60 text-[11px] font-bold uppercase tracking-[0.16em] shadow-[0_8px_30px_rgba(127,211,247,0.22)] hover:-translate-y-0.5 hover:bg-white transition duration-200"
         >
           Claim Your Trial Class
         </a>
@@ -700,9 +757,11 @@ function Header({ studioVariant }: { studioVariant: StudioVariant }) {
 
 function Stat({ n, label }: { n: string; label: string }) {
   return (
-    <div>
-      <div className="font-display text-4xl text-primary leading-none">{n}</div>
-      <div className="mt-2 text-[10px] uppercase tracking-[0.25em] text-white/60">{label}</div>
+    <div className="rounded-xl bg-white/[0.04] px-3 py-3 ring-1 ring-white/10 backdrop-blur-sm">
+      <div className="font-display text-4xl text-primary leading-none tracking-tight">{n}</div>
+      <div className="mt-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/55">
+        {label}
+      </div>
     </div>
   );
 }
@@ -723,13 +782,13 @@ function Feature({
   body: string;
 }) {
   return (
-    <article className="group bg-card border border-border rounded-2xl overflow-hidden shadow-[var(--shadow-card)] flex flex-col">
+    <article className="feature-card group bg-card border border-border/80 rounded-[1.5rem] overflow-hidden shadow-[var(--shadow-card)] flex flex-col">
       <div
         className="aspect-[4/3] bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
         style={{ backgroundImage: `url(${img})` }}
         aria-hidden
       />
-      <div className="p-6">
+      <div className="p-6 md:p-7">
         <p className="text-[10px] uppercase tracking-[0.3em] text-primary-deep font-bold mb-2">
           {tag}
         </p>
@@ -877,12 +936,14 @@ const MUMBAI_STUDIOS = [
     location: "Bandra West",
     phone: "97696 65757",
     hours: "Mon-Sat: 6:00 AM - 9:00 PM | Sun: 7:00 AM - 7:00 PM",
-    address: "203, Supreme Headquarters, Junction of 14th & 33rd Rd, opposite Monkey Bar, Bandra West, Mumbai 400050",
+    address:
+      "203, Supreme Headquarters, Junction of 14th & 33rd Rd, opposite Monkey Bar, Bandra West, Mumbai 400050",
   },
 ];
 
 const BENGALURU_STUDIOS = [
   {
+    id: 22116,
     name: "Lavelle Road, Bengaluru",
     neighborhood: "Shanthala Nagar, Bengaluru",
     location: "Lavelle Road",
@@ -892,6 +953,7 @@ const BENGALURU_STUDIOS = [
       "1st Floor, Kenkere House, Vittal Mallya Rd, above Raymonds, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001",
   },
   {
+    id: 36372,
     name: "Indiranagar, Bengaluru",
     neighborhood: "Domlur, Bengaluru",
     location: "Indiranagar",
@@ -900,9 +962,25 @@ const BENGALURU_STUDIOS = [
     address:
       "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",
   },
+  {
+    id: 383332,
+    name: "Plash Pilates, Sadashivnagar",
+    neighborhood: "Vyalikaval, Bengaluru",
+    location: "Sadashivnagar",
+    phone: "97696 65757",
+    hours: "See the live schedule for current class timings",
+    address:
+      "72/14, 2nd Main Rd, next to namdharis fresh, Vyalikaval, Kodandarampura, Malleshwaram, Bengaluru, Karnataka 560003",
+  },
 ];
 
-function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
+function StudioLocations({
+  studioVariant,
+  onViewSchedule,
+}: {
+  studioVariant: StudioVariant;
+  onViewSchedule: (locationId: number) => void;
+}) {
   const STUDIOS = studioVariant === "bengaluru" ? BENGALURU_STUDIOS : MUMBAI_STUDIOS;
   return (
     <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
@@ -918,7 +996,7 @@ function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
           format mix.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {STUDIOS.map((studio) => (
           <div
             key={studio.name}
@@ -936,66 +1014,165 @@ function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
             </div>
 
             <div className="p-7">
-            <h3 className="font-display text-2xl tracking-tight">{studio.name}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{studio.neighborhood}</p>
+              <h3 className="font-display text-2xl tracking-tight">{studio.name}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{studio.neighborhood}</p>
 
-            <dl className="mt-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
-                <div>
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    Location
-                  </dt>
-                  <dd className="text-sm">{studio.location}</dd>
+              <dl className="mt-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <MapPin
+                    className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                      Location
+                    </dt>
+                    <dd className="text-sm">{studio.location}</dd>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
-                <div>
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    Phone
-                  </dt>
-                  <dd className="text-sm">
-                    <a
-                      href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
-                      className="hover:text-primary-deep transition"
-                    >
-                      {studio.phone}
-                    </a>
-                  </dd>
+                <div className="flex items-start gap-3">
+                  <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
+                  <div>
+                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                      Phone
+                    </dt>
+                    <dd className="text-sm">
+                      <a
+                        href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
+                        className="hover:text-primary-deep transition"
+                      >
+                        {studio.phone}
+                      </a>
+                    </dd>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
-                <div>
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    Hours
-                  </dt>
-                  <dd className="text-sm">{studio.hours}</dd>
+                <div className="flex items-start gap-3">
+                  <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
+                  <div>
+                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                      Hours
+                    </dt>
+                    <dd className="text-sm">{studio.hours}</dd>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <FileText className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
-                <div>
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    Address
-                  </dt>
-                  <dd className="text-sm">{studio.address}</dd>
+                <div className="flex items-start gap-3">
+                  <FileText
+                    className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                      Address
+                    </dt>
+                    <dd className="text-sm">{studio.address}</dd>
+                  </div>
                 </div>
-              </div>
-            </dl>
+              </dl>
 
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-foreground px-5 text-xs font-bold uppercase tracking-[0.15em] text-background hover:opacity-90 transition"
-            >
-              Get Directions
-            </a>
+              <div className="mt-6 flex flex-wrap gap-2">
+                {"id" in studio && (
+                  <button
+                    type="button"
+                    onClick={() => onViewSchedule(studio.id)}
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-foreground px-5 text-xs font-bold uppercase tracking-[0.15em] text-background transition hover:opacity-90"
+                  >
+                    View Schedule
+                  </button>
+                )}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-background px-5 text-xs font-bold uppercase tracking-[0.15em] text-foreground transition hover:border-primary-deep"
+                >
+                  Directions
+                </a>
+              </div>
             </div>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+const BENGALURU_SCHEDULE_CENTERS = [
+  { id: 22116, name: "Kenkere House", area: "Lavelle Road" },
+  { id: 36372, name: "The Studio - By Copper & Cloves", area: "Indiranagar" },
+  { id: 383332, name: "Plash Pilates", area: "Sadashivnagar" },
+] as const;
+
+function BengaluruSchedulePreview({
+  locationId,
+  onLocationChange,
+}: {
+  locationId: number;
+  onLocationChange: (locationId: number) => void;
+}) {
+  const locationIds = locationId === 383332 ? "[]" : `[${locationId}]`;
+  const tagIds = locationId === 383332 ? "[383332]" : "[]";
+
+  return (
+    <section
+      id="bengaluru-schedule"
+      className="scroll-mt-6 border-y border-border bg-background py-20 lg:py-24"
+    >
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="max-w-2xl">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary-deep">
+            Live Schedule
+          </p>
+          <h2 className="mt-3 font-display text-4xl tracking-tight md:text-5xl">
+            Find your next class.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Preview live availability by center. You’ll return here after creating your member
+            profile to see rates and complete checkout.
+          </p>
+        </div>
+
+        <div
+          className="mt-8 grid gap-2.5 sm:grid-cols-3"
+          role="tablist"
+          aria-label="Schedule center"
+        >
+          {BENGALURU_SCHEDULE_CENTERS.map((center) => {
+            const selected = center.id === locationId;
+            return (
+              <button
+                key={center.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => onLocationChange(center.id)}
+                className={`rounded-xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  selected
+                    ? "border-primary-deep bg-primary/12 shadow-sm"
+                    : "border-border bg-card hover:border-primary/70"
+                }`}
+              >
+                <span className="block text-sm font-bold text-foreground">{center.name}</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">{center.area}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <MomenceWidget
+          containerId="ribbon-schedule"
+          src="https://momence.com/plugin/host-schedule/host-schedule.js"
+          attrs={{
+            host_id: "33905",
+            teacher_ids: "[]",
+            location_ids: locationIds,
+            tag_ids: tagIds,
+            hide_tags: "true",
+            default_filter: "show-all",
+            locale: "en",
+            lock_timezone: "Asia/Kolkata",
+          }}
+          className="momence-schedule mt-8 min-h-[520px]"
+        />
       </div>
     </section>
   );
@@ -1014,6 +1191,7 @@ function SignupCard({
   onStudioSelectedChange,
   ctaLabel,
   studioVariant,
+  onViewSchedule,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
@@ -1027,6 +1205,7 @@ function SignupCard({
   onStudioSelectedChange: (selected: boolean) => void;
   ctaLabel: string;
   studioVariant: StudioVariant;
+  onViewSchedule: (locationId: number) => void;
 }) {
   const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
   const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
@@ -1065,16 +1244,23 @@ function SignupCard({
   return (
     <div
       id="signup"
-      className="w-full bg-background text-foreground rounded-2xl p-7 md:p-8 shadow-[var(--shadow-elegant)] border border-white/10"
+      className="signup-card w-full bg-background/95 text-foreground rounded-[1.75rem] p-6 sm:p-7 md:p-9 shadow-[var(--shadow-form)] border border-white/60 backdrop-blur-xl"
     >
-      <div>
-        <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
-          Activate your trial
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">Takes 60 seconds. No card required.</p>
+      <div className="flex items-start justify-between gap-4 border-b border-border/80 pb-6">
+        <div>
+          <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
+            Activate your trial
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            Takes 60 seconds. No card required.
+          </p>
+        </div>
+        <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
+          Complimentary
+        </span>
       </div>
 
-      <form onSubmit={onSubmit} className="mt-7 space-y-5">
+      <form onSubmit={onSubmit} className="mt-6 space-y-6">
         <div className="space-y-3.5">
           <div className="grid grid-cols-2 gap-3">
             <Field
@@ -1153,8 +1339,8 @@ function SignupCard({
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-input"
             />
             <span>
-              Yes, send me class reminders and updates on WhatsApp at the number above. I can
-              reply STOP anytime to opt out.
+              Yes, send me class reminders and updates on WhatsApp at the number above. I can reply
+              STOP anytime to opt out.
             </span>
           </label>
         </div>
@@ -1164,24 +1350,89 @@ function SignupCard({
             <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
               Preferred studio *
             </label>
-            <select
-              required
-              className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              value={form.homeLocationId}
-              onChange={(e) => {
-                setForm({ ...form, homeLocationId: Number(e.target.value) });
-                onStudioSelectedChange(true);
-              }}
-            >
-              <option value={0} disabled>
-                -- Select studio --
-              </option>
-              {LOCATIONS.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
+            {isBengaluru ? (
+              <div
+                className="grid gap-2.5 sm:grid-cols-3"
+                role="radiogroup"
+                aria-label="Preferred studio"
+              >
+                {LOCATIONS.map((location) => {
+                  const selected = form.homeLocationId === location.id;
+                  const cardCopy =
+                    location.id === 22116
+                      ? { name: "Kenkere House", area: "Lavelle Road" }
+                      : location.id === 36372
+                        ? { name: "The Studio - By Copper & Cloves", area: "Indiranagar" }
+                        : { name: "Plash Pilates", area: "Sadashivnagar" };
+                  return (
+                    <button
+                      key={location.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => {
+                        setForm({ ...form, homeLocationId: location.id });
+                        onStudioSelectedChange(true);
+                      }}
+                      className={`group relative min-h-24 rounded-xl border p-3.5 text-left transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        selected
+                          ? "border-primary-deep bg-primary/12 shadow-[0_8px_24px_rgba(64,170,215,0.13)]"
+                          : "border-border bg-background hover:-translate-y-0.5 hover:border-primary/70 hover:bg-primary/[0.05]"
+                      }`}
+                    >
+                      <span
+                        className={`mb-3 flex h-7 w-7 items-center justify-center rounded-full ${
+                          selected
+                            ? "bg-primary text-foreground"
+                            : "bg-secondary text-primary-deep group-hover:bg-primary/20"
+                        }`}
+                      >
+                        {selected ? (
+                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : (
+                          <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="block text-xs font-bold leading-snug text-foreground">
+                        {cardCopy.name}
+                      </span>
+                      <span className="mt-1 block text-[10px] leading-snug text-muted-foreground">
+                        {cardCopy.area}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <select
+                required
+                className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                value={form.homeLocationId}
+                onChange={(e) => {
+                  setForm({ ...form, homeLocationId: Number(e.target.value) });
+                  onStudioSelectedChange(true);
+                }}
+              >
+                <option value={0} disabled>
+                  -- Select studio --
                 </option>
-              ))}
-            </select>
+                {LOCATIONS.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {isBengaluru && form.homeLocationId > 0 && (
+              <button
+                type="button"
+                onClick={() => onViewSchedule(form.homeLocationId)}
+                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary-deep underline decoration-primary/40 underline-offset-4 transition hover:text-foreground"
+              >
+                View selected center schedule
+                <span aria-hidden="true">↗</span>
+              </button>
+            )}
           </div>
 
           {studioSelected && !isBengaluru && (
@@ -1190,8 +1441,7 @@ function SignupCard({
                 Class type *
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {classTypeOptionsForLocation(form.homeLocationId)
-                  .map((key) => {
+                {classTypeOptionsForLocation(form.homeLocationId).map((key) => {
                   const classFormat = classFormatForKey(key);
                   const selected = form.classType === key;
                   const showDescription =
@@ -1243,9 +1493,8 @@ function SignupCard({
 
         <div className="space-y-3.5">
           <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
-            {studioVariant === "bengaluru"
-              ? "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile."
-              : "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile."}
+            Please review and sign before activating Open Barre. This consent is recorded with your
+            Momence member profile.
           </p>
 
           <details className="group/waiver rounded-lg border border-border bg-background open:pb-3">
@@ -1268,7 +1517,6 @@ function SignupCard({
                 I consent to receive class-related communications and agree to the{" "}
                 <Link
                   to="/waiver"
-                  search={isBengaluru ? { studio: "bengaluru" } : undefined}
                   className="font-semibold text-primary-deep underline underline-offset-2"
                 >
                   Waiver
@@ -1276,7 +1524,6 @@ function SignupCard({
                 and{" "}
                 <Link
                   to="/privacy"
-                  search={isBengaluru ? { studio: "bengaluru" } : undefined}
                   className="font-semibold text-primary-deep underline underline-offset-2"
                 >
                   Privacy Policy
@@ -1290,9 +1537,9 @@ function SignupCard({
             type="text"
             required
             value={form.signatureName}
-            onChange={(e) => setForm({ ...form, signatureName: e.target.value })}
             placeholder="Type your full legal name"
-            className="w-full h-10 px-3 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            readOnly
+            className="w-full h-10 px-3 rounded-lg border border-input bg-secondary/60 text-foreground text-sm cursor-default focus:outline-none focus:ring-2 focus:ring-ring"
             aria-label="Full legal name"
           />
           <div onPointerUp={() => onSignChange(!(sigRef.current?.isEmpty() ?? true))}>
@@ -1307,9 +1554,7 @@ function SignupCard({
               className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--primary)]"
             />
             <span className="text-xs text-foreground leading-relaxed">
-              {studioVariant === "bengaluru"
-                ? "I have read, signed, and accept the waiver and Physique 57 India's privacy terms for Bengaluru bookings."
-                : "I have read, signed, and accept the waiver and Physique 57 India's privacy terms."}
+              I have read, signed, and accept the waiver and Physique 57 India&apos;s privacy terms.
             </span>
           </label>
         </div>
@@ -1321,7 +1566,7 @@ function SignupCard({
         <button
           type="submit"
           disabled={loading || !valid}
-          className="w-full h-12 rounded-full bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full h-13 rounded-full bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs shadow-[0_12px_28px_rgba(10,14,20,0.18)] hover:-translate-y-0.5 hover:bg-primary hover:text-foreground transition duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0"
         >
           {loading
             ? "Activating membership…"

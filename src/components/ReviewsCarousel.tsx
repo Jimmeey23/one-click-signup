@@ -107,10 +107,10 @@ export function ReviewsCarousel({
             className="group w-full shrink-0 basis-full px-2 md:basis-1/3"
             aria-hidden={i < step || i >= step + VISIBLE_DESKTOP}
           >
-            <div className="h-full rounded-lg border border-[#e8eaed] bg-white p-5 shadow-[0_1px_2px_rgb(60_64_67/0.08)] transition duration-200 hover:shadow-[0_1px_6px_rgb(60_64_67/0.18)]">
+            <div className="h-full rounded-[1.5rem] border border-border/80 bg-card p-6 shadow-[var(--shadow-card)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]">
               <div className="flex items-center gap-3">
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-medium text-white"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ring-4 ring-primary/10"
                   style={{ backgroundColor: avatarColorFor(r.name) }}
                   aria-hidden="true"
                 >
