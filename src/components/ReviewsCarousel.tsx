@@ -74,6 +74,7 @@ export function ReviewsCarousel({
   const [bengaluruReviews, setBengaluruReviews] = useState<Review[]>([]);
   const [reviewsFailed, setReviewsFailed] = useState(false);
   const reviews = studioVariant === "bengaluru" ? bengaluruReviews : REVIEWS;
+  const isBengaluru = studioVariant === "bengaluru";
   // Extra copies of the deck appended so the track always has cards to slide in from the right.
   const track = [...reviews, ...reviews.slice(0, VISIBLE_DESKTOP)];
   const [step, setStep] = useState(0);
@@ -157,53 +158,100 @@ export function ReviewsCarousel({
         {track.map((r, i) => (
           <article
             key={i}
-            className="group w-full shrink-0 basis-full px-2 md:basis-1/3"
+            className={`group w-full shrink-0 basis-full md:basis-1/3 ${
+              isBengaluru ? "px-1.5 sm:px-2.5" : "px-2"
+            }`}
             aria-hidden={i < step || i >= step + VISIBLE_DESKTOP}
           >
-            <div className="relative flex h-full min-h-[220px] flex-col overflow-hidden rounded-[1.35rem] border border-border/70 bg-gradient-to-br from-card via-card to-primary/[0.05] p-5 shadow-[0_14px_38px_-30px_rgba(15,23,42,0.42)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_20px_45px_-30px_rgba(15,23,42,0.46)]">
+            <div
+              className={`relative flex h-full min-h-[220px] flex-col overflow-hidden p-5 transition duration-300 ease-out hover:-translate-y-0.5 ${
+                isBengaluru
+                  ? "rounded-[1.4rem] border border-black/[0.06] bg-white/95 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.32)] ring-1 ring-white/80 hover:border-primary/30 hover:shadow-[0_22px_50px_-28px_rgba(15,23,42,0.4)]"
+                  : "rounded-[1.35rem] border border-border/70 bg-gradient-to-br from-card via-card to-primary/[0.05] shadow-[0_14px_38px_-30px_rgba(15,23,42,0.42)] hover:border-primary/35 hover:shadow-[0_20px_45px_-30px_rgba(15,23,42,0.46)]"
+              }`}
+            >
               <span
-                className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent"
+                className={`absolute top-0 h-px bg-gradient-to-r from-transparent to-transparent ${
+                  isBengaluru ? "inset-x-5 via-primary-deep/80" : "inset-x-8 via-primary/70"
+                }`}
                 aria-hidden="true"
               />
 
               <div className="flex items-center justify-between gap-4">
                 <div
-                  className="flex items-center gap-1"
+                  className={`flex items-center ${
+                    isBengaluru
+                      ? "gap-1.5 rounded-full border border-[#e5a900]/15 bg-[#e5a900]/[0.07] px-2.5 py-1"
+                      : "gap-1"
+                  }`}
                   aria-label={`${r.rating ?? 5} out of 5 stars`}
                 >
+                  {isBengaluru && (
+                    <span className="text-[11px] font-bold tabular-nums text-[#9a7200]">
+                      {(r.rating ?? 5).toFixed(1)}
+                    </span>
+                  )}
                   {Array.from({ length: 5 }).map((_, starIdx) => (
                     <Star
                       key={starIdx}
-                      className={`h-3.5 w-3.5 ${
+                      className={`${isBengaluru ? "h-3 w-3" : "h-3.5 w-3.5"} ${
                         starIdx < (r.rating ?? 5)
                           ? "fill-[#E5A900] text-[#E5A900]"
                           : "fill-border text-border"
                       }`}
                     />
-                  ))}
+                ))}
                 </div>
-                <Quote
-                  className="h-5 w-5 fill-primary/10 text-primary-deep/40"
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
+                <span
+                  className={
+                    isBengaluru
+                      ? "flex h-8 w-8 items-center justify-center rounded-full bg-primary/[0.12]"
+                      : undefined
+                  }
+                >
+                  <Quote
+                    className={`${isBengaluru ? "h-4 w-4" : "h-5 w-5"} fill-primary/10 text-primary-deep/45`}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                  />
+                </span>
               </div>
 
               <blockquote className="mt-3.5 flex-1">
-                <p className="text-sm leading-6 text-foreground/85">“{r.text}”</p>
+                <p
+                  className={`text-sm leading-6 ${
+                    isBengaluru
+                      ? "font-medium tracking-[-0.01em] text-foreground/80"
+                      : "text-foreground/85"
+                  }`}
+                >
+                  “{r.text}”
+                </p>
               </blockquote>
 
-              <div className="mt-4 flex items-center gap-2.5 border-t border-border/65 pt-3.5">
+              <div
+                className={`mt-4 flex items-center gap-2.5 border-t pt-3.5 ${
+                  isBengaluru ? "border-black/[0.06]" : "border-border/65"
+                }`}
+              >
                 {r.profileImage ? (
                   <img
                     src={r.profileImage}
                     alt=""
-                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border"
+                    className={`h-9 w-9 shrink-0 rounded-full object-cover ${
+                      isBengaluru
+                        ? "ring-2 ring-primary/15"
+                        : "ring-1 ring-border"
+                    }`}
                     loading="lazy"
                   />
                 ) : (
                   <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background ring-2 ring-primary/10"
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-2 ring-primary/10 ${
+                      isBengaluru
+                        ? "bg-gradient-to-br from-primary-deep to-[#176f91] text-white"
+                        : "bg-foreground text-background"
+                    }`}
                     aria-hidden="true"
                   >
                     {initialFor(r.name)}
@@ -214,7 +262,11 @@ export function ReviewsCarousel({
                     {r.name}
                   </p>
                   {r.meta && (
-                    <p className="mt-0.5 truncate text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                    <p
+                      className={`mt-0.5 truncate text-[11px] text-muted-foreground ${
+                        isBengaluru ? "font-medium" : "uppercase tracking-[0.08em]"
+                      }`}
+                    >
                       {r.meta}
                     </p>
                   )}
