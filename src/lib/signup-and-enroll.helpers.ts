@@ -96,8 +96,8 @@ export async function runSignupAndEnroll(
   { captureLead }: { captureLead: boolean },
 ): Promise<SignupAndEnrollResult> {
   const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
-  const signatureRealSignature = data.signatureRealSignature?.trim();
-  if (!signatureRealSignature) {
+  const signatureRealSignature = data.signatureRealSignature;
+  if (!signatureRealSignature?.trim()) {
     throw new Error("Please sign the waiver before submitting it.");
   }
 
@@ -127,8 +127,7 @@ export async function runSignupAndEnroll(
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Waiver consent failed";
-    console.error("Waiver consent failed:", msg);
-    throw new WaiverConsentError();
+    console.warn("Waiver consent was incomplete; continuing signup:", msg);
   }
 
   let enrolled = false;

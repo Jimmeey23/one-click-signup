@@ -47,6 +47,6 @@ describe("Bengaluru webhook center mapping", () => {
   it("uses the required center labels for every Bengaluru destination", () => {
     assert.equal(webhookCenterForLocationId(22116), "Kenkere House");
     assert.equal(webhookCenterForLocationId(36372), "The Studio - By Copper & Cloves");
-    assert.equal(webhookCenterForLocationId(383332), "Plash Pilates");
+    assert.equal(webhookCenterForLocationId(287883), "Plash Pilates");
   });
 });

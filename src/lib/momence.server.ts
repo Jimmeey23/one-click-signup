@@ -198,5 +198,5 @@ export const LOCATIONS = [
   { id: 29821, name: "Supreme HQ, Bandra" },
   { id: 22116, name: "Lavelle Road, Bengaluru" },
   { id: 36372, name: "Indiranagar, Bengaluru" },
-  { id: 383332, name: "Plash Pilates, Sadashivnagar" },
+  { id: 287883, name: "Plash Pilates, Sadashivnagar" },
 ] as const;

@@ -4,6 +4,7 @@ import {
   NEWCOMERS_2_FOR_1_STRIPE_CHARGE_PRICE_INR,
   bengaluruIntroMembershipIdForLocation,
   bengaluruIntroChargePriceInrForLocation,
+  bengaluruStripePriceIdForLocation,
   bengaluruStripeProductIdForLocation,
 } from "./momence-booking.helpers.ts";
 
@@ -48,14 +49,18 @@ function buildCheckoutMetadata(
 }
 
 type CheckoutLineItemSource =
-  | { productId: string; productName?: never; productDescription?: never }
-  | { productId?: never; productName: string; productDescription: string };
+  | { priceId: string; productId?: never; productName?: never; productDescription?: never }
+  | { priceId?: never; productId: string; productName?: never; productDescription?: never }
+  | { priceId?: never; productId?: never; productName: string; productDescription: string };
 
 function productFieldsFor(
   source: CheckoutLineItemSource,
 ): Pick<Stripe.Checkout.SessionCreateParams.LineItem.PriceData, "product" | "product_data"> {
   if (source.productId != null) return { product: source.productId };
-  return { product_data: { name: source.productName, description: source.productDescription } };
+  if (source.productName != null) {
+    return { product_data: { name: source.productName, description: source.productDescription } };
+  }
+  throw new Error("A Stripe product source is required when no Price ID is supplied.");
 }
 
 function buildCheckoutSessionParams(
@@ -64,7 +69,16 @@ function buildCheckoutSessionParams(
 ): Stripe.Checkout.SessionCreateParams {
   const { membershipId, priceInr } = params;
   const metadata = buildCheckoutMetadata(input, membershipId);
-  const productFields = productFieldsFor(params);
+  const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = params.priceId
+    ? { quantity: 1, price: params.priceId }
+    : {
+        quantity: 1,
+        price_data: {
+          currency: "inr",
+          unit_amount: Number(priceInr) * 100,
+          ...productFieldsFor(params),
+        },
+      };
 
   return {
     mode: "payment",
@@ -73,16 +87,7 @@ function buildCheckoutSessionParams(
     cancel_url: input.cancelUrl,
     metadata,
     payment_intent_data: { metadata },
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "inr",
-          unit_amount: Number(priceInr) * 100,
-          ...productFields,
-        },
-      },
-    ],
+    line_items: [lineItem],
   };
 }
 
@@ -118,6 +123,8 @@ export function buildBengaluruCheckoutSessionParams(
   return buildCheckoutSessionParams(input, {
     membershipId,
     priceInr: bengaluruIntroChargePriceInrForLocation(input.homeLocationId),
-    productId: bengaluruStripeProductIdForLocation(input.homeLocationId),
+    ...(bengaluruStripePriceIdForLocation(input.homeLocationId)
+      ? { priceId: bengaluruStripePriceIdForLocation(input.homeLocationId) as string }
+      : { productId: bengaluruStripeProductIdForLocation(input.homeLocationId) }),
   });
 }

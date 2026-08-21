@@ -10,6 +10,10 @@ import {
   membershipIdForClassName,
   MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
   NEWCOMERS_2_FOR_1_PRICE_INR,
+  BENGALURU_PLASH_PILATES_LOCATION_ID,
+  BENGALURU_PLASH_PILATES_MEMBERSHIP_ID,
+  bengaluruIntroChargePriceInrForLocation,
+  bengaluruIntroMembershipIdForLocation,
 } from "./momence-booking.helpers.ts";
 
 describe("Momence booking helpers", () => {
@@ -93,6 +97,23 @@ describe("Momence booking helpers", () => {
       originalPriceInCurrency: null,
       bookingPriceInCurrency: "1750",
       label: "Newcomers 2 for 1",
+      slashOriginalPrice: false,
+    });
+  });
+
+  it("uses the full-price Plash Pilates package without a discount", () => {
+    assert.equal(
+      bengaluruIntroMembershipIdForLocation(BENGALURU_PLASH_PILATES_LOCATION_ID),
+      BENGALURU_PLASH_PILATES_MEMBERSHIP_ID,
+    );
+    assert.equal(
+      bengaluruIntroChargePriceInrForLocation(BENGALURU_PLASH_PILATES_LOCATION_ID),
+      "1418",
+    );
+    assert.deepEqual(getSchedulePriceDisplay("Barre", BENGALURU_PLASH_PILATES_LOCATION_ID), {
+      originalPriceInCurrency: null,
+      bookingPriceInCurrency: "1350",
+      label: "Studio Single Class",
       slashOriginalPrice: false,
     });
   });

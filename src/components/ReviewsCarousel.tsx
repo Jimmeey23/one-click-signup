@@ -1,11 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import { Star } from "lucide-react";
+import { Quote, Star } from "lucide-react";
 
 type Review = {
   name: string;
   text: string;
   meta?: string;
   rating?: number;
+  profileImage?: string | null;
+};
+
+type MomenceReview = {
+  id: number;
+  comment: string;
+  grade: number;
+  reviewerName: string;
+  reviewerProfileImage?: string | null;
+  sessionName?: string | null;
+  teacherFullName?: string | null;
 };
 
 const REVIEWS: Review[] = [
@@ -47,29 +58,22 @@ const REVIEWS: Review[] = [
   },
 ];
 
-const AVATAR_COLORS = ["#1a73e8", "#d93025", "#f9ab00", "#188038", "#8430ce", "#e37400"];
-
-function avatarColorFor(name: string): string {
-  const sum = [...name].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
-}
-
 function initialFor(name: string): string {
   return name.trim().charAt(0).toUpperCase();
 }
 
 const VISIBLE_DESKTOP = 3;
-const BENGALURU_EXCLUDED_METAS = ["powerCycle", "Strength Lab"];
-const BENGALURU_REVIEWS = REVIEWS.filter(
-  (r) => !BENGALURU_EXCLUDED_METAS.some((excluded) => r.meta?.includes(excluded)),
-);
+const BENGALURU_REVIEWS_URL =
+  "https://api.momence.com/host-plugins/host/33905/reviews?pageSize=12&page=0&isFullLastNameVisible=false&isTextOnlyEnabled=true&isSessionAndTeacherInfoEnabled=true&s=959604fd4a03ccec0aaf901acf989c81a4ce3ab9a7e4e4325f0dc469ac918f94";
 
 export function ReviewsCarousel({
   studioVariant = "mumbai",
 }: {
   studioVariant?: "mumbai" | "bengaluru";
 }) {
-  const reviews = studioVariant === "bengaluru" ? BENGALURU_REVIEWS : REVIEWS;
+  const [bengaluruReviews, setBengaluruReviews] = useState<Review[]>([]);
+  const [reviewsFailed, setReviewsFailed] = useState(false);
+  const reviews = studioVariant === "bengaluru" ? bengaluruReviews : REVIEWS;
   // Extra copies of the deck appended so the track always has cards to slide in from the right.
   const track = [...reviews, ...reviews.slice(0, VISIBLE_DESKTOP)];
   const [step, setStep] = useState(0);
@@ -77,9 +81,41 @@ export function ReviewsCarousel({
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (studioVariant !== "bengaluru") return;
+    const controller = new AbortController();
+    fetch(BENGALURU_REVIEWS_URL, {
+      headers: { "x-origin": window.location.origin },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Momence reviews failed (${response.status})`);
+        return response.json() as Promise<{ payload?: MomenceReview[] }>;
+      })
+      .then(({ payload = [] }) => {
+        setBengaluruReviews(
+          payload.map((review) => ({
+            name: review.reviewerName,
+            text: review.comment,
+            meta: [review.sessionName, review.teacherFullName?.trim()]
+              .filter(Boolean)
+              .join(" · "),
+            rating: review.grade,
+            profileImage: review.reviewerProfileImage,
+          })),
+        );
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setReviewsFailed(true);
+      });
+    return () => controller.abort();
+  }, [studioVariant]);
+
+  useEffect(() => {
+    if (reviews.length === 0) return;
     const t = setInterval(() => setStep((s) => s + 1), 4500);
     return () => clearInterval(t);
-  }, []);
+  }, [reviews.length]);
 
   function handleTransitionEnd(event: React.TransitionEvent<HTMLDivElement>) {
     if (event.target !== trackRef.current || event.propertyName !== "transform") return;
@@ -88,6 +124,23 @@ export function ReviewsCarousel({
     setAnimated(false);
     setStep((s) => s % reviews.length);
     requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
+  }
+
+  if (studioVariant === "bengaluru" && reviews.length === 0) {
+    return reviewsFailed ? (
+      <p className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        Reviews are temporarily unavailable. Please try again shortly.
+      </p>
+    ) : (
+      <div className="grid gap-4 md:grid-cols-3" aria-label="Loading member reviews">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-52 animate-pulse rounded-[1.5rem] border border-border/80 bg-card"
+          />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -107,38 +160,66 @@ export function ReviewsCarousel({
             className="group w-full shrink-0 basis-full px-2 md:basis-1/3"
             aria-hidden={i < step || i >= step + VISIBLE_DESKTOP}
           >
-            <div className="h-full rounded-[1.5rem] border border-border/80 bg-card p-6 shadow-[var(--shadow-card)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]">
-              <div className="flex items-center gap-3">
-                <span
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ring-4 ring-primary/10"
-                  style={{ backgroundColor: avatarColorFor(r.name) }}
-                  aria-hidden="true"
+            <div className="relative flex h-full min-h-[220px] flex-col overflow-hidden rounded-[1.35rem] border border-border/70 bg-gradient-to-br from-card via-card to-primary/[0.05] p-5 shadow-[0_14px_38px_-30px_rgba(15,23,42,0.42)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_20px_45px_-30px_rgba(15,23,42,0.46)]">
+              <span
+                className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent"
+                aria-hidden="true"
+              />
+
+              <div className="flex items-center justify-between gap-4">
+                <div
+                  className="flex items-center gap-1"
+                  aria-label={`${r.rating ?? 5} out of 5 stars`}
                 >
-                  {initialFor(r.name)}
-                </span>
+                  {Array.from({ length: 5 }).map((_, starIdx) => (
+                    <Star
+                      key={starIdx}
+                      className={`h-3.5 w-3.5 ${
+                        starIdx < (r.rating ?? 5)
+                          ? "fill-[#E5A900] text-[#E5A900]"
+                          : "fill-border text-border"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <Quote
+                  className="h-5 w-5 fill-primary/10 text-primary-deep/40"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+              </div>
+
+              <blockquote className="mt-3.5 flex-1">
+                <p className="text-sm leading-6 text-foreground/85">“{r.text}”</p>
+              </blockquote>
+
+              <div className="mt-4 flex items-center gap-2.5 border-t border-border/65 pt-3.5">
+                {r.profileImage ? (
+                  <img
+                    src={r.profileImage}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-border"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background ring-2 ring-primary/10"
+                    aria-hidden="true"
+                  >
+                    {initialFor(r.name)}
+                  </span>
+                )}
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[#202124]">{r.name}</p>
-                  {r.meta && <p className="truncate text-xs text-[#70757a]">{r.meta}</p>}
+                  <p className="truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
+                    {r.name}
+                  </p>
+                  {r.meta && (
+                    <p className="mt-0.5 truncate text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+                      {r.meta}
+                    </p>
+                  )}
                 </div>
               </div>
-
-              <div
-                className="mt-2.5 flex items-center gap-0.5"
-                aria-label={`${r.rating ?? 5} out of 5 stars`}
-              >
-                {Array.from({ length: 5 }).map((_, starIdx) => (
-                  <Star
-                    key={starIdx}
-                    className={`h-3.5 w-3.5 ${
-                      starIdx < (r.rating ?? 5)
-                        ? "fill-[#fbbc04] text-[#fbbc04]"
-                        : "fill-[#e8eaed] text-[#e8eaed]"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <p className="mt-3 text-sm leading-6 text-[#3c4043]">{r.text}</p>
             </div>
           </article>
         ))}

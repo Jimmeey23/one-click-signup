@@ -274,7 +274,7 @@ const BENGALURU_LEADS_FALLBACK_TOKEN = "qy71rOk8en";
 export function webhookCenterForLocationId(homeLocationId: number | undefined): string {
   if (homeLocationId === 22116) return "Kenkere House";
   if (homeLocationId === 36372) return "The Studio - By Copper & Cloves";
-  if (homeLocationId === 383332) return "Plash Pilates";
+  if (homeLocationId === 287883) return "Plash Pilates";
   if (!homeLocationId) return "Physique 57 India";
   return LOCATIONS.find((location) => location.id === homeLocationId)?.name ?? "Physique 57 India";
 }
@@ -388,17 +388,27 @@ async function signMemberWaivers({
   realSignature: string;
   homeLocationId: number;
 }): Promise<{ signedCount: number; availableCount: number }> {
-  const hostId = isBengaluruLocation(homeLocationId) ? BENGALURU_MOMENCE_HOST_ID : MOMENCE_HOST_ID;
+  const isBengaluru = isBengaluruLocation(homeLocationId);
+  const hostId = isBengaluru ? BENGALURU_MOMENCE_HOST_ID : MOMENCE_HOST_ID;
+  const requiredBengaluruWaiverIds = new Set(["waiver", "membership-waiver"]);
 
   let waivers: DashboardWaiver[] = [];
-  const maxAttempts = 3;
+  const maxAttempts = isBengaluru ? 5 : 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const res = await momenceDashboardFetch<{ waivers?: DashboardWaiver[] }>(
       `/host/${hostId}/members/${memberId}/waivers`,
       { method: "GET" },
     );
     waivers = res.waivers ?? [];
-    if (waivers.length > 0) break;
+    const bengaluruWaiversReady = [...requiredBengaluruWaiverIds].every((waiverId) =>
+      waivers.some(
+        (waiver) =>
+          waiver.type === "predefined" &&
+          waiver.id === waiverId &&
+          (waiver.signatureStatus?.toLowerCase() === "signed" || Boolean(waiver.signatureKey)),
+      ),
+    );
+    if (isBengaluru ? bengaluruWaiversReady : waivers.length > 0) break;
     // Momence provisions a fresh member's waiver records asynchronously, so the
     // very first read right after createMember can briefly return none.
     if (attempt < maxAttempts) {
@@ -410,24 +420,46 @@ async function signMemberWaivers({
     throw new Error("No Momence waiver records were available for this member.");
   }
 
+  const waiversToProcess = isBengaluru
+    ? waivers.filter(
+        (waiver) =>
+          waiver.type === "predefined" &&
+          typeof waiver.id === "string" &&
+          requiredBengaluruWaiverIds.has(waiver.id),
+      )
+    : waivers;
+
+  if (isBengaluru && waiversToProcess.length !== requiredBengaluruWaiverIds.size) {
+    throw new Error("Both Bengaluru waiver and membership-waiver records are required.");
+  }
+
   const signRequests = buildDashboardPublicWaiverSignRequests({
     hostId,
     memberId,
     realSignature,
-    waivers,
+    waivers: waiversToProcess,
   });
 
   await Promise.all(
     signRequests.map((request) =>
       momenceDashboardFetch(request.path, {
         method: request.method,
-        headers: request.headers,
+        headers: {
+          ...request.headers,
+          "X-Idempotence-Key": globalThis.crypto.randomUUID(),
+        },
         body: JSON.stringify(request.body),
       }),
     ),
   );
 
-  return { signedCount: signRequests.length, availableCount: waivers.length };
+  const alreadySignedCount = waiversToProcess.filter(
+    (waiver) => waiver.signatureStatus?.toLowerCase() === "signed",
+  ).length;
+  return {
+    signedCount: alreadySignedCount + signRequests.length,
+    availableCount: waiversToProcess.length,
+  };
 }
 
 const signupAndEnrollDependencies: SignupAndEnrollDependencies = {

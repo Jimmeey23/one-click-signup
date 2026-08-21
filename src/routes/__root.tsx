@@ -80,22 +80,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Physique 57 India - Barre Sign up" },
       {
         name: "description",
-        content:
-          "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai.",
+        content: "Discover Physique 57 India studios, signature classes, and booking options.",
       },
       { property: "og:title", content: "Physique 57 India - Barre Sign up" },
       {
         property: "og:description",
-        content:
-          "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai.",
+        content: "Discover Physique 57 India studios, signature classes, and booking options.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Physique 57 India - Barre Sign up" },
       {
         name: "twitter:description",
-        content:
-          "Activate your complimentary Open Barre membership and book your first 57-minute Physique 57 class in Mumbai.",
+        content: "Discover Physique 57 India studios, signature classes, and booking options.",
       },
       {
         property: "og:image",

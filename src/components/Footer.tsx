@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
-const logoUrl = "/physique57-logo-dark.png";
+const logoUrl = "/physique57-logo-dark.png?v=79daf7";
 
 export function Footer({ studioVariant = "mumbai" }: { studioVariant?: "mumbai" | "bengaluru" }) {
   const isBengaluru = studioVariant === "bengaluru";

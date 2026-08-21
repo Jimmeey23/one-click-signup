@@ -8,11 +8,14 @@ export const OPEN_BARRE_MEMBERSHIP_ID = 33609;
 export const NEWCOMERS_2_FOR_1_MEMBERSHIP_ID = 240932;
 export const BENGALURU_LAVELLE_ROAD_LOCATION_ID = 22116;
 export const BENGALURU_INDIRANAGAR_LOCATION_ID = 36372;
-export const BENGALURU_PLASH_PILATES_LOCATION_ID = 383332;
+export const BENGALURU_PLASH_PILATES_LOCATION_ID = 287883;
+export const BENGALURU_PLASH_PILATES_TAG_ID = 383332;
 // 50%-off first-class intro pack - Lavelle Road only.
 export const BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID = 654474;
 // Indiranagar has no first-class promo; new members go on the Copper + Cloves single class package.
 export const BENGALURU_INDIRANAGAR_MEMBERSHIP_ID = 548528;
+// Plash Pilates uses the full-price Bengaluru Studio Single Class package.
+export const BENGALURU_PLASH_PILATES_MEMBERSHIP_ID = 111528;
 
 export function isBengaluruLocation(homeLocationId: number | undefined | null): boolean {
   return (
@@ -23,20 +26,20 @@ export function isBengaluruLocation(homeLocationId: number | undefined | null): 
 }
 
 export function momenceHomeLocationIdForLocation(homeLocationId: number): number {
-  return homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
-    ? BENGALURU_LAVELLE_ROAD_LOCATION_ID
-    : homeLocationId;
+  return homeLocationId;
 }
 
 export function openBarreMembershipIdForLocation(homeLocationId: number): number {
   if (
-    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID ||
-    homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
   ) {
     return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;
   }
   if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
     return BENGALURU_INDIRANAGAR_MEMBERSHIP_ID;
+  }
+  if (homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID) {
+    return BENGALURU_PLASH_PILATES_MEMBERSHIP_ID;
   }
   return OPEN_BARRE_MEMBERSHIP_ID;
 }
@@ -75,23 +78,36 @@ export const BENGALURU_LAVELLE_ROAD_INTRO_STRIPE_CHARGE_PRICE_INR = toGstInclusi
 // Stripe product ids backing the Bengaluru intro pack checkout line items.
 export const BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID = "prod_UykA65J7aUXlLe";
 export const BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID = "prod_UykBa2v6q915IL";
+export const BENGALURU_PLASH_PILATES_STRIPE_PRODUCT_ID = "prod_TtKjd5Qbeo9xWj";
+export const BENGALURU_PLASH_PILATES_STRIPE_PRICE_ID = "price_1SvY3sFDEp8YEMWaXio0FOx8";
 
 export function bengaluruStripeProductIdForLocation(homeLocationId: number): string {
-  return homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID ||
-    homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
-    ? BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID
-    : BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID;
+  if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
+    return BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID;
+  }
+  if (homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID) {
+    return BENGALURU_PLASH_PILATES_STRIPE_PRODUCT_ID;
+  }
+  return BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID;
+}
+
+export function bengaluruStripePriceIdForLocation(homeLocationId: number): string | null {
+  return homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+    ? BENGALURU_PLASH_PILATES_STRIPE_PRICE_ID
+    : null;
 }
 
 export function bengaluruIntroMembershipIdForLocation(homeLocationId: number): number | null {
   if (
-    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID ||
-    homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
   ) {
     return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;
   }
   if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
     return BENGALURU_INDIRANAGAR_MEMBERSHIP_ID;
+  }
+  if (homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID) {
+    return BENGALURU_PLASH_PILATES_MEMBERSHIP_ID;
   }
   return null;
 }
@@ -107,10 +123,11 @@ export function bengaluruDropInPriceInrForLocation(homeLocationId: number): stri
 
 // Actual Stripe-charged, tax-inclusive intro pack price.
 export function bengaluruIntroChargePriceInrForLocation(homeLocationId: number): string {
-  return homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID ||
-    homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+  return homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
     ? BENGALURU_LAVELLE_ROAD_INTRO_STRIPE_CHARGE_PRICE_INR
-    : BENGALURU_INDIRANAGAR_STRIPE_CHARGE_PRICE_INR;
+    : homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+      ? toGstInclusiveInr(BENGALURU_LAVELLE_ROAD_DROP_IN_PRICE_INR)
+      : BENGALURU_INDIRANAGAR_STRIPE_CHARGE_PRICE_INR;
 }
 
 export function buildBengaluruIntroMembershipCheckoutRequest({
@@ -252,11 +269,20 @@ export function getSchedulePriceDisplay(
     // Indiranagar's intro pack has no discount (900 pre-tax === its drop-in rate), so show
     // the plain 900 with no strikethrough. The 945 GST-inclusive amount is only what Stripe
     // actually charges, sourced separately in buildBengaluruIntroMembershipCheckoutRequest.
-    if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
+    if (
+      homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID ||
+      homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+    ) {
       return {
         originalPriceInCurrency: null,
-        bookingPriceInCurrency: BENGALURU_INDIRANAGAR_PRICE_INR,
-        label: "Intro Pack",
+        bookingPriceInCurrency:
+          homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+            ? BENGALURU_LAVELLE_ROAD_DROP_IN_PRICE_INR
+            : BENGALURU_INDIRANAGAR_PRICE_INR,
+        label:
+          homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID
+            ? "Studio Single Class"
+            : "Intro Pack",
         slashOriginalPrice: false,
       };
     }

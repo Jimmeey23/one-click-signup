@@ -9,6 +9,9 @@ import {
   BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID,
   BENGALURU_LAVELLE_ROAD_LOCATION_ID,
   BENGALURU_LAVELLE_ROAD_STRIPE_PRODUCT_ID,
+  BENGALURU_PLASH_PILATES_LOCATION_ID,
+  BENGALURU_PLASH_PILATES_MEMBERSHIP_ID,
+  BENGALURU_PLASH_PILATES_STRIPE_PRICE_ID,
 } from "./momence-booking.helpers.ts";
 
 describe("Stripe checkout helpers", () => {
@@ -88,5 +91,21 @@ describe("Stripe checkout helpers", () => {
       BENGALURU_INDIRANAGAR_STRIPE_PRODUCT_ID,
     );
     assert.equal(params.line_items?.[0]?.price_data?.product_data, undefined);
+  });
+
+  it("builds Plash Pilates checkout with its full-price Stripe price and Momence package", () => {
+    const params = buildBengaluruCheckoutSessionParams({
+      memberId: 15199641,
+      sessionId: 139066783,
+      homeLocationId: BENGALURU_PLASH_PILATES_LOCATION_ID,
+      className: "Barre",
+      sessionStartsAt: "2026-06-05T10:30:00.000Z",
+      successUrl: "https://trial.physique57india.com/classes/15199641",
+      cancelUrl: "https://trial.physique57india.com/classes/15199641?locationId=287883",
+    });
+
+    assert.equal(params.metadata?.membershipId, String(BENGALURU_PLASH_PILATES_MEMBERSHIP_ID));
+    assert.equal(params.line_items?.[0]?.price, BENGALURU_PLASH_PILATES_STRIPE_PRICE_ID);
+    assert.equal(params.line_items?.[0]?.price_data, undefined);
   });
 });

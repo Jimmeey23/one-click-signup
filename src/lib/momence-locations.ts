@@ -31,8 +31,7 @@ export const BENGALURU_LOCATIONS = [
       "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",
   },
   {
-    // Plash is represented in Momence by a schedule tag rather than a standalone location.
-    id: 383332,
+    id: 287883,
     name: "Plash Pilates, Sadashivnagar",
     phone: "97696 65757",
     address:

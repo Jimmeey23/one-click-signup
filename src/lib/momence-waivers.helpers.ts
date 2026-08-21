@@ -120,7 +120,7 @@ export function buildDashboardPublicWaiverSignRequests({
     if (
       waiver.type !== "predefined" ||
       typeof waiver.id !== "string" ||
-      waiver.signatureStatus === "signed" ||
+      waiver.signatureStatus?.toLowerCase() === "signed" ||
       !waiver.signatureKey ||
       !predefinedWaiverIds.has(waiver.id)
     ) {

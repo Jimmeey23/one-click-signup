@@ -94,6 +94,26 @@ describe("signup and enroll helper", () => {
     assert.equal(result.leadError, null);
   });
 
+  it("continues signup when waiver signing is incomplete", async () => {
+    const calls: string[] = [];
+    const dependencies = createDependencies(calls);
+    dependencies.signMemberWaivers = async ({ realSignature }) => {
+      calls.push("signMemberWaivers");
+      assert.equal(realSignature, "real-signature-payload");
+      throw new Error("membership-waiver is still provisioning");
+    };
+
+    const result = await runSignupAndEnroll(completeInput, dependencies, {
+      captureLead: false,
+    });
+
+    assert.deepEqual(calls, ["createMember", "signMemberWaivers", "enrollOpenBarre"]);
+    assert.equal(result.memberId, 32166499);
+    assert.equal(result.enrolled, true);
+    assert.equal(result.signedCount, 0);
+    assert.equal(result.availableWaivers, 0);
+  });
+
   it("threads classType through to the captureLead payload", async () => {
     let capturedPayload: LeadCapturePayload | undefined;
     const dependencies: SignupAndEnrollDependencies = {

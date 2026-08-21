@@ -34,7 +34,6 @@ import {
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
 import { isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
-import { MomenceWidget } from "@/components/MomenceWidget";
 import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
@@ -52,7 +51,7 @@ import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.jpg"
 import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg";
 import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
 
-const logoUrl = "/physique57-logo-dark.png";
+const logoUrl = "/physique57-logo-dark.png?v=79daf7";
 
 const HERO_QUOTES = [
   "Meet the workout your body will thank you for.",
@@ -390,7 +389,10 @@ export function OpenBarreLanding({
   function handleViewSchedule(locationId: number) {
     setSchedulePreviewLocationId(locationId);
     window.requestAnimationFrame(() => {
-      document.getElementById("bengaluru-schedule")?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById("bengaluru-schedule-content")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     });
   }
 
@@ -685,23 +687,7 @@ export function OpenBarreLanding({
               </h2>
             </div>
           </div>
-          {isBengaluru ? (
-            <MomenceWidget
-              containerId="momence-plugin-reviews"
-              src="https://momence.com/plugin/reviews/reviews.js"
-              attrs={{
-                host_id: "33905",
-                is_profile_picture_enabled: "true",
-                is_text_only_enabled: "true",
-                is_session_and_teacher_info_enabled: "true",
-                layout: "horizontal",
-                signature: "959604fd4a03ccec0aaf901acf989c81a4ce3ab9a7e4e4325f0dc469ac918f94",
-              }}
-              className="momence-reviews min-h-56"
-            />
-          ) : (
-            <ReviewsCarousel studioVariant={studioVariant} />
-          )}
+          <ReviewsCarousel studioVariant={studioVariant} />
         </div>
       </section>
 
@@ -877,7 +863,7 @@ const NEXT_STEPS = [
   {
     n: "04",
     title: "We help you prepare",
-    body: "You'll know what to wear, when to arrive, and what to expect so your first visit feels stress-free.",
+    body: "You'll know what to wear, when to arrive, and what to expect so your first visit feels effortless.",
   },
   {
     n: "05",
@@ -963,7 +949,7 @@ const BENGALURU_STUDIOS = [
       "4th Floor, 167, 2nd Stage, 2nd Cross, Shankarnag Rd, Domlur, Bengaluru, Karnataka 560071",
   },
   {
-    id: 383332,
+    id: 287883,
     name: "Plash Pilates, Sadashivnagar",
     neighborhood: "Vyalikaval, Bengaluru",
     location: "Sadashivnagar",
@@ -1070,10 +1056,10 @@ function StudioLocations({
               </dl>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                {"id" in studio && (
+                {"id" in studio && typeof studio.id === "number" && (
                   <button
                     type="button"
-                    onClick={() => onViewSchedule(studio.id)}
+                    onClick={() => onViewSchedule(studio.id as number)}
                     className="inline-flex h-10 items-center justify-center rounded-full bg-foreground px-5 text-xs font-bold uppercase tracking-[0.15em] text-background transition hover:opacity-90"
                   >
                     View Schedule
@@ -1099,7 +1085,7 @@ function StudioLocations({
 const BENGALURU_SCHEDULE_CENTERS = [
   { id: 22116, name: "Kenkere House", area: "Lavelle Road" },
   { id: 36372, name: "The Studio - By Copper & Cloves", area: "Indiranagar" },
-  { id: 383332, name: "Plash Pilates", area: "Sadashivnagar" },
+  { id: 287883, name: "Plash Pilates", area: "Sadashivnagar" },
 ] as const;
 
 function BengaluruSchedulePreview({
@@ -1109,13 +1095,42 @@ function BengaluruSchedulePreview({
   locationId: number;
   onLocationChange: (locationId: number) => void;
 }) {
-  const locationIds = locationId === 383332 ? "[]" : `[${locationId}]`;
-  const tagIds = locationId === 383332 ? "[383332]" : "[]";
+  function scheduleDocumentFor(centerId: number) {
+    const locationIds = centerId === 287883 ? "[]" : `[${centerId}]`;
+    const tagIds = centerId === 287883 ? "[383332]" : "[]";
+    return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html, body { margin: 0; background: transparent; color-scheme: light; }
+      #ribbon-schedule { min-height: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="ribbon-schedule"></div>
+    <script
+      async
+      type="module"
+      host_id="33905"
+      teacher_ids="[]"
+      location_ids="${locationIds}"
+      tag_ids="${tagIds}"
+      hide_tags="true"
+      default_filter="show-all"
+      locale="en"
+      lock_timezone="Asia/Kolkata"
+      src="https://momence.com/plugin/host-schedule/host-schedule.js"
+    ><\/script>
+  </body>
+</html>`;
+  }
 
   return (
     <section
       id="bengaluru-schedule"
-      className="scroll-mt-6 border-y border-border bg-background py-20 lg:py-24"
+      className="border-y border-border bg-background py-12 lg:py-16"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-6">
         <div className="max-w-2xl">
@@ -1158,21 +1173,22 @@ function BengaluruSchedulePreview({
           })}
         </div>
 
-        <MomenceWidget
-          containerId="ribbon-schedule"
-          src="https://momence.com/plugin/host-schedule/host-schedule.js"
-          attrs={{
-            host_id: "33905",
-            teacher_ids: "[]",
-            location_ids: locationIds,
-            tag_ids: tagIds,
-            hide_tags: "true",
-            default_filter: "show-all",
-            locale: "en",
-            lock_timezone: "Asia/Kolkata",
-          }}
-          className="momence-schedule mt-8 min-h-[520px]"
-        />
+        <div id="bengaluru-schedule-content" className="mt-5 scroll-mt-4">
+          {BENGALURU_SCHEDULE_CENTERS.map((center) => {
+            const selected = center.id === locationId;
+            return (
+              <iframe
+                key={center.id}
+                title={`${center.name} class schedule`}
+                srcDoc={scheduleDocumentFor(center.id)}
+                hidden={!selected}
+                aria-hidden={!selected}
+                className="h-[900px] w-full border-0 bg-transparent md:h-[1050px]"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+              />
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -1194,7 +1210,7 @@ function SignupCard({
   onViewSchedule,
 }: {
   form: FormState;
-  setForm: (f: FormState) => void;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
   onSubmit: (e: React.FormEvent) => void;
   loading: boolean;
   error: string | null;
@@ -1255,9 +1271,11 @@ function SignupCard({
             Takes 60 seconds. No card required.
           </p>
         </div>
-        <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
-          Complimentary
-        </span>
+        {!isBengaluru && (
+          <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
+            Complimentary
+          </span>
+        )}
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
@@ -1266,7 +1284,7 @@ function SignupCard({
             <Field
               label="First name"
               value={form.firstName}
-              onChange={(v) => setForm({ ...form, firstName: v })}
+              onChange={(v) => setForm((prev) => ({ ...prev, firstName: v }))}
               required
               name="given-name"
               autoComplete="given-name"
@@ -1274,7 +1292,7 @@ function SignupCard({
             <Field
               label="Last name"
               value={form.lastName}
-              onChange={(v) => setForm({ ...form, lastName: v })}
+              onChange={(v) => setForm((prev) => ({ ...prev, lastName: v }))}
               required
               name="family-name"
               autoComplete="family-name"
@@ -1284,7 +1302,7 @@ function SignupCard({
             label="Email"
             type="email"
             value={form.email}
-            onChange={(v) => setForm({ ...form, email: v })}
+            onChange={(v) => setForm((prev) => ({ ...prev, email: v }))}
             required
             name="email"
             autoComplete="email"
@@ -1300,7 +1318,11 @@ function SignupCard({
                 onChange={(e) => {
                   const selected = COUNTRY_CODES.find((c) => c.iso === e.target.value);
                   if (!selected) return;
-                  setForm({ ...form, countryIso: selected.iso, countryCode: selected.dial });
+                  setForm((prev) => ({
+                    ...prev,
+                    countryIso: selected.iso,
+                    countryCode: selected.dial,
+                  }));
                 }}
                 className="h-11 rounded-lg border border-input bg-background px-3 text-center text-xl focus:outline-none focus:ring-2 focus:ring-ring min-w-[4.25rem]"
                 aria-label="Country dialing code"
@@ -1318,7 +1340,9 @@ function SignupCard({
                 autoComplete="tel-national"
                 required
                 value={form.phoneNumber}
-                onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))
+                }
                 placeholder="98765 43210"
                 className="flex-1 h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
@@ -1330,11 +1354,11 @@ function SignupCard({
               checked={form.whatsappConsent}
               onChange={(e) => {
                 const checked = e.target.checked;
-                setForm({
-                  ...form,
+                setForm((prev) => ({
+                  ...prev,
                   whatsappConsent: checked,
                   whatsappConsentAt: checked ? new Date().toISOString() : null,
-                });
+                }));
               }}
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-input"
             />
@@ -1371,32 +1395,39 @@ function SignupCard({
                       role="radio"
                       aria-checked={selected}
                       onClick={() => {
-                        setForm({ ...form, homeLocationId: location.id });
+                        setForm((prev) => ({ ...prev, homeLocationId: location.id }));
                         onStudioSelectedChange(true);
                       }}
-                      className={`group relative min-h-24 rounded-xl border p-3.5 text-left transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                      className={`group relative min-h-24 overflow-hidden rounded-2xl border p-4 text-left transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                         selected
-                          ? "border-primary-deep bg-primary/12 shadow-[0_8px_24px_rgba(64,170,215,0.13)]"
-                          : "border-border bg-background hover:-translate-y-0.5 hover:border-primary/70 hover:bg-primary/[0.05]"
+                          ? "border-primary-deep bg-gradient-to-br from-primary/[0.16] to-background shadow-[0_10px_28px_rgba(64,170,215,0.16)] ring-1 ring-primary/15"
+                          : "border-border/80 bg-background shadow-[0_8px_22px_-20px_rgba(15,23,42,0.5)] hover:-translate-y-0.5 hover:border-primary/70 hover:bg-primary/[0.04] hover:shadow-[0_14px_30px_-22px_rgba(15,23,42,0.5)]"
                       }`}
                     >
                       <span
-                        className={`mb-3 flex h-7 w-7 items-center justify-center rounded-full ${
+                        className={`absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent transition ${
+                          selected ? "via-primary-deep" : "via-transparent"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <span
+                        className={`mb-3 flex h-8 w-8 items-center justify-center rounded-xl transition ${
                           selected
-                            ? "bg-primary text-foreground"
+                            ? "bg-primary-deep text-white shadow-sm"
                             : "bg-secondary text-primary-deep group-hover:bg-primary/20"
                         }`}
                       >
-                        {selected ? (
-                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                        ) : (
-                          <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                        )}
+                        <MapPin className="h-4 w-4" aria-hidden="true" />
                       </span>
-                      <span className="block text-xs font-bold leading-snug text-foreground">
+                      {selected && (
+                        <span className="absolute right-3.5 top-3.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background">
+                          <Check className="h-3 w-3" aria-hidden="true" />
+                        </span>
+                      )}
+                      <span className="block text-xs font-semibold leading-snug tracking-[-0.01em] text-foreground">
                         {cardCopy.name}
                       </span>
-                      <span className="mt-1 block text-[10px] leading-snug text-muted-foreground">
+                      <span className="mt-1.5 block text-[10px] font-medium uppercase leading-snug tracking-[0.08em] text-muted-foreground">
                         {cardCopy.area}
                       </span>
                     </button>
@@ -1409,7 +1440,10 @@ function SignupCard({
                 className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 value={form.homeLocationId}
                 onChange={(e) => {
-                  setForm({ ...form, homeLocationId: Number(e.target.value) });
+                  setForm((prev) => ({
+                    ...prev,
+                    homeLocationId: Number(e.target.value),
+                  }));
                   onStudioSelectedChange(true);
                 }}
               >
@@ -1451,7 +1485,7 @@ function SignupCard({
                     <div key={key} className="group relative">
                       <button
                         type="button"
-                        onClick={() => setForm({ ...form, classType: key })}
+                        onClick={() => setForm((prev) => ({ ...prev, classType: key }))}
                         onMouseEnter={() => startDescriptionDelay(key)}
                         onMouseLeave={() => hideDescription(key)}
                         onFocus={() => setDescriptionClassType(key)}
@@ -1550,7 +1584,9 @@ function SignupCard({
               type="checkbox"
               required
               checked={form.waiverAccepted}
-              onChange={(e) => setForm({ ...form, waiverAccepted: e.target.checked })}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, waiverAccepted: e.target.checked }))
+              }
               className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--primary)]"
             />
             <span className="text-xs text-foreground leading-relaxed">
@@ -1609,7 +1645,13 @@ function Field({
         autoComplete={autoComplete}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-11 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        onBlur={(e) => onChange(e.currentTarget.value)}
+        onAnimationStart={(e) => {
+          if (e.animationName === "p57-autofill-detected") {
+            onChange(e.currentTarget.value);
+          }
+        }}
+        className="autofill-watch w-full h-11 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
     </div>
   );
