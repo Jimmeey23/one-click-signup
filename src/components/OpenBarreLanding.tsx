@@ -1198,7 +1198,7 @@ function BengaluruSchedulePreview({
   onLocationChange: (locationId: number) => void;
 }) {
   function scheduleDocumentFor(centerId: number) {
-    const locationIds = centerId === 287883 ? "[]" : `[${centerId}]`;
+    const locationIds = centerId === 287883 ? "[287883,36372]" : `[${centerId}]`;
     const tagIds = centerId === 287883 ? "[383332]" : "[]";
     return `<!doctype html>
 <html>

@@ -11,6 +11,7 @@ import {
   findCompatibleBoughtMembershipId,
   findMembershipIncompatibility,
   OPEN_BARRE_MEMBERSHIP_ID,
+  BENGALURU_INDIRANAGAR_LOCATION_ID,
   BENGALURU_PLASH_PILATES_LOCATION_ID,
   BENGALURU_PLASH_PILATES_TAG_ID,
   isBengaluruLocation,
@@ -65,12 +66,16 @@ export const listSessions = createServerFn({ method: "POST" })
       pageSize: isBengaluru ? "200" : "100",
       sortBy: "startsAt",
       sortOrder: "ASC",
-      locationId: String(data.locationId),
+      ...(!isPlashPilates ? { locationId: String(data.locationId) } : {}),
       startAfter: start.toISOString(),
       startBefore: end.toISOString(),
       ...(isBengaluru ? { includeCancelled: "false", includeChildLocations: "true" } : {}),
     });
-    if (isPlashPilates) params.append("tagIds[]", String(BENGALURU_PLASH_PILATES_TAG_ID));
+    if (isPlashPilates) {
+      params.append("locationIds[]", String(BENGALURU_PLASH_PILATES_LOCATION_ID));
+      params.append("locationIds[]", String(BENGALURU_INDIRANAGAR_LOCATION_ID));
+      params.append("tagIds[]", String(BENGALURU_PLASH_PILATES_TAG_ID));
+    }
     const res = await momenceFetch<{ payload: HostSession[] }>(
       `/host/sessions?${params.toString()}`,
       {},
