@@ -50,6 +50,7 @@ import cycleShot from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg
 import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.jpg";
 import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg";
 import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
+import bengaluruInstructorCollage from "@/assets/images/bengaluru-instructors-candid.png";
 
 const logoUrl = "/physique57-logo-dark.png?v=79daf7";
 
@@ -666,6 +667,8 @@ export function OpenBarreLanding({
 
       <WhatHappensNext />
 
+      {isBengaluru && <BengaluruInstructors />}
+
       <StudioLocations studioVariant={studioVariant} onViewSchedule={handleViewSchedule} />
 
       {isBengaluru && (
@@ -693,6 +696,102 @@ export function OpenBarreLanding({
 
       <Footer studioVariant={studioVariant} />
     </div>
+  );
+}
+
+const BENGALURU_INSTRUCTORS = [
+  {
+    name: "Chaitanya",
+    role: "Studio Instructor",
+    backgroundSize: "300% auto",
+    backgroundPosition: "0% 0%",
+    bio: "Upbeat energy meets precise cueing, helping every newcomer feel confident while keeping each sequence focused and intentional.",
+  },
+  {
+    name: "Siddharth",
+    role: "Studio Instructor",
+    backgroundSize: "300% auto",
+    backgroundPosition: "50% 0%",
+    bio: "Clear direction and steady encouragement create a strong, approachable session where form always comes first.",
+  },
+  {
+    name: "Pushyank",
+    role: "Head Trainer",
+    backgroundSize: "300% auto",
+    backgroundPosition: "100% 0%",
+    bio: "Focused coaching and energising momentum make every class challenging, supportive, and deeply rewarding.",
+  },
+  {
+    name: "Kajol",
+    role: "Senior Instructor",
+    backgroundSize: "200% auto",
+    backgroundPosition: "0% 100%",
+    bio: "Warm, welcoming instruction and thoughtful progressions help you find your strength at your own pace.",
+  },
+  {
+    name: "Shruti",
+    role: "Senior Instructor",
+    backgroundSize: "200% auto",
+    backgroundPosition: "100% 100%",
+    bio: "Attentive alignment cues and calm encouragement bring intention, control, and confidence to every movement.",
+  },
+] as const;
+
+function BengaluruInstructors() {
+  return (
+    <section className="bg-foreground text-background py-20 lg:py-24 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6">
+        <div className="grid lg:grid-cols-[0.72fr_1.28fr] gap-10 lg:gap-16 items-end mb-11">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.32em] text-primary font-bold mb-4">
+              Your Bengaluru team
+            </p>
+            <h2 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight">
+              Meet your <em className="italic text-primary">instructors.</em>
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm md:text-base leading-relaxed text-white/62 lg:justify-self-end">
+            Expert guidance, thoughtful corrections, and the kind of energy that keeps you coming
+            back. Get to know the instructors who bring the Physique 57 Method to life in Bengaluru.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {BENGALURU_INSTRUCTORS.map((instructor, index) => (
+            <article
+              key={instructor.name}
+              className="group min-w-0 overflow-hidden rounded-[1.35rem] border border-white/10 bg-white/[0.055] shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
+            >
+              <div className="relative aspect-square overflow-hidden bg-white">
+                <div
+                  role="img"
+                  aria-label={`${instructor.name}, Physique 57 Bengaluru ${instructor.role.toLowerCase()}`}
+                  className="absolute inset-0 bg-no-repeat transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+                  style={{
+                    backgroundImage: `url(${bengaluruInstructorCollage})`,
+                    backgroundSize: instructor.backgroundSize,
+                    backgroundPosition: instructor.backgroundPosition,
+                  }}
+                />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent" />
+                <span className="absolute left-4 bottom-3 text-[9px] font-bold uppercase tracking-[0.24em] text-white/75">
+                  0{index + 1}
+                </span>
+              </div>
+              <div className="p-5">
+                <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-primary/85">
+                  {instructor.role}
+                </p>
+                <h3 className="mt-2 font-display text-2xl tracking-tight text-white">
+                  {instructor.name}
+                </h3>
+                <p className="mt-3 text-[13px] leading-relaxed text-white/58">{instructor.bio}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
