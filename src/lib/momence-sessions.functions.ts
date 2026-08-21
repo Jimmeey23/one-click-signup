@@ -52,7 +52,23 @@ type HostSession = {
   teacher?: { firstName?: string; lastName?: string } | null;
   inPersonLocation?: { name?: string } | null;
   bannerImageUrl?: string | null;
+  tags?: Array<number | string | { id?: number | string | null }> | null;
+  tagIds?: Array<number | string> | null;
+  sessionTags?: Array<number | string | { id?: number | string | null }> | null;
 };
+
+function sessionHasTagId(session: HostSession, tagId: number): boolean {
+  const ids = [
+    ...(session.tagIds ?? []),
+    ...(session.tags ?? []).map((tag) =>
+      typeof tag === "object" && tag !== null ? tag.id : tag,
+    ),
+    ...(session.sessionTags ?? []).map((tag) =>
+      typeof tag === "object" && tag !== null ? tag.id : tag,
+    ),
+  ];
+  return ids.some((id) => Number(id) === tagId);
+}
 
 export const listSessions = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => ListInput.parse(i))
@@ -82,7 +98,11 @@ export const listSessions = createServerFn({ method: "POST" })
       isBengaluru ? "bengaluru" : "default",
     );
     const sessions = (res.payload ?? [])
-      .filter((s) => !s.isCancelled)
+      .filter(
+        (s) =>
+          !s.isCancelled &&
+          (!isPlashPilates || sessionHasTagId(s, BENGALURU_PLASH_PILATES_TAG_ID)),
+      )
       .map<SessionDTO>((s) => ({
         id: s.id,
         name: s.name,
