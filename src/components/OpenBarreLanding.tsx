@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -181,7 +181,6 @@ export function OpenBarreLanding({
   routeSource = "landing",
   studioVariant = "mumbai",
 }: OpenBarreLandingProps) {
-  const navigate = useNavigate();
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
   const submitPartialLead = useServerFn(captureLeadPartial);
@@ -488,12 +487,16 @@ export function OpenBarreLanding({
         );
         return;
       }
-      trackBookingComplete({ variant, homeLocationId: result.homeLocationId });
-      navigate({
-        to: "/classes/$memberId",
-        params: { memberId: String(result.memberId) },
-        search: { locationId: result.homeLocationId, classType: form.classType },
+      // Keep the selected booking location here. In particular, Plash members use
+      // Lavelle as their Momence home location but must still see Plash sessions.
+      const scheduleSearch = new URLSearchParams({
+        locationId: String(form.homeLocationId),
+        classType: form.classType,
       });
+      trackBookingComplete({ variant, homeLocationId: form.homeLocationId });
+      window.location.assign(
+        `/classes/${encodeURIComponent(String(result.memberId))}?${scheduleSearch.toString()}`,
+      );
     } catch (e2) {
       console.error("[debug:signup] signup threw:", e2);
       const message = e2 instanceof Error ? e2.message : "Signup failed";
