@@ -1,27 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OpenBarreLanding } from "@/components/OpenBarreLanding";
-import groupBarre from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
-import { Link } from "@tanstack/react-router";
+import bengaluruInstructors from "@/assets/images/bengaluru-instructors-candid.png";
+
+const title = "Physique 57 Bengaluru - Find your next class";
+const description =
+  "Explore Physique 57 Bengaluru studios, discover upcoming classes, and book the session that fits you.";
 
 const bengaluruHead = () => ({
   meta: [
-    { title: "Physique 57 Bengaluru - First class 50% off" },
-    {
-      name: "description",
-      content:
-        "Book your first Barre class in Bengaluru at 50% off. Sign up below to get started.",
-    },
-    {
-      property: "og:title",
-      content: "Physique 57 Bengaluru - First class 50% off",
-    },
-    {
-      property: "og:description",
-      content:
-        "Sign up for Bengaluru studios and claim 50% off your first Barre class.",
-    },
-    { property: "og:image", content: groupBarre },
-    { name: "twitter:image", content: groupBarre },
+    { title },
+    { name: "description", content: description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:image", content: bengaluruInstructors },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:image", content: bengaluruInstructors },
   ],
 });
 
@@ -31,7 +25,5 @@ export const Route = createFileRoute("/bengaluru")({
 });
 
 function BengaluruPage() {
-  return (
-    <OpenBarreLanding studioVariant="bengaluru" routeSource="bengaluru" />
-  );
+  return <OpenBarreLanding studioVariant="bengaluru" routeSource="bengaluru" />;
 }

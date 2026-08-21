@@ -157,11 +157,12 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
       "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile.",
   },
   bengaluru: {
-    title: "Physique 57 Bengaluru - First class 50% off",
+    title: "Physique 57 Bengaluru - Find your next class",
     description:
-      "Your first Barre class in Bengaluru is 50% off. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
-    ogTitle: "Physique 57 Bengaluru - First class 50% off",
-    ogDescription: "Sign up for Bengaluru studios and claim 50% off your first Barre class.",
+      "Discover the Physique 57 Method across Bengaluru. Choose your studio, explore upcoming classes, and book the session that fits you.",
+    ogTitle: "Physique 57 Bengaluru - Find your next class",
+    ogDescription:
+      "Explore Physique 57 Bengaluru studios, discover upcoming classes, and book the session that fits you.",
     heroLocationLine: "Bengaluru",
     statLabel: "formats",
     signupCta: "Book Your Trial Class",
