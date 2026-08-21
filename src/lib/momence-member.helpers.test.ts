@@ -38,4 +38,15 @@ describe("Momence member helpers", () => {
       /first and last name/i,
     );
   });
+
+  it("uses Lavelle Road as the Momence home location for Plash Pilates members", () => {
+    const request = buildHostMemberCreateRequest({
+      firstName: "Asha",
+      lastName: "Shah",
+      email: "asha@example.com",
+      homeLocationId: 287883,
+    });
+
+    assert.equal(request.body.homeLocationId, 22116);
+  });
 });

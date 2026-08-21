@@ -41,9 +41,10 @@ export function buildHostMemberCreateRequest({
   }
 
   // Momence's /host/members endpoint requires homeLocationId for every known studio.
+  const eligibleHomeLocationId = homeLocationId === 287883 ? 22116 : homeLocationId;
   const supportedHomeLocationId =
-    homeLocationId && [9030, 29821, 22116, 36372, 287883].includes(homeLocationId)
-      ? homeLocationId
+    eligibleHomeLocationId && [9030, 29821, 22116, 36372].includes(eligibleHomeLocationId)
+      ? eligibleHomeLocationId
       : undefined;
 
   return {

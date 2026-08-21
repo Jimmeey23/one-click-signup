@@ -26,6 +26,11 @@ export function isBengaluruLocation(homeLocationId: number | undefined | null): 
 }
 
 export function momenceHomeLocationIdForLocation(homeLocationId: number): number {
+  // Plash is a bookable partner location, but Momence does not allow it as a
+  // member home location. Bengaluru Plash members therefore belong to Lavelle.
+  if (homeLocationId === BENGALURU_PLASH_PILATES_LOCATION_ID) {
+    return BENGALURU_LAVELLE_ROAD_LOCATION_ID;
+  }
   return homeLocationId;
 }
 

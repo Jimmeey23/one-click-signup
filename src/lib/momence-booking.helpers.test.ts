@@ -11,12 +11,21 @@ import {
   MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID,
   NEWCOMERS_2_FOR_1_PRICE_INR,
   BENGALURU_PLASH_PILATES_LOCATION_ID,
+  BENGALURU_LAVELLE_ROAD_LOCATION_ID,
   BENGALURU_PLASH_PILATES_MEMBERSHIP_ID,
   bengaluruIntroChargePriceInrForLocation,
   bengaluruIntroMembershipIdForLocation,
+  momenceHomeLocationIdForLocation,
 } from "./momence-booking.helpers.ts";
 
 describe("Momence booking helpers", () => {
+  it("maps Plash Pilates to Lavelle Road for Momence home-location payloads", () => {
+    assert.equal(
+      momenceHomeLocationIdForLocation(BENGALURU_PLASH_PILATES_LOCATION_ID),
+      BENGALURU_LAVELLE_ROAD_LOCATION_ID,
+    );
+  });
+
   it("builds the host checkout compatible-memberships request for a session", () => {
     const request = buildCompatibleMembershipsRequest({
       memberId: 27473761,
