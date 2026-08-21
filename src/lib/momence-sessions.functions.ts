@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   momenceDashboardFetch,
   momenceFetch,
+  momenceReadonlyFetch,
   MOMENCE_HOST_ID,
   type MomenceApiAccount,
 } from "./momence.server";
@@ -52,23 +53,7 @@ type HostSession = {
   teacher?: { firstName?: string; lastName?: string } | null;
   inPersonLocation?: { name?: string } | null;
   bannerImageUrl?: string | null;
-  tags?: Array<number | string | { id?: number | string | null }> | null;
-  tagIds?: Array<number | string> | null;
-  sessionTags?: Array<number | string | { id?: number | string | null }> | null;
 };
-
-function sessionHasTagId(session: HostSession, tagId: number): boolean {
-  const ids = [
-    ...(session.tagIds ?? []),
-    ...(session.tags ?? []).map((tag) =>
-      typeof tag === "object" && tag !== null ? tag.id : tag,
-    ),
-    ...(session.sessionTags ?? []).map((tag) =>
-      typeof tag === "object" && tag !== null ? tag.id : tag,
-    ),
-  ];
-  return ids.some((id) => Number(id) === tagId);
-}
 
 export const listSessions = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => ListInput.parse(i))
@@ -87,22 +72,41 @@ export const listSessions = createServerFn({ method: "POST" })
       startBefore: end.toISOString(),
       ...(isBengaluru ? { includeCancelled: "false", includeChildLocations: "true" } : {}),
     });
+    let payload: HostSession[];
     if (isPlashPilates) {
-      params.append("locationIds[]", String(BENGALURU_PLASH_PILATES_LOCATION_ID));
-      params.append("locationIds[]", String(BENGALURU_INDIRANAGAR_LOCATION_ID));
-      params.append("tagIds[]", String(BENGALURU_PLASH_PILATES_TAG_ID));
+      const readonlyParams = new URLSearchParams({
+        sortBy: "startsAt",
+        sortOrder: "ASC",
+        dateFrom: start.toISOString(),
+        page: "0",
+        pageSize: "200",
+        timeZone: "Asia/Kolkata",
+        grouped: "false",
+      });
+      readonlyParams.append("locationIds[]", String(BENGALURU_PLASH_PILATES_LOCATION_ID));
+      readonlyParams.append("locationIds[]", String(BENGALURU_INDIRANAGAR_LOCATION_ID));
+      readonlyParams.append("status[]", "published");
+      readonlyParams.append("status[]", "unpublished");
+      readonlyParams.append("tagIds[]", String(BENGALURU_PLASH_PILATES_TAG_ID));
+      const res = await momenceReadonlyFetch<
+        | HostSession[]
+        | { payload?: HostSession[] | { sessions?: HostSession[] }; sessions?: HostSession[] }
+      >(`/host/33905/sessions?${readonlyParams.toString()}`);
+      payload = Array.isArray(res)
+        ? res
+        : Array.isArray(res.payload)
+          ? res.payload
+          : res.payload?.sessions ?? res.sessions ?? [];
+    } else {
+      const res = await momenceFetch<{ payload: HostSession[] }>(
+        `/host/sessions?${params.toString()}`,
+        {},
+        isBengaluru ? "bengaluru" : "default",
+      );
+      payload = res.payload ?? [];
     }
-    const res = await momenceFetch<{ payload: HostSession[] }>(
-      `/host/sessions?${params.toString()}`,
-      {},
-      isBengaluru ? "bengaluru" : "default",
-    );
-    const sessions = (res.payload ?? [])
-      .filter(
-        (s) =>
-          !s.isCancelled &&
-          (!isPlashPilates || sessionHasTagId(s, BENGALURU_PLASH_PILATES_TAG_ID)),
-      )
+    const sessions = payload
+      .filter((s) => !s.isCancelled)
       .map<SessionDTO>((s) => ({
         id: s.id,
         name: s.name,

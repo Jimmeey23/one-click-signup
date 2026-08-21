@@ -1,6 +1,7 @@
 // Server-only Momence API clients (token cached in-memory per worker)
 const BASE = "https://api.momence.com/api/v2";
 const DASHBOARD_BASE = "https://momence.com/_api/primary";
+const READONLY_BASE = "https://momence.com/_api/readonly";
 export const MOMENCE_HOST_ID = 13752;
 
 type TokenCache = { accessToken: string; expiresAt: number } | null;
@@ -186,6 +187,33 @@ export async function momenceDashboardFetch<T>(path: string, init: RequestInit =
   }
 
   throw new Error(`Momence dashboard ${path} ${first.status}: ${first.text}`);
+}
+
+export async function momenceReadonlyFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const { getMomenceCookies } = await import("./momence-auth.server");
+
+  async function request(cookies: string) {
+    const res = await fetch(`${READONLY_BASE}${path}`, {
+      ...init,
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        Cookie: cookies,
+        Origin: "https://momence.com",
+        "X-App": "dashboard",
+        ...(init.headers ?? {}),
+      },
+    });
+    return { res, text: await res.text() };
+  }
+
+  let response = await request(await getMomenceCookies());
+  if (response.res.status === 401) {
+    response = await request(await getMomenceCookies(true));
+  }
+  if (!response.res.ok) {
+    throw new Error(`Momence readonly ${path} ${response.res.status}: ${response.text}`);
+  }
+  return response.text ? (JSON.parse(response.text) as T) : ({} as T);
 }
 
 export {
