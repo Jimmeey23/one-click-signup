@@ -64,9 +64,6 @@ import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A20
 import profileHeroPortrait from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
 import anishaThumb from "@/assets/images/001-1_Anisha-1-e1590837044475.jpg";
 import atulanThumb from "@/assets/images/002-Atulan-Image-1.jpg";
-import cauveriThumb from "@/assets/images/003-Cauveri-1.jpg";
-import kajolThumb from "@/assets/images/004-Kajol-Kanchan-1.jpg";
-import karanBhatiaThumb from "@/assets/images/005-Karan-Bhatia-1-1.jpeg";
 import mrigakshiThumb from "@/assets/images/007-Mrigakshi-Image-2.jpg";
 import pranjaliThumb from "@/assets/images/008-Pranjali-Image-1.jpg";
 import pushyankThumb from "@/assets/images/009-Pushyank-Nahar-1.jpeg";
@@ -74,11 +71,10 @@ import reshmaThumb from "@/assets/images/010-Reshma-Image-3.jpg";
 import richardThumb from "@/assets/images/011-Richard-Image-3.jpg";
 import rohanThumb from "@/assets/images/012-Rohan-Image-3.jpg";
 import saniyaThumb from "@/assets/images/013-Saniya-Image-1.jpg";
-import shrutiKulkarniThumb from "@/assets/images/014-Shruti-Kulkarni.jpeg";
+import shrutiKulkarniThumb from "@/assets/images/Shruti-Kulkarni.jpeg";
 import vivaranThumb from "@/assets/images/015-Vivaran-Image-4.jpg";
 import anmolThumb from "@/assets/images/Anmol.jpeg";
 import bretThumb from "@/assets/images/Bret.jpeg";
-import karanveerThumb from "@/assets/images/Karanveer.jpg";
 import raunakThumb from "@/assets/images/Raunak.jpeg";
 import simonelleThumb from "@/assets/images/Simonelle.jpeg";
 import simranThumb from "@/assets/images/Simran.jpeg";
@@ -160,7 +156,6 @@ const EU_SHOE_SIZE_OPTIONS: Array<[string, string]> = Array.from({ length: 13 },
 });
 
 const TRAINER_THUMBNAILS: Array<[string, string]> = [
-  ["karan bhatia", karanBhatiaThumb],
   ["shruti kulkarni", shrutiKulkarniThumb],
   ["simonelle", simonelleThumb],
   ["pushyank", pushyankThumb],
@@ -170,12 +165,9 @@ const TRAINER_THUMBNAILS: Array<[string, string]> = [
   ["reshma", reshmaThumb],
   ["anisha", anishaThumb],
   ["atulan", atulanThumb],
-  ["cauveri", cauveriThumb],
-  ["kajol", kajolThumb],
   ["rohan", rohanThumb],
   ["saniya", saniyaThumb],
   ["vivaran", vivaranThumb],
-  ["karanveer", karanveerThumb],
   ["anmol", anmolThumb],
   ["raunak", raunakThumb],
   ["simran", simranThumb],
