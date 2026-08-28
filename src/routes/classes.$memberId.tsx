@@ -722,12 +722,12 @@ function ClassesPage() {
 
       <main className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
         <section className="mb-8 rounded-[28px] border border-border bg-card/90 p-4 shadow-[var(--shadow-card)] backdrop-blur-sm md:p-6">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary-deep">
                 {currentLoc.name.split(",")[0]}
               </p>
-              <h1 className="font-display mt-0.5 text-[34px] italic leading-none tracking-[-0.01em] text-foreground">
+              <h1 className="font-display mt-0.5 text-[26px] italic leading-none tracking-[-0.01em] text-foreground sm:text-[34px]">
                 Class schedule
               </h1>
               <div className="mt-2 h-[3px] w-8 rounded-full bg-primary" />
@@ -736,37 +736,37 @@ function ClassesPage() {
               <button
                 type="button"
                 onClick={() => switchViewMode("day")}
-                className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-semibold transition sm:h-11 sm:flex-none sm:gap-2 sm:px-4 sm:text-sm ${
                   viewMode === "day"
                     ? "bg-foreground text-background shadow-[0_8px_18px_rgb(0_0_0/0.16)]"
                     : "text-muted-foreground hover:bg-background"
                 }`}
               >
-                <Calendar className="h-4 w-4" aria-hidden="true" />
+                <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
                 Day
               </button>
               <button
                 type="button"
                 onClick={() => switchViewMode("week")}
-                className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-semibold transition sm:h-11 sm:flex-none sm:gap-2 sm:px-4 sm:text-sm ${
                   viewMode === "week"
                     ? "bg-foreground text-background shadow-[0_8px_18px_rgb(0_0_0/0.16)]"
                     : "text-muted-foreground hover:bg-background"
                 }`}
               >
-                <List className="h-4 w-4" aria-hidden="true" />
+                <List className="h-4 w-4 shrink-0" aria-hidden="true" />
                 Week
               </button>
               <button
                 type="button"
                 onClick={() => switchViewMode("month")}
-                className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                className={`inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-semibold transition sm:h-11 sm:flex-none sm:gap-2 sm:px-4 sm:text-sm ${
                   viewMode === "month"
                     ? "bg-foreground text-background shadow-[0_8px_18px_rgb(0_0_0/0.16)]"
                     : "text-muted-foreground hover:bg-background"
                 }`}
               >
-                <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                <CalendarDays className="h-4 w-4 shrink-0" aria-hidden="true" />
                 Month
               </button>
             </div>
