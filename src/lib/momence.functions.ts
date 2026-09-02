@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { sendMetaCapiEvent } from "./meta-capi";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
 import { classTypeValueForClassFormatKey, type ClassFormatKey } from "./class-format-matchers";
 import {
@@ -54,6 +56,10 @@ const SignupInput = z.object({
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
+  fbp: z.string().max(100).optional(),
+  fbc: z.string().max(200).optional(),
+  leadEventId: z.string().max(100).optional(),
+  registrationEventId: z.string().max(100).optional(),
 });
 
 const PartialLeadInput = z.object({
@@ -82,6 +88,9 @@ const PartialLeadInput = z.object({
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
   classType: z.string().max(100).optional(),
+  fbp: z.string().max(100).optional(),
+  fbc: z.string().max(200).optional(),
+  metaEventId: z.string().max(100).optional(),
 });
 
 const LeadAndOpenBarreInput = z.object({
@@ -279,6 +288,21 @@ export function webhookCenterForLocationId(homeLocationId: number | undefined): 
   return LOCATIONS.find((location) => location.id === homeLocationId)?.name ?? "Physique 57 India";
 }
 
+function requestClientMeta(): { ip?: string; userAgent?: string; url?: string } {
+  try {
+    const request = getRequest();
+    const forwardedFor = request?.headers.get("x-forwarded-for");
+    const ip = forwardedFor?.split(",")[0]?.trim() || request?.headers.get("x-real-ip") || undefined;
+    return {
+      ip,
+      userAgent: request?.headers.get("user-agent") ?? undefined,
+      url: request?.headers.get("referer") ?? undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
   const isBengaluru = payload.abVariant === "bengaluru";
   const token = isBengaluru
@@ -341,6 +365,27 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       console.error("Lead capture failed:", res.status, t);
       return { ok: false, error: `Lead capture ${res.status}` };
     }
+
+    const clientMeta = requestClientMeta();
+    sendMetaCapiEvent({
+      eventName: "Lead",
+      eventId: payload.metaEventId ?? `lead_${payload.stage ?? "completed"}_${Date.now()}`,
+      eventSourceUrl: payload.landingPage ?? clientMeta.url,
+      value: 0,
+      currency: "INR",
+      contentName: payload.classType,
+      user: {
+        email: payload.email,
+        phoneE164: payload.phoneE164,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        externalId: payload.memberId,
+        fbp: payload.fbp,
+        fbc: payload.fbc,
+        clientIpAddress: clientMeta.ip,
+        clientUserAgent: clientMeta.userAgent,
+      },
+    }).catch((capiError) => console.error("Meta CAPI Lead event failed", capiError));
 
     try {
       await syncRespondIoContactAndConversation(payload);
@@ -487,17 +532,57 @@ const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
   resolveCenterName: webhookCenterForLocationId,
 };
 
+async function sendCompleteRegistrationCapiEvent(
+  data: z.infer<typeof SignupInput>,
+  result: { memberId: number; enrolled: boolean },
+) {
+  if (!result.enrolled) return;
+  const clientMeta = requestClientMeta();
+  const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
+  try {
+    await sendMetaCapiEvent({
+      eventName: "CompleteRegistration",
+      eventId: data.registrationEventId ?? `reg_${result.memberId}_${Date.now()}`,
+      eventSourceUrl: data.landingPage ?? clientMeta.url,
+      value: 0,
+      currency: "INR",
+      contentName: data.classType,
+      user: {
+        email: data.email,
+        phoneE164,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        externalId: result.memberId,
+        fbp: data.fbp,
+        fbc: data.fbc,
+        clientIpAddress: clientMeta.ip,
+        clientUserAgent: clientMeta.userAgent,
+      },
+    });
+  } catch (capiError) {
+    console.error("Meta CAPI CompleteRegistration event failed", capiError);
+  }
+}
+
 export const signupAndEnroll = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
-  .handler(async ({ data }) =>
-    runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: true }),
-  );
+  .handler(async ({ data }) => {
+    const result = await runSignupAndEnroll(data, signupAndEnrollDependencies, {
+      captureLead: true,
+    });
+    await sendCompleteRegistrationCapiEvent(data, result);
+    return result;
+  });
 
 export const signupAndEnrollWithoutLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
-  .handler(async ({ data }) =>
-    runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: false }),
-  );
+  .handler(async ({ data }) => {
+    const result = await runSignupAndEnroll(data, signupAndEnrollDependencies, {
+      captureLead: false,
+    });
+    await sendCompleteRegistrationCapiEvent(data, result);
+    return result;
+  });
 
 export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => LeadAndOpenBarreInput.parse(input))
@@ -589,6 +674,9 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
       abVariant: data.abVariant,
       classType: data.classType,
       stage: "partial",
+      fbp: data.fbp,
+      fbc: data.fbc,
+      metaEventId: data.metaEventId,
     });
 
     return { leadCaptured: lead.ok, leadError: lead.error ?? null };

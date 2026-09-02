@@ -32,6 +32,10 @@ export type SignupAndEnrollInput = {
   referrer?: string;
   landingPage?: string;
   abVariant?: string;
+  fbp?: string;
+  fbc?: string;
+  leadEventId?: string;
+  registrationEventId?: string;
 };
 
 export type LeadCapturePayload = {
@@ -56,6 +60,9 @@ export type LeadCapturePayload = {
   abVariant?: string;
   memberId?: number;
   stage?: "partial" | "completed";
+  fbp?: string;
+  fbc?: string;
+  metaEventId?: string;
 };
 
 export class WaiverConsentError extends Error {
@@ -179,6 +186,9 @@ export async function runSignupAndEnroll(
       abVariant: data.abVariant,
       memberId: created.memberId,
       stage: "completed",
+      fbp: data.fbp,
+      fbc: data.fbc,
+      metaEventId: data.leadEventId,
     });
     leadCaptured = lead.ok;
     leadError = lead.error ?? null;

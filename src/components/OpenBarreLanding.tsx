@@ -21,7 +21,13 @@ import {
   signupAndEnrollWithoutLead,
   captureLeadPartial,
 } from "@/lib/momence.functions";
-import { trackSignupStart, trackWaiverSigned, trackBookingComplete } from "@/lib/analytics";
+import {
+  trackSignupStart,
+  trackWaiverSigned,
+  trackBookingComplete,
+  setMetaAdvancedMatching,
+  readMetaCookies,
+} from "@/lib/analytics";
 import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
@@ -199,6 +205,16 @@ export function OpenBarreLanding({
   const signupStartedRef = useRef(false);
   const waiverSignedTrackedRef = useRef(false);
   const partialCapturedRef = useRef(false);
+  const leadEventIdRef = useRef<string>(
+    typeof window !== "undefined" && window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : `lead_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+  );
+  const registrationEventIdRef = useRef<string>(
+    typeof window !== "undefined" && window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : `reg_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+  );
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -327,9 +343,15 @@ export function OpenBarreLanding({
     if (signupStartedRef.current) return;
     if (form.firstName || form.lastName || form.email || form.phoneNumber) {
       signupStartedRef.current = true;
-      trackSignupStart({ variant });
+      setMetaAdvancedMatching({
+        email: form.email || undefined,
+        phone: form.phoneNumber ? `${form.countryCode}${form.phoneNumber}` : undefined,
+        firstName: form.firstName || undefined,
+        lastName: form.lastName || undefined,
+      });
+      trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
     }
-  }, [form.firstName, form.lastName, form.email, form.phoneNumber, variant]);
+  }, [form.firstName, form.lastName, form.email, form.phoneNumber, form.countryCode, form.classType, variant]);
 
   useEffect(() => {
     if (partialCapturedRef.current || !captureLead) return;
@@ -340,6 +362,7 @@ export function OpenBarreLanding({
     partialCapturedRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const stored = readStoredAttribution();
+    const metaCookies = readMetaCookies();
 
     submitPartialLead({
       data: {
@@ -362,6 +385,9 @@ export function OpenBarreLanding({
         classType: form.classType,
         whatsappConsent: form.whatsappConsent,
         whatsappConsentAt: form.whatsappConsentAt ?? undefined,
+        fbp: metaCookies.fbp,
+        fbc: metaCookies.fbc,
+        metaEventId: leadEventIdRef.current,
       },
     }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
   }, [
@@ -441,6 +467,7 @@ export function OpenBarreLanding({
 
     try {
       const stored = readStoredAttribution();
+      const metaCookies = readMetaCookies();
       const trackingPayload = captureLead
         ? {
             utmSource: params.get("utm_source") ?? stored.utmSource ?? undefined,
@@ -473,6 +500,10 @@ export function OpenBarreLanding({
           classType: form.classType,
           whatsappConsent: form.whatsappConsent,
           whatsappConsentAt: form.whatsappConsentAt ?? undefined,
+          fbp: metaCookies.fbp,
+          fbc: metaCookies.fbc,
+          leadEventId: leadEventIdRef.current,
+          registrationEventId: registrationEventIdRef.current,
           ...trackingPayload,
         },
       });
@@ -494,7 +525,10 @@ export function OpenBarreLanding({
         locationId: String(form.homeLocationId),
         classType: form.classType,
       });
-      trackBookingComplete({ variant, homeLocationId: form.homeLocationId });
+      trackBookingComplete(
+        { variant, homeLocationId: form.homeLocationId, content_name: form.classType },
+        registrationEventIdRef.current,
+      );
       window.location.assign(
         `/classes/${encodeURIComponent(String(result.memberId))}?${scheduleSearch.toString()}`,
       );
