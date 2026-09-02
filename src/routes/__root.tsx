@@ -116,12 +116,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   scripts: () => {
-    const scripts: Array<React.JSX.IntrinsicElements["script"]> = [
-      {
-        id: "respondio__growth_tool",
-        src: "https://cdn.respond.io/widget/widget.js?wId=a99c1d5b-93a4-4bc1-b1be-21bea2ece4b3",
-      },
-    ];
+    // The respond.io click-to-chat widget is intentionally absent here - it is
+    // mounted per-route via <RespondIoWidget /> so it only shows post-signup.
+    const scripts: Array<React.JSX.IntrinsicElements["script"]> = [];
 
     const gtmId = import.meta.env.VITE_GTM_ID;
     if (gtmId) {
@@ -196,32 +193,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
-  useEffect(() => {
-    const script = document.getElementById("respondio__growth_tool") as HTMLScriptElement | null;
-    console.debug("[debug:respondio] script tag present:", !!script, script?.src);
-    if (!script) {
-      console.error("[debug:respondio] widget script tag missing from DOM");
-      return;
-    }
-    script.addEventListener("error", () => {
-      console.error("[debug:respondio] widget script failed to load (network/blocked/404)");
-    });
-
-    const checkTimer = setTimeout(() => {
-      const mounted = document.querySelector(
-        '[id*="respond" i], [class*="respond" i], iframe[src*="respond.io" i]',
-      );
-      console.debug("[debug:respondio] widget UI element found after 5s:", !!mounted);
-      if (!mounted) {
-        console.warn(
-          "[debug:respondio] script loaded but no widget UI detected - check the wId is active and this domain is allow-listed in the respond.io Growth Tool settings",
-        );
-      }
-    }, 5000);
-
-    return () => clearTimeout(checkTimer);
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

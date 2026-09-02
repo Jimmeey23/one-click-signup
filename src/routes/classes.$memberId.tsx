@@ -59,6 +59,7 @@ import {
   type MonthCalendarWeek,
 } from "@/lib/schedule-calendar.helpers";
 import { whatsappPhoneForLocationId } from "@/lib/whatsapp-contact.helpers";
+import { RespondIoWidget } from "@/components/RespondIoWidget";
 import { Footer } from "@/components/Footer";
 import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
 import profileHeroPortrait from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
@@ -960,6 +961,7 @@ function ClassesPage() {
       )}
 
       <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} showWhatsApp />
+      <RespondIoWidget />
     </div>
   );
 }
@@ -2070,6 +2072,7 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
         studioVariant={isBengaluruLocation(booked.location.id) ? "bengaluru" : "mumbai"}
         showWhatsApp
       />
+      <RespondIoWidget />
     </div>
   );
 }
