@@ -3,7 +3,13 @@ import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
 const logoUrl = "/physique57-logo-dark.png?v=79daf7";
 
-export function Footer({ studioVariant = "mumbai" }: { studioVariant?: "mumbai" | "bengaluru" }) {
+export function Footer({
+  studioVariant = "mumbai",
+  showWhatsApp = false,
+}: {
+  studioVariant?: "mumbai" | "bengaluru";
+  showWhatsApp?: boolean;
+}) {
   const isBengaluru = studioVariant === "bengaluru";
   const studioSearch = isBengaluru ? { studio: "bengaluru" as const } : undefined;
   const contactEmail = isBengaluru ? "info@physique57bengaluru.com" : "info@physique57india.com";
@@ -68,9 +74,11 @@ export function Footer({ studioVariant = "mumbai" }: { studioVariant?: "mumbai" 
               <Social href="https://www.facebook.com/physique57india" label="Facebook">
                 <FacebookIcon />
               </Social>
-              <Social href="https://wa.me/919769665757" label="WhatsApp">
-                <MessageCircle className="h-4 w-4" />
-              </Social>
+              {showWhatsApp ? (
+                <Social href="https://wa.me/919769665757" label="WhatsApp">
+                  <MessageCircle className="h-4 w-4" />
+                </Social>
+              ) : null}
             </div>
           </div>
 
@@ -94,9 +102,11 @@ export function Footer({ studioVariant = "mumbai" }: { studioVariant?: "mumbai" 
               <ContactLink href="tel:+919769665757" icon={Phone}>
                 +91 97696 65757
               </ContactLink>
-              <ContactLink href="https://wa.me/919769665757" icon={MessageCircle} external>
-                Chat on WhatsApp
-              </ContactLink>
+              {showWhatsApp ? (
+                <ContactLink href="https://wa.me/919769665757" icon={MessageCircle} external>
+                  Chat on WhatsApp
+                </ContactLink>
+              ) : null}
             </div>
           </div>
         </div>

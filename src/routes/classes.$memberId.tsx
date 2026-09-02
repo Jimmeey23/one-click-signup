@@ -959,7 +959,7 @@ function ClassesPage() {
         />
       )}
 
-      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} showWhatsApp />
     </div>
   );
 }
@@ -2066,7 +2066,10 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
         </div>
       </main>
 
-      <Footer studioVariant={isBengaluruLocation(booked.location.id) ? "bengaluru" : "mumbai"} />
+      <Footer
+        studioVariant={isBengaluruLocation(booked.location.id) ? "bengaluru" : "mumbai"}
+        showWhatsApp
+      />
     </div>
   );
 }
