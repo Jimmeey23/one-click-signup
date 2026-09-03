@@ -361,7 +361,7 @@ export function OpenBarreLanding({
     partialCapturedRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const stored = readStoredAttribution();
-    const metaCookies = readMetaCookies();
+    const metaCookies = readMetaCookies(params.get("fbclid") ?? stored.fbclid);
 
     submitPartialLead({
       data: {
@@ -466,7 +466,7 @@ export function OpenBarreLanding({
 
     try {
       const stored = readStoredAttribution();
-      const metaCookies = readMetaCookies();
+      const metaCookies = readMetaCookies(params.get("fbclid") ?? stored.fbclid);
       const trackingPayload = captureLead
         ? {
             utmSource: params.get("utm_source") ?? stored.utmSource ?? undefined,

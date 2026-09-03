@@ -50,14 +50,20 @@ export function setMetaAdvancedMatching(user: {
   win.fbq("init", pixelId, matchData);
 }
 
-export function readMetaCookies(): { fbp?: string; fbc?: string } {
+// _fbc only gets set by the pixel once fbevents.js has loaded and run - on a fast
+// conversion (or with the pixel blocked) the cookie can still be missing even though
+// the fbclid is right there in the URL/stored attribution. Meta's own documented format
+// for synthesizing it is fb.1.<creation time ms>.<fbclid>, so fall back to building one
+// from fbclid when the cookie isn't there yet.
+export function readMetaCookies(fbclid?: string): { fbp?: string; fbc?: string } {
   if (typeof document === "undefined") return {};
   const cookies = document.cookie.split("; ").reduce<Record<string, string>>((acc, pair) => {
     const [key, ...rest] = pair.split("=");
     if (key) acc[key] = rest.join("=");
     return acc;
   }, {});
-  return { fbp: cookies._fbp || undefined, fbc: cookies._fbc || undefined };
+  const fbc = cookies._fbc || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined);
+  return { fbp: cookies._fbp || undefined, fbc };
 }
 
 export function trackSignupStart(params?: EventParams, eventId?: string) {
