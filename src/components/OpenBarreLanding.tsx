@@ -24,10 +24,10 @@ import {
 import {
   trackSignupStart,
   trackWaiverSigned,
-  trackBookingComplete,
   setMetaAdvancedMatching,
   readMetaCookies,
 } from "@/lib/analytics";
+import { storeRegistrationMeta } from "@/lib/registration-meta.helpers";
 import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
@@ -349,7 +349,6 @@ export function OpenBarreLanding({
         firstName: form.firstName || undefined,
         lastName: form.lastName || undefined,
       });
-      trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
     }
   }, [form.firstName, form.lastName, form.email, form.phoneNumber, form.countryCode, form.classType, variant]);
 
@@ -503,7 +502,6 @@ export function OpenBarreLanding({
           fbp: metaCookies.fbp,
           fbc: metaCookies.fbc,
           leadEventId: leadEventIdRef.current,
-          registrationEventId: registrationEventIdRef.current,
           ...trackingPayload,
         },
       });
@@ -525,10 +523,22 @@ export function OpenBarreLanding({
         locationId: String(form.homeLocationId),
         classType: form.classType,
       });
-      trackBookingComplete(
-        { variant, homeLocationId: form.homeLocationId, content_name: form.classType },
-        registrationEventIdRef.current,
-      );
+      trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
+      // CompleteRegistration fires once the member actually books a class, not here -
+      // see storeRegistrationMeta / classes.$memberId.tsx.
+      storeRegistrationMeta({
+        eventId: registrationEventIdRef.current,
+        memberId: result.memberId,
+        email: form.email.trim(),
+        phone: `${form.countryCode}${form.phoneNumber}`,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        classType: form.classType,
+        variant,
+        fbp: metaCookies.fbp,
+        fbc: metaCookies.fbc,
+        landingPage: window.location.href,
+      });
       window.location.assign(
         `/classes/${encodeURIComponent(String(result.memberId))}?${scheduleSearch.toString()}`,
       );

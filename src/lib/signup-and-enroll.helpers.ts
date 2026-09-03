@@ -35,7 +35,6 @@ export type SignupAndEnrollInput = {
   fbp?: string;
   fbc?: string;
   leadEventId?: string;
-  registrationEventId?: string;
 };
 
 export type LeadCapturePayload = {

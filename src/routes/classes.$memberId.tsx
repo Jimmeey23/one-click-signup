@@ -40,6 +40,9 @@ import {
   isBengaluruLocation,
 } from "@/lib/momence-booking.helpers";
 import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
+import { trackBookingComplete } from "@/lib/analytics";
+import { readRegistrationMeta, clearRegistrationMeta } from "@/lib/registration-meta.helpers";
+import { sendClassBookingCompleteRegistrationCapi } from "@/lib/momence.functions";
 import { saveCustomerFieldsForMember } from "@/lib/momence-customer-fields.functions";
 import {
   sanitizePhoneNumber,
@@ -385,6 +388,7 @@ function ClassesPage() {
   const createBengaluruCheckoutFn = useServerFn(createBengaluruCheckoutSession);
   const completeBengaluruCheckoutFn = useServerFn(completeBengaluruCheckoutBooking);
   const saveCustomerFieldsFn = useServerFn(saveCustomerFieldsForMember);
+  const sendRegistrationCapiFn = useServerFn(sendClassBookingCompleteRegistrationCapi);
   const completedCheckoutRef = useRef<string | null>(null);
   const activeCheckoutRef = useRef<string | null>(null);
   const mountedRef = useRef(false);
@@ -504,6 +508,7 @@ function ClassesPage() {
         if (!mountedRef.current || activeCheckoutRef.current !== checkoutSessionId) return;
         completedCheckoutRef.current = checkoutSessionId;
         clearStoredPaidCheckoutSession();
+        trackClassBooked();
         setBooked({
           session: paidSession,
           location: bookingLocationForId(checkoutLocationId),
@@ -555,6 +560,32 @@ function ClassesPage() {
       window.history.go(-1);
     };
   }, [booked]);
+
+  // CompleteRegistration should fire once, the first time this member actually books a
+  // class - not on every subsequent booking, and not at trial-membership activation.
+  function trackClassBooked() {
+    const meta = readRegistrationMeta(memberId);
+    if (!meta) return;
+    clearRegistrationMeta();
+    trackBookingComplete(
+      { variant: meta.variant, homeLocationId: locationId, content_name: meta.classType },
+      meta.eventId,
+    );
+    sendRegistrationCapiFn({
+      data: {
+        eventId: meta.eventId,
+        memberId,
+        email: meta.email,
+        phone: meta.phone,
+        firstName: meta.firstName,
+        lastName: meta.lastName,
+        classType: meta.classType,
+        landingPage: meta.landingPage,
+        fbp: meta.fbp,
+        fbc: meta.fbc,
+      },
+    }).catch((e) => console.debug("[debug:booking] CompleteRegistration CAPI failed", e));
+  }
 
   function openCustomerFields(session: SessionDTO) {
     setBookErr(null);
@@ -637,6 +668,7 @@ function ClassesPage() {
       }
 
       await bookFn({ data: { memberId, sessionId: s.id, homeLocationId: locationId } });
+      trackClassBooked();
       setBooked({ session: s, location: bookingLocationForId(currentLoc.id) });
     } catch (e) {
       setBookErr(e instanceof Error ? e.message : "Booking failed");

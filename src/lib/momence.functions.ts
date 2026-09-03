@@ -59,7 +59,6 @@ const SignupInput = z.object({
   fbp: z.string().max(100).optional(),
   fbc: z.string().max(200).optional(),
   leadEventId: z.string().max(100).optional(),
-  registrationEventId: z.string().max(100).optional(),
 });
 
 const PartialLeadInput = z.object({
@@ -367,25 +366,30 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
     }
 
     const clientMeta = requestClientMeta();
-    sendMetaCapiEvent({
-      eventName: "Lead",
-      eventId: payload.metaEventId ?? `lead_${payload.stage ?? "completed"}_${Date.now()}`,
-      eventSourceUrl: payload.landingPage ?? clientMeta.url,
-      value: 0,
-      currency: "INR",
-      contentName: payload.classType,
-      user: {
-        email: payload.email,
-        phoneE164: payload.phoneE164,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        externalId: payload.memberId,
-        fbp: payload.fbp,
-        fbc: payload.fbc,
-        clientIpAddress: clientMeta.ip,
-        clientUserAgent: clientMeta.userAgent,
-      },
-    }).catch((capiError) => console.error("Meta CAPI Lead event failed", capiError));
+    // Only the "Activate your trial" submit (stage "completed") should count as a Meta
+    // Lead - the "partial" stage fires on every valid keystroke and would massively
+    // over-report Leads to Meta if sent here too.
+    if (payload.stage === "completed") {
+      sendMetaCapiEvent({
+        eventName: "Lead",
+        eventId: payload.metaEventId ?? `lead_completed_${Date.now()}`,
+        eventSourceUrl: payload.landingPage ?? clientMeta.url,
+        value: 0,
+        currency: "INR",
+        contentName: payload.classType,
+        user: {
+          email: payload.email,
+          phoneE164: payload.phoneE164,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          externalId: payload.memberId,
+          fbp: payload.fbp,
+          fbc: payload.fbc,
+          clientIpAddress: clientMeta.ip,
+          clientUserAgent: clientMeta.userAgent,
+        },
+      }).catch((capiError) => console.error("Meta CAPI Lead event failed", capiError));
+    }
 
     try {
       await syncRespondIoContactAndConversation(payload);
@@ -532,56 +536,61 @@ const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
   resolveCenterName: webhookCenterForLocationId,
 };
 
-async function sendCompleteRegistrationCapiEvent(
-  data: z.infer<typeof SignupInput>,
-  result: { memberId: number; enrolled: boolean },
-) {
-  if (!result.enrolled) return;
-  const clientMeta = requestClientMeta();
-  const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
-  try {
-    await sendMetaCapiEvent({
-      eventName: "CompleteRegistration",
-      eventId: data.registrationEventId ?? `reg_${result.memberId}_${Date.now()}`,
-      eventSourceUrl: data.landingPage ?? clientMeta.url,
-      value: 0,
-      currency: "INR",
-      contentName: data.classType,
-      user: {
-        email: data.email,
-        phoneE164,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        externalId: result.memberId,
-        fbp: data.fbp,
-        fbc: data.fbc,
-        clientIpAddress: clientMeta.ip,
-        clientUserAgent: clientMeta.userAgent,
-      },
-    });
-  } catch (capiError) {
-    console.error("Meta CAPI CompleteRegistration event failed", capiError);
-  }
-}
-
 export const signupAndEnroll = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
   .handler(async ({ data }) => {
-    const result = await runSignupAndEnroll(data, signupAndEnrollDependencies, {
-      captureLead: true,
-    });
-    await sendCompleteRegistrationCapiEvent(data, result);
-    return result;
+    return runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: true });
   });
 
 export const signupAndEnrollWithoutLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
   .handler(async ({ data }) => {
-    const result = await runSignupAndEnroll(data, signupAndEnrollDependencies, {
-      captureLead: false,
-    });
-    await sendCompleteRegistrationCapiEvent(data, result);
-    return result;
+    return runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: false });
+  });
+
+// CompleteRegistration should reflect an actual class booking, not just trial-membership
+// activation - fired from classes.$memberId.tsx once bookWithMembership / the paid Stripe
+// checkout actually succeeds.
+const CompleteRegistrationCapiInput = z.object({
+  eventId: z.string().max(100),
+  memberId: z.number().int().positive(),
+  email: z.string(),
+  phone: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  classType: z.string().optional(),
+  landingPage: z.string().optional(),
+  fbp: z.string().optional(),
+  fbc: z.string().optional(),
+});
+
+export const sendClassBookingCompleteRegistrationCapi = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => CompleteRegistrationCapiInput.parse(input))
+  .handler(async ({ data }) => {
+    const clientMeta = requestClientMeta();
+    try {
+      await sendMetaCapiEvent({
+        eventName: "CompleteRegistration",
+        eventId: data.eventId,
+        eventSourceUrl: data.landingPage ?? clientMeta.url,
+        value: 0,
+        currency: "INR",
+        contentName: data.classType,
+        user: {
+          email: data.email,
+          phoneE164: data.phone,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          externalId: data.memberId,
+          fbp: data.fbp,
+          fbc: data.fbc,
+          clientIpAddress: clientMeta.ip,
+          clientUserAgent: clientMeta.userAgent,
+        },
+      });
+    } catch (capiError) {
+      console.error("Meta CAPI CompleteRegistration event failed", capiError);
+    }
   });
 
 export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
