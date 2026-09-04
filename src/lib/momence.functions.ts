@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { META_CURRENCY, META_PLACEHOLDER_VALUE } from "./analytics";
+import { metaGeoForLocationId } from "./momence-locations";
 import { sendMetaCapiEvent } from "./meta-capi";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
 import { classTypeValueForClassFormatKey, type ClassFormatKey } from "./class-format-matchers";
@@ -291,7 +293,8 @@ function requestClientMeta(): { ip?: string; userAgent?: string; url?: string } 
   try {
     const request = getRequest();
     const forwardedFor = request?.headers.get("x-forwarded-for");
-    const ip = forwardedFor?.split(",")[0]?.trim() || request?.headers.get("x-real-ip") || undefined;
+    const ip =
+      forwardedFor?.split(",")[0]?.trim() || request?.headers.get("x-real-ip") || undefined;
     return {
       ip,
       userAgent: request?.headers.get("user-agent") ?? undefined,
@@ -363,32 +366,6 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       const t = await res.text();
       console.error("Lead capture failed:", res.status, t);
       return { ok: false, error: `Lead capture ${res.status}` };
-    }
-
-    const clientMeta = requestClientMeta();
-    // Only the "Activate your trial" submit (stage "completed") should count as a Meta
-    // Lead - the "partial" stage fires on every valid keystroke and would massively
-    // over-report Leads to Meta if sent here too.
-    if (payload.stage === "completed") {
-      sendMetaCapiEvent({
-        eventName: "Lead",
-        eventId: payload.metaEventId ?? `lead_completed_${Date.now()}`,
-        eventSourceUrl: payload.landingPage ?? clientMeta.url,
-        value: 0,
-        currency: "INR",
-        contentName: payload.classType,
-        user: {
-          email: payload.email,
-          phoneE164: payload.phoneE164,
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          externalId: payload.memberId,
-          fbp: payload.fbp,
-          fbc: payload.fbc,
-          clientIpAddress: clientMeta.ip,
-          clientUserAgent: clientMeta.userAgent,
-        },
-      }).catch((capiError) => console.error("Meta CAPI Lead event failed", capiError));
     }
 
     try {
@@ -548,6 +525,57 @@ export const signupAndEnrollWithoutLead = createServerFn({ method: "POST" })
     return runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: false });
   });
 
+// Lead goes to the Conversions API from its own server fn, called by the client at the
+// exact moment the pixel fires Lead and with the same event_id. Sending it from inside
+// captureLead instead would break dedup parity: that path is skipped on /skip-lead,
+// skipped when the lead webhook errors, and runs even when the browser event is
+// suppressed - so pixel and CAPI Lead counts could never match.
+const LeadCapiInput = z.object({
+  eventId: z.string().max(100),
+  memberId: z.number().int().positive().optional(),
+  email: z.string(),
+  phone: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  classType: z.string().optional(),
+  countryIso: z.string().max(2).optional(),
+  locationId: z.number().int().positive().optional(),
+  landingPage: z.string().optional(),
+  fbp: z.string().optional(),
+  fbc: z.string().optional(),
+});
+
+export const sendSignupLeadCapi = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => LeadCapiInput.parse(input))
+  .handler(async ({ data }) => {
+    const clientMeta = requestClientMeta();
+    try {
+      await sendMetaCapiEvent({
+        eventName: "Lead",
+        eventId: data.eventId,
+        eventSourceUrl: data.landingPage ?? clientMeta.url,
+        value: META_PLACEHOLDER_VALUE,
+        currency: META_CURRENCY,
+        contentName: data.classType,
+        user: {
+          email: data.email,
+          phoneE164: data.phone,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          externalId: data.memberId,
+          countryIso: data.countryIso,
+          ...metaGeoForLocationId(data.locationId),
+          fbp: data.fbp,
+          fbc: data.fbc,
+          clientIpAddress: clientMeta.ip,
+          clientUserAgent: clientMeta.userAgent,
+        },
+      });
+    } catch (capiError) {
+      console.error("Meta CAPI Lead event failed", capiError);
+    }
+  });
+
 // CompleteRegistration should reflect an actual class booking, not just trial-membership
 // activation - fired from classes.$memberId.tsx once bookWithMembership / the paid Stripe
 // checkout actually succeeds.
@@ -559,6 +587,8 @@ const CompleteRegistrationCapiInput = z.object({
   firstName: z.string(),
   lastName: z.string(),
   classType: z.string().optional(),
+  countryIso: z.string().max(2).optional(),
+  locationId: z.number().int().positive().optional(),
   landingPage: z.string().optional(),
   fbp: z.string().optional(),
   fbc: z.string().optional(),
@@ -573,8 +603,8 @@ export const sendClassBookingCompleteRegistrationCapi = createServerFn({ method:
         eventName: "CompleteRegistration",
         eventId: data.eventId,
         eventSourceUrl: data.landingPage ?? clientMeta.url,
-        value: 0,
-        currency: "INR",
+        value: META_PLACEHOLDER_VALUE,
+        currency: META_CURRENCY,
         contentName: data.classType,
         user: {
           email: data.email,
@@ -582,6 +612,8 @@ export const sendClassBookingCompleteRegistrationCapi = createServerFn({ method:
           firstName: data.firstName,
           lastName: data.lastName,
           externalId: data.memberId,
+          countryIso: data.countryIso,
+          ...metaGeoForLocationId(data.locationId),
           fbp: data.fbp,
           fbc: data.fbc,
           clientIpAddress: clientMeta.ip,

@@ -12,6 +12,7 @@ export type RegistrationMeta = {
   lastName: string;
   classType: string;
   variant: string;
+  countryIso?: string;
   fbp?: string;
   fbc?: string;
   landingPage: string;

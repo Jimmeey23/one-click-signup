@@ -18,6 +18,10 @@ export type MetaCapiUserData = {
   firstName?: string;
   lastName?: string;
   externalId?: string | number;
+  countryIso?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
   fbp?: string;
   fbc?: string;
   clientIpAddress?: string;
@@ -39,7 +43,9 @@ export async function sendMetaCapiEvent(input: MetaCapiEventInput): Promise<void
   const pixelId = process.env.VITE_META_PIXEL_ID?.trim();
   const accessToken = process.env.META_CONVERSIONS_API_ACCESS_TOKEN?.trim();
   if (!pixelId || !accessToken) {
-    console.warn("Meta CAPI not configured (VITE_META_PIXEL_ID / META_CONVERSIONS_API_ACCESS_TOKEN) - skipping");
+    console.warn(
+      "Meta CAPI not configured (VITE_META_PIXEL_ID / META_CONVERSIONS_API_ACCESS_TOKEN) - skipping",
+    );
     return;
   }
 
@@ -50,14 +56,21 @@ export async function sendMetaCapiEvent(input: MetaCapiEventInput): Promise<void
   if (user.firstName) userData.fn = [sha256(user.firstName)];
   if (user.lastName) userData.ln = [sha256(user.lastName)];
   if (user.externalId !== undefined) userData.external_id = [sha256(String(user.externalId))];
+  if (user.countryIso) userData.country = [sha256(user.countryIso)];
+  if (user.city) userData.ct = [sha256(user.city.replace(/[^A-Za-z]/g, ""))];
+  if (user.state) userData.st = [sha256(user.state.replace(/[^A-Za-z]/g, ""))];
+  if (user.postcode) userData.zp = [sha256(user.postcode.replace(/\s/g, ""))];
   if (user.fbp) userData.fbp = user.fbp;
   if (user.fbc) userData.fbc = user.fbc;
   if (user.clientIpAddress) userData.client_ip_address = user.clientIpAddress;
   if (user.clientUserAgent) userData.client_user_agent = user.clientUserAgent;
 
-  const customData: Record<string, unknown> = {};
-  if (input.value !== undefined) customData.value = input.value;
-  if (input.currency) customData.currency = input.currency;
+  // Meta's diagnostics flag value+currency as missing when value is 0 or absent, so both
+  // always go out with a nonzero placeholder unless the caller supplies a real amount.
+  const customData: Record<string, unknown> = {
+    value: input.value && input.value > 0 ? input.value : 1,
+    currency: input.currency?.trim() || "INR",
+  };
   if (input.contentName) customData.content_name = input.contentName;
   if (input.contentCategory) customData.content_category = input.contentCategory;
 

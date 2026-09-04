@@ -2,12 +2,18 @@
 export const MUMBAI_LOCATIONS = [
   {
     id: 9030,
+    city: "Mumbai",
+    state: "Maharashtra",
+    postcode: "400036",
     name: "Kwality House, Kemps Corner",
     phone: "97696 65757",
     address: "Kwality House, August Kranti Rd, below Kemps Corner, Grant Road, Mumbai 400036",
   },
   {
     id: 29821,
+    city: "Mumbai",
+    state: "Maharashtra",
+    postcode: "400050",
     name: "Supreme HQ, Bandra",
     phone: "97696 65757",
     address:
@@ -18,6 +24,9 @@ export const MUMBAI_LOCATIONS = [
 export const BENGALURU_LOCATIONS = [
   {
     id: 22116,
+    city: "Bengaluru",
+    state: "Karnataka",
+    postcode: "560001",
     name: "Lavelle Road, Bengaluru",
     phone: "97696 65757",
     address:
@@ -25,6 +34,9 @@ export const BENGALURU_LOCATIONS = [
   },
   {
     id: 36372,
+    city: "Bengaluru",
+    state: "Karnataka",
+    postcode: "560071",
     name: "Indiranagar, Bengaluru",
     phone: "97696 65757",
     address:
@@ -32,6 +44,9 @@ export const BENGALURU_LOCATIONS = [
   },
   {
     id: 287883,
+    city: "Bengaluru",
+    state: "Karnataka",
+    postcode: "560003",
     name: "Plash Pilates, Sadashivnagar",
     phone: "97696 65757",
     address:
@@ -41,3 +56,16 @@ export const BENGALURU_LOCATIONS = [
 ] as const;
 
 export const LOCATIONS = [...MUMBAI_LOCATIONS, ...BENGALURU_LOCATIONS] as const;
+
+// Meta event match quality accepts ct / st / zp. We never ask a trial signup for their
+// address, so this is the studio they chose - a proxy, not their own address. Trial
+// members are overwhelmingly local to the studio they book, but treat these as lower
+// confidence than the email, phone and country the member typed themselves.
+export type MetaGeo = { city: string; state: string; postcode: string };
+
+export function metaGeoForLocationId(locationId?: number): MetaGeo | undefined {
+  if (locationId === undefined) return undefined;
+  const location = LOCATIONS.find((l) => l.id === locationId);
+  if (!location) return undefined;
+  return { city: location.city, state: location.state, postcode: location.postcode };
+}

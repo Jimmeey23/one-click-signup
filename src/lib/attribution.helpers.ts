@@ -1,3 +1,5 @@
+import { readRawFbclid } from "./analytics";
+
 export type StoredAttribution = {
   utmSource?: string;
   utmMedium?: string;
@@ -21,7 +23,8 @@ export function parseAttributionFromSearch(
   const utmTerm = params.get("utm_term");
   const utmContent = params.get("utm_content");
   const gclid = params.get("gclid");
-  const fbclid = params.get("fbclid");
+  // Raw, not params.get - Meta needs the fbclid byte-for-byte for fbc (see analytics.ts).
+  const fbclid = readRawFbclid(search);
   if (utmSource) attribution.utmSource = utmSource;
   if (utmMedium) attribution.utmMedium = utmMedium;
   if (utmCampaign) attribution.utmCampaign = utmCampaign;

@@ -20,16 +20,22 @@ import {
   signupAndEnroll,
   signupAndEnrollWithoutLead,
   captureLeadPartial,
+  sendSignupLeadCapi,
 } from "@/lib/momence.functions";
 import {
   trackSignupStart,
   trackWaiverSigned,
   setMetaAdvancedMatching,
   readMetaCookies,
+  readRawFbclid,
 } from "@/lib/analytics";
 import { storeRegistrationMeta } from "@/lib/registration-meta.helpers";
 import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
-import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
+import {
+  MUMBAI_LOCATIONS,
+  BENGALURU_LOCATIONS,
+  metaGeoForLocationId,
+} from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { parseAttributionFromSearch, type StoredAttribution } from "@/lib/attribution.helpers";
 import {
@@ -191,6 +197,7 @@ export function OpenBarreLanding({
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
   const submitPartialLead = useServerFn(captureLeadPartial);
+  const sendLeadCapiFn = useServerFn(sendSignupLeadCapi);
   const signup = captureLead ? signupWithLead : signupWithoutLead;
   const sigRef = useRef<SignaturePadHandle | null>(null);
   const [signed, setSigned] = useState(false);
@@ -202,7 +209,6 @@ export function OpenBarreLanding({
   const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
   const [variant] = useState(() => getVariant());
   const variantCopy = VARIANT_COPY[variant];
-  const signupStartedRef = useRef(false);
   const waiverSignedTrackedRef = useRef(false);
   const partialCapturedRef = useRef(false);
   const leadEventIdRef = useRef<string>(
@@ -339,18 +345,21 @@ export function OpenBarreLanding({
     }
   }, [form.homeLocationId]);
 
+  // Re-run on every change rather than once: firing only on the first keystroke sent the
+  // pixel a match payload of just a partial first name, and never updated it once the
+  // email and phone were actually filled in. fbq("init", ...) merges each call's fields.
   useEffect(() => {
-    if (signupStartedRef.current) return;
-    if (form.firstName || form.lastName || form.email || form.phoneNumber) {
-      signupStartedRef.current = true;
-      setMetaAdvancedMatching({
-        email: form.email || undefined,
-        phone: form.phoneNumber ? `${form.countryCode}${form.phoneNumber}` : undefined,
-        firstName: form.firstName || undefined,
-        lastName: form.lastName || undefined,
-      });
-    }
-  }, [form.firstName, form.lastName, form.email, form.phoneNumber, form.countryCode, form.classType, variant]);
+    if (!form.firstName && !form.lastName && !form.email && !form.phoneNumber) return;
+    setMetaAdvancedMatching({
+      email: form.email.includes("@") ? form.email : undefined,
+      phone:
+        form.phoneNumber.replace(/[^0-9]/g, "").length >= 6
+          ? `${form.countryCode}${form.phoneNumber}`
+          : undefined,
+      firstName: form.firstName || undefined,
+      lastName: form.lastName || undefined,
+    });
+  }, [form.firstName, form.lastName, form.email, form.phoneNumber, form.countryCode]);
 
   useEffect(() => {
     if (partialCapturedRef.current || !captureLead) return;
@@ -361,7 +370,7 @@ export function OpenBarreLanding({
     partialCapturedRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const stored = readStoredAttribution();
-    const metaCookies = readMetaCookies(params.get("fbclid") ?? stored.fbclid);
+    const metaCookies = readMetaCookies(readRawFbclid(window.location.search) ?? stored.fbclid);
 
     submitPartialLead({
       data: {
@@ -377,7 +386,7 @@ export function OpenBarreLanding({
         utmTerm: params.get("utm_term") ?? stored.utmTerm,
         utmContent: params.get("utm_content") ?? stored.utmContent,
         gclid: params.get("gclid") ?? stored.gclid,
-        fbclid: params.get("fbclid") ?? stored.fbclid,
+        fbclid: readRawFbclid(window.location.search) ?? stored.fbclid,
         referrer: stored.referrer ?? document.referrer,
         landingPage: stored.landingPage ?? window.location.href,
         abVariant: isBengaluru ? "bengaluru" : variant,
@@ -466,7 +475,7 @@ export function OpenBarreLanding({
 
     try {
       const stored = readStoredAttribution();
-      const metaCookies = readMetaCookies(params.get("fbclid") ?? stored.fbclid);
+      const metaCookies = readMetaCookies(readRawFbclid(window.location.search) ?? stored.fbclid);
       const trackingPayload = captureLead
         ? {
             utmSource: params.get("utm_source") ?? stored.utmSource ?? undefined,
@@ -475,7 +484,7 @@ export function OpenBarreLanding({
             utmTerm: params.get("utm_term") ?? stored.utmTerm ?? undefined,
             utmContent: params.get("utm_content") ?? stored.utmContent ?? undefined,
             gclid: params.get("gclid") ?? stored.gclid ?? undefined,
-            fbclid: params.get("fbclid") ?? stored.fbclid ?? undefined,
+            fbclid: readRawFbclid(window.location.search) ?? stored.fbclid ?? undefined,
             referrer:
               stored.referrer ?? (typeof document !== "undefined" ? document.referrer : undefined),
             landingPage:
@@ -506,6 +515,36 @@ export function OpenBarreLanding({
         },
       });
       console.debug("[debug:signup] signup result", result);
+      // Lead fires here - pixel and Conversions API side by side, one shared event_id,
+      // before the enrollment check so a failed Open Barre activation can never send one
+      // without the other. Advanced matching is refreshed first so the pixel event
+      // carries external_id (the member id) as a dedup key alongside fbp/event_id.
+      setMetaAdvancedMatching({
+        email: form.email.trim(),
+        phone: `${form.countryCode}${form.phoneNumber}`,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        externalId: String(result.memberId),
+        countryIso: form.countryIso,
+        ...metaGeoForLocationId(form.homeLocationId),
+      });
+      trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
+      sendLeadCapiFn({
+        data: {
+          eventId: leadEventIdRef.current,
+          memberId: result.memberId,
+          email: form.email.trim(),
+          phone: `${form.countryCode}${form.phoneNumber}`,
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          classType: form.classType,
+          countryIso: form.countryIso,
+          locationId: form.homeLocationId,
+          landingPage: window.location.href,
+          fbp: metaCookies.fbp,
+          fbc: metaCookies.fbc,
+        },
+      }).catch((e3) => console.debug("[debug:signup] Lead CAPI failed", e3));
       if (result.leadError) {
         console.warn("[debug:signup] lead capture failed silently:", result.leadError);
       }
@@ -523,7 +562,6 @@ export function OpenBarreLanding({
         locationId: String(form.homeLocationId),
         classType: form.classType,
       });
-      trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
       // CompleteRegistration fires once the member actually books a class, not here -
       // see storeRegistrationMeta / classes.$memberId.tsx.
       storeRegistrationMeta({
@@ -535,6 +573,7 @@ export function OpenBarreLanding({
         lastName: form.lastName.trim(),
         classType: form.classType,
         variant,
+        countryIso: form.countryIso,
         fbp: metaCookies.fbp,
         fbc: metaCookies.fbc,
         landingPage: window.location.href,
@@ -1487,9 +1526,7 @@ function SignupCard({
                 autoComplete="tel-national"
                 required
                 value={form.phoneNumber}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))
-                }
+                onChange={(e) => setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
                 placeholder="98765 43210"
                 className="flex-1 h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
@@ -1731,9 +1768,7 @@ function SignupCard({
               type="checkbox"
               required
               checked={form.waiverAccepted}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, waiverAccepted: e.target.checked }))
-              }
+              onChange={(e) => setForm((prev) => ({ ...prev, waiverAccepted: e.target.checked }))}
               className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--primary)]"
             />
             <span className="text-xs text-foreground leading-relaxed">

@@ -35,9 +35,7 @@ export function momenceHomeLocationIdForLocation(homeLocationId: number): number
 }
 
 export function openBarreMembershipIdForLocation(homeLocationId: number): number {
-  if (
-    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
-  ) {
+  if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
     return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;
   }
   if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {
@@ -103,9 +101,7 @@ export function bengaluruStripePriceIdForLocation(homeLocationId: number): strin
 }
 
 export function bengaluruIntroMembershipIdForLocation(homeLocationId: number): number | null {
-  if (
-    homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID
-  ) {
+  if (homeLocationId === BENGALURU_LAVELLE_ROAD_LOCATION_ID) {
     return BENGALURU_LAVELLE_ROAD_INTRO_MEMBERSHIP_ID;
   }
   if (homeLocationId === BENGALURU_INDIRANAGAR_LOCATION_ID) {

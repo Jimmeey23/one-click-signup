@@ -96,7 +96,7 @@ export const listSessions = createServerFn({ method: "POST" })
         ? res
         : Array.isArray(res.payload)
           ? res.payload
-          : res.payload?.sessions ?? res.sessions ?? [];
+          : (res.payload?.sessions ?? res.sessions ?? []);
     } else {
       const res = await momenceFetch<{ payload: HostSession[] }>(
         `/host/sessions?${params.toString()}`,

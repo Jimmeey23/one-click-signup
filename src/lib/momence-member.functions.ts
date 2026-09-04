@@ -55,4 +55,3 @@ export const signDocument = createServerFn({ method: "POST" })
       return { signed: false as const, error: msg };
     }
   });
-

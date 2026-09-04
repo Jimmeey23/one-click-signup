@@ -25,9 +25,13 @@ import {
 import confetti from "canvas-confetti";
 import { fireDualSideConfetti } from "@/lib/confetti";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { LOCATIONS } from "@/lib/momence-locations";
+import { LOCATIONS, metaGeoForLocationId } from "@/lib/momence-locations";
 import { CLASS_FORMAT_KEYS, type ClassFormatKey } from "@/lib/class-format-matchers";
-import { listSessions, bookWithMembership, type SessionDTO } from "@/lib/momence-sessions.functions";
+import {
+  listSessions,
+  bookWithMembership,
+  type SessionDTO,
+} from "@/lib/momence-sessions.functions";
 import {
   completeNewcomersCheckoutBooking,
   createNewcomersCheckoutSession,
@@ -40,7 +44,7 @@ import {
   isBengaluruLocation,
 } from "@/lib/momence-booking.helpers";
 import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
-import { trackBookingComplete } from "@/lib/analytics";
+import { setMetaAdvancedMatching, trackBookingComplete } from "@/lib/analytics";
 import { readRegistrationMeta, clearRegistrationMeta } from "@/lib/registration-meta.helpers";
 import { sendClassBookingCompleteRegistrationCapi } from "@/lib/momence.functions";
 import { saveCustomerFieldsForMember } from "@/lib/momence-customer-fields.functions";
@@ -567,6 +571,17 @@ function ClassesPage() {
     const meta = readRegistrationMeta(memberId);
     if (!meta) return;
     clearRegistrationMeta();
+    // Match the CAPI event's identifiers on the pixel side too: external_id (member id)
+    // plus hashed contact fields, so the pair can still be deduped if event_id is lost.
+    setMetaAdvancedMatching({
+      email: meta.email,
+      phone: meta.phone,
+      firstName: meta.firstName,
+      lastName: meta.lastName,
+      externalId: String(memberId),
+      countryIso: meta.countryIso,
+      ...metaGeoForLocationId(locationId),
+    });
     trackBookingComplete(
       { variant: meta.variant, homeLocationId: locationId, content_name: meta.classType },
       meta.eventId,
@@ -580,6 +595,8 @@ function ClassesPage() {
         firstName: meta.firstName,
         lastName: meta.lastName,
         classType: meta.classType,
+        countryIso: meta.countryIso,
+        locationId,
         landingPage: meta.landingPage,
         fbp: meta.fbp,
         fbc: meta.fbc,
@@ -1644,7 +1661,11 @@ function SessionCard({
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isFull ? "bg-destructive" : s.spotsLeft <= 3 ? "bg-primary" : "bg-muted-foreground/50"
+                  isFull
+                    ? "bg-destructive"
+                    : s.spotsLeft <= 3
+                      ? "bg-primary"
+                      : "bg-muted-foreground/50"
                 }`}
               />
               {isFull ? "Full" : `${s.spotsLeft} spots left`}

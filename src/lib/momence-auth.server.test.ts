@@ -67,10 +67,20 @@ describe("getMomenceCookies", () => {
     globalThis.fetch = (async (url: string) => {
       calls.push(String(url));
       if (String(url).includes("/auth/login")) {
-        return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["ribbon.connect.sid=abc; Path=/"] });
+        return fakeResponse({
+          ok: true,
+          status: 200,
+          body: {},
+          setCookies: ["ribbon.connect.sid=abc; Path=/"],
+        });
       }
       if (String(url).includes("/auth/mfa/totp/verify")) {
-        return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["csrf_token=xyz; Path=/"] });
+        return fakeResponse({
+          ok: true,
+          status: 200,
+          body: {},
+          setCookies: ["csrf_token=xyz; Path=/"],
+        });
       }
       throw new Error(`unexpected fetch: ${url}`);
     }) as typeof fetch;
@@ -85,7 +95,12 @@ describe("getMomenceCookies", () => {
     globalThis.fetch = (async (url: string) => {
       if (String(url).includes("/auth/login")) {
         loginCalls += 1;
-        return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["ribbon.connect.sid=abc"] });
+        return fakeResponse({
+          ok: true,
+          status: 200,
+          body: {},
+          setCookies: ["ribbon.connect.sid=abc"],
+        });
       }
       return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["csrf_token=xyz"] });
     }) as typeof fetch;
@@ -100,7 +115,12 @@ describe("getMomenceCookies", () => {
     globalThis.fetch = (async (url: string) => {
       if (String(url).includes("/auth/login")) {
         loginCalls += 1;
-        return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["ribbon.connect.sid=abc"] });
+        return fakeResponse({
+          ok: true,
+          status: 200,
+          body: {},
+          setCookies: ["ribbon.connect.sid=abc"],
+        });
       }
       return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["csrf_token=xyz"] });
     }) as typeof fetch;
@@ -114,7 +134,12 @@ describe("getMomenceCookies", () => {
     let mfaCalls = 0;
     globalThis.fetch = (async (url: string) => {
       if (String(url).includes("/auth/login")) {
-        return fakeResponse({ ok: true, status: 200, body: {}, setCookies: ["ribbon.connect.sid=abc"] });
+        return fakeResponse({
+          ok: true,
+          status: 200,
+          body: {},
+          setCookies: ["ribbon.connect.sid=abc"],
+        });
       }
       mfaCalls += 1;
       return fakeResponse({ ok: false, status: 401, body: { error: "bad otp" }, setCookies: [] });
