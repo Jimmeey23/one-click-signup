@@ -4,6 +4,7 @@ import { z } from "zod";
 import { META_CURRENCY, META_PLACEHOLDER_VALUE } from "./analytics";
 import { metaGeoForLocationId } from "./momence-locations";
 import { sendMetaCapiEvent } from "./meta-capi";
+import { metaRequestContext, type MetaRequestContext } from "./meta-request.helpers";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
 import { classTypeValueForClassFormatKey, type ClassFormatKey } from "./class-format-matchers";
 import {
@@ -289,17 +290,10 @@ export function webhookCenterForLocationId(homeLocationId: number | undefined): 
   return LOCATIONS.find((location) => location.id === homeLocationId)?.name ?? "Physique 57 India";
 }
 
-function requestClientMeta(): { ip?: string; userAgent?: string; url?: string } {
+function requestClientMeta(): MetaRequestContext {
   try {
     const request = getRequest();
-    const forwardedFor = request?.headers.get("x-forwarded-for");
-    const ip =
-      forwardedFor?.split(",")[0]?.trim() || request?.headers.get("x-real-ip") || undefined;
-    return {
-      ip,
-      userAgent: request?.headers.get("user-agent") ?? undefined,
-      url: request?.headers.get("referer") ?? undefined,
-    };
+    return request ? metaRequestContext(request.headers) : {};
   } catch {
     return {};
   }
@@ -563,8 +557,10 @@ export const sendSignupLeadCapi = createServerFn({ method: "POST" })
           firstName: data.firstName,
           lastName: data.lastName,
           externalId: data.memberId,
-          countryIso: data.countryIso,
-          ...metaGeoForLocationId(data.locationId),
+          countryIso: data.countryIso ?? clientMeta.countryIso,
+          ...(clientMeta.city || clientMeta.state || clientMeta.postcode
+            ? { city: clientMeta.city, state: clientMeta.state, postcode: clientMeta.postcode }
+            : metaGeoForLocationId(data.locationId)),
           fbp: data.fbp,
           fbc: data.fbc,
           clientIpAddress: clientMeta.ip,
@@ -612,8 +608,10 @@ export const sendClassBookingCompleteRegistrationCapi = createServerFn({ method:
           firstName: data.firstName,
           lastName: data.lastName,
           externalId: data.memberId,
-          countryIso: data.countryIso,
-          ...metaGeoForLocationId(data.locationId),
+          countryIso: data.countryIso ?? clientMeta.countryIso,
+          ...(clientMeta.city || clientMeta.state || clientMeta.postcode
+            ? { city: clientMeta.city, state: clientMeta.state, postcode: clientMeta.postcode }
+            : metaGeoForLocationId(data.locationId)),
           fbp: data.fbp,
           fbc: data.fbc,
           clientIpAddress: clientMeta.ip,
