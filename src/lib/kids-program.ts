@@ -7,10 +7,10 @@ export const JUNIORS_MIN_AGE = 9;
 export const JUNIORS_MAX_AGE = 13;
 
 export const JUNIORS_HERO_IMAGES = [
-  "/p57-assets/p57-juniors-hero-2026-1.png",
-  "/p57-assets/p57-juniors-hero-2026-2.png",
-  "/p57-assets/p57-juniors-hero-2026-3.png",
-  "/p57-assets/p57-juniors-hero-2026-4.png",
+  "/p57-assets/p57-juniors-hero-1.jpg",
+  "/p57-assets/p57-juniors-hero-2.jpg",
+  "/p57-assets/p57-juniors-hero-3.jpg",
+  "/p57-assets/p57-juniors-hero-4.jpg",
 ];
 
 export type JuniorsBatch = {

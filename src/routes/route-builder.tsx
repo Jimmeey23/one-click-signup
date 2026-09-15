@@ -9,6 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
 import { listSessions, type SessionDTO } from "@/lib/momence-sessions.functions";
 import { membershipOptionsForLocation } from "@/lib/membership-catalog";
+import {
+  LEAD_SOURCES,
+  leadSourceById,
+  leadSourceIdForName,
+  leadSourceLabel,
+} from "@/lib/lead-sources";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { encodeShareableRoutePayload, type ShareableRoutePayload } from "@/lib/shareable-route";
 
@@ -52,40 +58,21 @@ const DEFAULT_FORM: ShareableRoutePayload = {
   utmCampaign: "",
   otherDetails: "",
   heroImagePreset: "hero-barre",
-  heroImageUrl:
-    "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1600&q=80",
+  heroImageUrl: "/p57-assets/p57-barre-studio.jpg",
 };
 
 const HERO_PRESETS = [
+  { id: "hero-barre", label: "Barre studio", url: "/p57-assets/p57-barre-studio.jpg" },
+  { id: "hero-strength", label: "Strength", url: "/p57-assets/p57-barre-group.jpg" },
+  { id: "hero-cycle", label: "Cycle", url: "/p57-assets/p57-cycle-close.jpg" },
+  { id: "hero-strength-wide", label: "Strength, wide", url: "/p57-assets/p57-strength-wide.jpg" },
   {
-    id: "hero-barre",
-    label: "Barre group",
-    url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1600&q=80",
+    id: "hero-strength-color",
+    label: "Strength, colour",
+    url: "/p57-assets/p57-strength-color.jpg",
   },
-  {
-    id: "hero-strength",
-    label: "Strength studio",
-    url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: "hero-cycle",
-    label: "Cycle close-up",
-    url: "https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    id: "hero-kids",
-    label: "Kids / juniors",
-    url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1600&q=80",
-  },
+  { id: "hero-kids", label: "Juniors", url: "/p57-assets/p57-juniors-hero-1.jpg" },
   { id: "hero-custom", label: "Custom image URL", url: "" },
-];
-
-const LEAD_SOURCE_OPTIONS = [
-  "website paid",
-  "website kids",
-  "influencer marketing",
-  "campaign",
-  "manual",
 ];
 
 const PRESETS: Array<{
@@ -100,8 +87,8 @@ const PRESETS: Array<{
       isKids: true,
       includeKidsConsent: true,
       includeWaiver: true,
-      leadSource: "website kids",
-      sourceId: "kids-program",
+      leadSource: "Physique Kids",
+      sourceId: leadSourceIdForName("Physique Kids"),
       heroImagePreset: "hero-kids",
       tags: ["kids", "waiver", "consent"],
     },
@@ -110,8 +97,8 @@ const PRESETS: Array<{
     label: "Influencer event",
     description: "Best for creator-led trials and campaign tracking.",
     value: {
-      leadSource: "influencer marketing",
-      sourceId: "influencer-campaign",
+      leadSource: "Influencer Sign-up",
+      sourceId: leadSourceIdForName("Influencer Sign-up"),
       utmSource: "instagram",
       utmCampaign: "creator-launch",
       paymentType: "free",
@@ -123,8 +110,8 @@ const PRESETS: Array<{
     description: "A generic paid booking route with standard trial metadata.",
     value: {
       paymentType: "paid",
-      leadSource: "website paid",
-      sourceId: "paid-signup",
+      leadSource: "Website",
+      sourceId: leadSourceIdForName("Website"),
       tags: ["trial", "paid"],
     },
   },
@@ -335,6 +322,15 @@ function RouteBuilderPage() {
       membershipId: option?.membershipId ?? 0,
       membershipLabel: option?.label ?? "",
       paymentType: option?.free === false ? "paid" : current.paymentType,
+    }));
+  }
+
+  function selectLeadSource(sourceId: string) {
+    const source = leadSourceById(sourceId);
+    setForm((current) => ({
+      ...current,
+      leadSource: source?.name ?? "",
+      sourceId: source?.id ?? "",
     }));
   }
 
@@ -698,22 +694,19 @@ function RouteBuilderPage() {
                 <Field label="Lead source">
                   <select
                     className="rb-select"
-                    value={form.leadSource}
-                    onChange={(e) => setForm({ ...form, leadSource: e.target.value })}
+                    value={form.sourceId}
+                    onChange={(e) => selectLeadSource(e.target.value)}
                   >
                     <option value="">Select lead source</option>
-                    {LEAD_SOURCE_OPTIONS.map((source) => (
-                      <option key={source} value={source}>
-                        {source}
+                    {LEAD_SOURCES.map((source) => (
+                      <option key={source.id} value={source.id}>
+                        {leadSourceLabel(source)}
                       </option>
                     ))}
                   </select>
                 </Field>
-                <Field label="Source id">
-                  <Input
-                    value={form.sourceId}
-                    onChange={(e) => setForm({ ...form, sourceId: e.target.value })}
-                  />
+                <Field label="Source id" hint="Set by the lead source.">
+                  <Input value={form.sourceId} readOnly className="rb-readonly" />
                 </Field>
                 <Field label="UTM source">
                   <Input
@@ -1268,6 +1261,7 @@ const RB_CSS = `
   box-shadow: 0 0 0 3px rgba(127, 211, 247, 0.34);
 }
 .rb-select:disabled { background: #eceef1; color: var(--mute); }
+.rb-readonly { background: #eceef1; color: var(--mute); cursor: default; }
 
 .rb-switches { display: grid; gap: 8px; margin-top: 20px; }
 .rb-switch {
@@ -1327,7 +1321,9 @@ const RB_CSS = `
   padding: 0;
   transition: border-color 160ms ease, transform 160ms ease;
 }
-.rb-hero img { display: block; width: 100%; height: 78px; object-fit: cover; }
+/* The brand photography is shot tall; bias the crop upward so the subject, not the
+   floor, survives the thumbnail. */
+.rb-hero img { display: block; width: 100%; height: 78px; object-fit: cover; object-position: 50% 32%; }
 .rb-hero-custom {
   display: grid;
   place-items: center;

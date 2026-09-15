@@ -16,5 +16,5 @@ export const Route = createFileRoute("/kids")({
 });
 
 function KidsRoutePage() {
-  return <KidsLanding routeSource="website kids" />;
+  return <KidsLanding routeSource="kids" />;
 }

@@ -136,7 +136,7 @@ export function KidsLanding({
   formTitle = "Plan your child's first session",
   formDescription = "Tell us where you would like to visit and which Juniors class works best for your child.",
   formBadge = "P57 Juniors",
-  routeSource = "website kids",
+  routeSource = "kids",
   utmSource,
   utmCampaign,
 }: KidsLandingProps) {

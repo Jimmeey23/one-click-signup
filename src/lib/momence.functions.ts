@@ -966,7 +966,7 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       batch: data.batch,
       sourceForm: "kids-trial-form",
       utmSource: data.utmSource,
-      utmMedium: data.utmMedium ?? "website kids",
+      utmMedium: data.utmMedium ?? "kids",
       utmCampaign: data.utmCampaign,
       utmTerm: data.utmTerm,
       utmContent: data.utmContent,

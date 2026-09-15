@@ -33,7 +33,7 @@ function SignupRoutePage() {
         formTitle={payload.eventName ? `Book ${payload.eventName}` : undefined}
         formDescription={payload.otherDetails || undefined}
         heroImages={payload.heroImageUrl ? [payload.heroImageUrl] : undefined}
-        routeSource={payload.leadSource || "website kids"}
+        routeSource={payload.leadSource || "kids"}
         utmSource={payload.utmSource || undefined}
         utmCampaign={payload.utmCampaign || undefined}
       />
