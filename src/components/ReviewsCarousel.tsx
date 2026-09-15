@@ -97,9 +97,7 @@ export function ReviewsCarousel({
           payload.map((review) => ({
             name: review.reviewerName,
             text: review.comment,
-            meta: [review.sessionName, review.teacherFullName?.trim()]
-              .filter(Boolean)
-              .join(" · "),
+            meta: [review.sessionName, review.teacherFullName?.trim()].filter(Boolean).join(" · "),
             rating: review.grade,
             profileImage: review.reviewerProfileImage,
           })),
@@ -200,7 +198,7 @@ export function ReviewsCarousel({
                           : "fill-border text-border"
                       }`}
                     />
-                ))}
+                  ))}
                 </div>
                 <span
                   className={
@@ -239,9 +237,7 @@ export function ReviewsCarousel({
                     src={r.profileImage}
                     alt=""
                     className={`h-9 w-9 shrink-0 rounded-full object-cover ${
-                      isBengaluru
-                        ? "ring-2 ring-primary/15"
-                        : "ring-1 ring-border"
+                      isBengaluru ? "ring-2 ring-primary/15" : "ring-1 ring-border"
                     }`}
                     loading="lazy"
                   />

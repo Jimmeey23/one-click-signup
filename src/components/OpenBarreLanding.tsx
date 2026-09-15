@@ -19,6 +19,7 @@ import {
 import {
   signupAndEnroll,
   signupAndEnrollWithoutLead,
+  signupEnrollAndBookRoute,
   captureLeadPartial,
   sendSignupLeadCapi,
 } from "@/lib/momence.functions";
@@ -195,6 +196,9 @@ type OpenBarreLandingProps = {
   heroImageFallback?: string;
   initialSearch?: string;
   isKidsRoute?: boolean;
+  /** Set by a shareable route that names its own membership / class to book into. */
+  routeMembershipId?: number;
+  routeSessionId?: number;
 };
 
 const KIDS_HERO_QUOTES = [
@@ -214,11 +218,17 @@ export function OpenBarreLanding({
   heroImageFallback,
   initialSearch,
   isKidsRoute = false,
+  routeMembershipId,
+  routeSessionId,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
   const submitPartialLead = useServerFn(captureLeadPartial);
   const sendLeadCapiFn = useServerFn(sendSignupLeadCapi);
+  const enrollForRoute = useServerFn(signupEnrollAndBookRoute);
+  // A route built in the Route Builder decides its own membership and class; the plain
+  // landing keeps the default Open Barre enrolment.
+  const usesRouteEnrollment = Boolean(routeMembershipId || routeSessionId);
   const signup = captureLead ? signupWithLead : signupWithoutLead;
   const sigRef = useRef<SignaturePadHandle | null>(null);
   const [signed, setSigned] = useState(false);
@@ -516,26 +526,40 @@ export function OpenBarreLanding({
           }
         : { abVariant: variant };
       console.debug("[debug:signup] calling signup server fn", { captureLead });
-      const result = await signup({
-        data: {
-          firstName: form.firstName.trim(),
-          lastName: form.lastName.trim(),
-          email: form.email.trim(),
-          countryCode: form.countryCode,
-          phoneNumber: form.phoneNumber.trim(),
-          homeLocationId: form.homeLocationId,
-          waiverAccepted: true,
-          signatureName: form.signatureName.trim(),
-          signatureRealSignature,
-          classType: form.classType,
-          whatsappConsent: form.whatsappConsent,
-          whatsappConsentAt: form.whatsappConsentAt ?? undefined,
-          fbp: metaCookies.fbp,
-          fbc: metaCookies.fbc,
-          leadEventId: leadEventIdRef.current,
-          ...trackingPayload,
-        },
-      });
+      const signupPayload = {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        countryCode: form.countryCode,
+        phoneNumber: form.phoneNumber.trim(),
+        homeLocationId: form.homeLocationId,
+        waiverAccepted: true,
+        signatureName: form.signatureName.trim(),
+        signatureRealSignature,
+        classType: form.classType,
+        whatsappConsent: form.whatsappConsent,
+        whatsappConsentAt: form.whatsappConsentAt ?? undefined,
+        fbp: metaCookies.fbp,
+        fbc: metaCookies.fbc,
+        leadEventId: leadEventIdRef.current,
+        ...trackingPayload,
+      };
+      const result = usesRouteEnrollment
+        ? await enrollForRoute({
+            data: {
+              ...signupPayload,
+              ...(routeMembershipId ? { membershipId: routeMembershipId } : {}),
+              ...(routeSessionId ? { sessionId: routeSessionId } : {}),
+            },
+          }).then((routeResult) => ({
+            memberId: routeResult.memberId,
+            // A paid route does not grant the membership here - the member pays on the
+            // schedule page - so treat it as enrolled enough to continue.
+            enrolled: routeResult.membershipGranted || routeResult.paymentRequired,
+            enrollError: routeResult.bookingError,
+            leadError: routeResult.leadError,
+          }))
+        : await signup({ data: signupPayload });
       console.debug("[debug:signup] signup result", result);
       // Lead fires here - pixel and Conversions API side by side, one shared event_id,
       // before the enrollment check so a failed Open Barre activation can never send one

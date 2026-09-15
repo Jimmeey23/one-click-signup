@@ -131,7 +131,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
     const googleAdsId = import.meta.env.VITE_GOOGLE_ADS_ID;
     if (gaId || googleAdsId) {
-      scripts.push({ src: `https://www.googletagmanager.com/gtag/js?id=${gaId || googleAdsId}`, async: true });
+      scripts.push({
+        src: `https://www.googletagmanager.com/gtag/js?id=${gaId || googleAdsId}`,
+        async: true,
+      });
       const gtagConfigCalls = [gaId, googleAdsId]
         .filter(Boolean)
         .map((id) => `gtag('config','${id}');`)

@@ -269,3 +269,56 @@ export const termsDocument: LegalDocument = {
     { title: "Governing Law and Dispute Resolution", paragraphs: jurisdiction },
   ],
 };
+
+// Juniors child booking waiver. Parent/guardian framing of the same release, health,
+// privacy and class-policy clauses, matching the consent document parents sign on the
+// paid-trial Juniors form.
+export const kidsWaiverDocument: LegalDocument = {
+  title: "Child Booking Waiver",
+  subtitle: "Physique 57 Juniors parent/guardian waiver, privacy consent, and class policy terms.",
+  updated: "Child booking waiver - Physique 57 Juniors",
+  sections: [
+    { title: "Business Details", paragraphs: businessIntro },
+    {
+      title: "Release and Health Declaration",
+      paragraphs: [
+        "I confirm and declare that I am at least eighteen (18) years of age and am the parent or legal guardian of the child named on this registration, competent to enter into this Agreement on the child's behalf. I further confirm that this informed consent is executed freely and voluntarily, with full understanding of its contents, and is not the result of coercion, undue influence, fraud, misrepresentation, or mistake. This Agreement shall be binding upon me, the child, and our spouses, partners, parents, guardians, relatives, legal representatives, heirs, executors, administrators, successors, and assigns.",
+        'I confirm and declare that the child is in adequate physical and mental health to participate in the exercise classes, programs, and activities conducted by Physique 57 India and/or AMP Fitness LLP ("AMP"), and that the child does not suffer from any illness, injury, disease, disorder, condition, or other health concern that may place the child or any other person at risk. I acknowledge that should the child\'s health condition change at any time, it shall be my sole responsibility to promptly notify the instructors and staff of AMP.',
+        'In consideration of the child\'s enrolment and participation in any exercise class, fitness program, activity, service, or facility provided by AMP (collectively referred to as the "Program"), I hereby, on behalf of myself, the child, and our heirs, successors, executors, administrators, and legal representatives, irrevocably release, waive, discharge, and covenant not to sue AMP, its partners, directors, shareholders, affiliates, subsidiaries, licensors, licensees, employees, officers, consultants, contractors, agents, service providers, successors, and assigns (collectively, the "Released Parties") from any and all claims, liabilities, demands, actions, causes of action, losses, damages, costs, expenses, injuries, illnesses, diseases, disorders, conditions, disabilities, or death arising out of or in any way connected with the child\'s participation in the Program.',
+        "I further agree to indemnify, defend, and hold harmless the Released Parties from and against any and all claims, liabilities, losses, damages, costs, expenses, or demands arising from or relating to the child's participation in the Program or any breach of my obligations under this Agreement.",
+      ],
+    },
+    {
+      title: "Assumption of Risk and Safety",
+      paragraphs: [
+        "I acknowledge and understand that participation in physical exercise and fitness activities involves inherent risks, including but not limited to physical injury, illness, medical complications, temporary or permanent disability, grievous bodily injury, and death. I voluntarily assume all such risks on the child's behalf and accept full responsibility for any consequences arising from the child's participation in the Program.",
+        "I represent and warrant that I have disclosed all relevant information relating to the child's physical, medical, emotional, or mental condition that may affect the child's ability to safely participate in the Program or that may pose a risk to the child or others.",
+        "I acknowledge that I have either viewed or had the opportunity to view the facilities where the Program is conducted, reviewed or had the opportunity to review the qualifications of the instructors, received an explanation of the nature of the classes and the risks associated therewith, and had the opportunity to ask questions regarding the Program before the child participates.",
+        "I agree to comply with all rules, policies, procedures, instructions, codes of conduct, safety requirements, and operational guidelines communicated by AMP from time to time, and to instruct the child to do the same.",
+      ],
+    },
+    {
+      title: "Services, Property, and Personal Information",
+      paragraphs: [
+        'I acknowledge that all services, facilities, programs, information, coaching, and access provided by AMP are offered on an "as is" basis without warranties of any kind, whether express or implied.',
+        "I acknowledge and agree that any personal property brought by me or the child to any AMP or Physique 57 India location is brought entirely at our own risk. AMP and Physique 57 India shall not be responsible or liable for the loss, theft, damage, destruction, or safekeeping of any personal belongings.",
+        "I consent to AMP collecting, storing, processing, transferring, disclosing, and otherwise handling my and the child's personal information, including sensitive personal information, for purposes relating to participation in the Program, in accordance with AMP's Privacy Policy and applicable law.",
+      ],
+    },
+    {
+      title: "Booking and Class Policies",
+      paragraphs: [
+        "Cancellations, transfers and refunds are not possible under this program.",
+        "Participants arriving more than ten (10) minutes after the scheduled start time shall not be permitted to join the class, and such class shall be deducted from the participant's package.",
+        "All classes must be paid for in advance and all payments are final and non-refundable. Where a class is fully booked, participants may be placed on a waitlist and spaces shall be allocated on a first-come, first-served basis. Instructor requests, preferred class dates, and preferred class timings are subject to availability and cannot be guaranteed.",
+      ],
+    },
+    {
+      title: "Governing Law and Signature Acknowledgement",
+      paragraphs: [
+        "This Agreement shall be governed by and construed in accordance with the laws of India. Any dispute arising out of or in connection with this Agreement shall be referred to and finally resolved by arbitration in accordance with the Arbitration and Conciliation Act, 1996. The seat, venue, and place of arbitration shall be Mumbai, Maharashtra, India, and the language of the proceedings shall be English.",
+        "By signing below, I acknowledge that I have carefully read, fully understood, and voluntarily accepted the terms of this Release and Indemnity Agreement on behalf of myself and the child, and agree to be legally bound by its provisions.",
+      ],
+    },
+  ],
+};

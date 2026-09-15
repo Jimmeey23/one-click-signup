@@ -68,6 +68,14 @@ function ShareRoutePage() {
             <Detail label="UTM campaign" value={payload.utmCampaign} />
             <Detail label="Session link" value={payload.sessionLink || "Add after signup"} />
             <Detail
+              label="Class booked on signup"
+              value={payload.sessionLabel || "None — signup only"}
+            />
+            <Detail
+              label="Membership"
+              value={payload.membershipLabel || "Studio default (free trial)"}
+            />
+            <Detail
               label="Kids consent"
               value={payload.includeKidsConsent ? "Included" : "Not included"}
             />

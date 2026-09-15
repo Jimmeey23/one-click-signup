@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OpenBarreLanding } from "@/components/OpenBarreLanding";
+import { KidsLanding } from "@/components/KidsLanding";
 
 export const Route = createFileRoute("/kids")({
   head: () => ({
     meta: [
-      { title: "Physique 57 India - Kids" },
+      { title: "Physique 57 India - Juniors" },
       {
         name: "description",
-        content: "Kids trial and Juniors booking entry point for Physique 57 India.",
+        content:
+          "Physique 57 Juniors: a strength, balance and agility program for young movers aged 9 to 13. Book your child's first session.",
       },
     ],
   }),
-  component: KidsLanding,
+  component: KidsRoutePage,
 });
 
-function KidsLanding() {
-  return <OpenBarreLanding captureLead routeSource="kids" studioVariant="mumbai" isKidsRoute />;
+function KidsRoutePage() {
+  return <KidsLanding routeSource="website kids" />;
 }

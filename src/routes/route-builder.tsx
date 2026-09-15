@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
-import { listSessions } from "@/lib/momence-sessions.functions";
+import { listSessions, type SessionDTO } from "@/lib/momence-sessions.functions";
+import { membershipOptionsForLocation } from "@/lib/membership-catalog";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { encodeShareableRoutePayload, type ShareableRoutePayload } from "@/lib/shareable-route";
 
@@ -38,6 +39,10 @@ const DEFAULT_FORM: ShareableRoutePayload = {
   paymentType: "paid",
   sessionLink: "",
   isKids: false,
+  sessionId: 0,
+  sessionLabel: "",
+  membershipId: 0,
+  membershipLabel: "",
   includeKidsConsent: false,
   includeWaiver: false,
   leadSource: "",
@@ -130,6 +135,18 @@ const PRESETS: Array<{
 // that 431s only once it is shared.
 const MAX_SHARE_ID_LENGTH = 6000;
 
+function formatSessionLabel(session: SessionDTO) {
+  const starts = new Date(session.startsAt);
+  const when = starts.toLocaleString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return [session.name, when, session.teacherName].filter(Boolean).join(" · ");
+}
+
 export const Route = createFileRoute("/route-builder")({
   head: () => ({
     meta: [
@@ -151,8 +168,26 @@ function RouteBuilderPage() {
   const [shareId, setShareId] = useState("");
   const [copied, setCopied] = useState<"share" | "signup" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [trainers, setTrainers] = useState<string[]>([]);
-  const [trainersLoading, setTrainersLoading] = useState(false);
+  const [sessions, setSessions] = useState<SessionDTO[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState<string | null>(null);
+  const [customMembershipId, setCustomMembershipId] = useState("");
+
+  const membershipOptions = useMemo(
+    () => membershipOptionsForLocation(form.homeLocationId),
+    [form.homeLocationId],
+  );
+
+  // Trainer names come from the same schedule fetch that powers the class picker, so the
+  // list can only ever offer people who actually teach at the chosen studio.
+  const trainers = useMemo(
+    () =>
+      Array.from(
+        new Set(sessions.map((s) => s.teacherName).filter((n): n is string => Boolean(n))),
+      ).sort(),
+    [sessions],
+  );
+  const trainersLoading = sessionsLoading;
 
   const classTypeOptions = useMemo(
     () => classTypeOptionsForLocation(form.homeLocationId),
@@ -168,25 +203,39 @@ function RouteBuilderPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setTrainersLoading(true);
+    setSessionsLoading(true);
+    setSessionsError(null);
     fetchSessions({ data: { locationId: form.homeLocationId, daysAhead: 30 } })
       .then((res) => {
-        if (cancelled) return;
-        const names = Array.from(
-          new Set(res.sessions.map((s) => s.teacherName).filter((n): n is string => Boolean(n))),
-        ).sort();
-        setTrainers(names);
+        if (!cancelled) setSessions(res.sessions);
       })
-      .catch(() => {
-        if (!cancelled) setTrainers([]);
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setSessions([]);
+        setSessionsError(
+          error instanceof Error ? error.message : "Could not load the studio schedule",
+        );
       })
       .finally(() => {
-        if (!cancelled) setTrainersLoading(false);
+        if (!cancelled) setSessionsLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, [fetchSessions, form.homeLocationId]);
+
+  // A session, trainer or membership from the previous studio must not survive a studio
+  // change - each of them is scoped to one location.
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      sessionId: 0,
+      sessionLabel: "",
+      membershipId: 0,
+      membershipLabel: "",
+    }));
+    setCustomMembershipId("");
+  }, [form.homeLocationId]);
 
   const shareUrl = shareId ? `/share/${shareId}` : "";
   const signupUrl = shareId ? `/signup/${shareId}` : "";
@@ -239,6 +288,41 @@ function RouteBuilderPage() {
       studio: location.name,
       studioVariant: location.variant,
       instructorName: "",
+    }));
+  }
+
+  function selectSession(sessionId: number) {
+    const session = sessions.find((item) => item.id === sessionId);
+    setForm((current) => ({
+      ...current,
+      sessionId: session ? session.id : 0,
+      sessionLabel: session ? formatSessionLabel(session) : "",
+      // Keep the rest of the route consistent with the class that was actually picked.
+      instructorName: session?.teacherName ?? current.instructorName,
+      eventDate: session ? session.startsAt.slice(0, 10) : current.eventDate,
+      eventTime: session
+        ? new Date(session.startsAt).toTimeString().slice(0, 5)
+        : current.eventTime,
+    }));
+  }
+
+  function selectMembership(value: string) {
+    if (value === "custom") {
+      setForm((current) => ({ ...current, membershipId: 0, membershipLabel: "Custom membership" }));
+      return;
+    }
+    if (value === "") {
+      setForm((current) => ({ ...current, membershipId: 0, membershipLabel: "" }));
+      setCustomMembershipId("");
+      return;
+    }
+    const option = membershipOptions.find((item) => item.key === value);
+    setCustomMembershipId("");
+    setForm((current) => ({
+      ...current,
+      membershipId: option?.membershipId ?? 0,
+      membershipLabel: option?.label ?? "",
+      paymentType: option?.free === false ? "paid" : current.paymentType,
     }));
   }
 
@@ -420,6 +504,94 @@ function RouteBuilderPage() {
                 onChange={(e) => setForm({ ...form, utmCampaign: e.target.value })}
               />
             </Field>
+          </div>
+
+          <div className="grid gap-5 rounded-2xl border border-border bg-secondary/40 p-5 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <p className="text-sm font-semibold">Enrolment</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pick the class the member is booked into after signing up, and the membership the
+                booking is made against. Leave the class empty to collect the signup without
+                booking.
+              </p>
+            </div>
+
+            <Field
+              label={
+                sessionsLoading
+                  ? "Class to book after signup (loading schedule…)"
+                  : "Class to book after signup"
+              }
+            >
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={form.sessionId ? String(form.sessionId) : ""}
+                onChange={(e) => selectSession(Number(e.target.value))}
+                disabled={sessionsLoading || sessions.length === 0}
+              >
+                <option value="">No class — collect the signup only</option>
+                {sessions.map((session) => (
+                  <option key={session.id} value={session.id}>
+                    {formatSessionLabel(session)}
+                    {session.spotsLeft !== null ? ` — ${session.spotsLeft} left` : ""}
+                  </option>
+                ))}
+              </select>
+              {sessionsError ? (
+                <p className="text-xs text-destructive">{sessionsError}</p>
+              ) : !sessionsLoading && sessions.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No upcoming sessions were returned for this studio in the next 30 days.
+                </p>
+              ) : null}
+            </Field>
+
+            <Field label="Membership used for the booking">
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={
+                  form.membershipLabel === "Custom membership"
+                    ? "custom"
+                    : (membershipOptions.find((option) => option.membershipId === form.membershipId)
+                        ?.key ?? "")
+                }
+                onChange={(e) => selectMembership(e.target.value)}
+              >
+                <option value="">Studio default (free trial membership)</option>
+                {membershipOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+                <option value="custom">Custom membership id…</option>
+              </select>
+              {form.membershipLabel === "Custom membership" ? (
+                <Input
+                  className="mt-2"
+                  inputMode="numeric"
+                  placeholder="Momence membership id"
+                  value={customMembershipId}
+                  onChange={(e) => {
+                    const next = e.target.value.replace(/[^0-9]/g, "");
+                    setCustomMembershipId(next);
+                    setForm((current) => ({ ...current, membershipId: Number(next) || 0 }));
+                  }}
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {membershipOptions.find((option) => option.membershipId === form.membershipId)
+                    ?.description ??
+                    "Members are put on the studio's own free trial membership before booking."}
+                </p>
+              )}
+            </Field>
+
+            {form.sessionId && !form.membershipId ? (
+              <p className="text-xs text-muted-foreground md:col-span-2">
+                The studio default membership will be granted free of charge, then used to book{" "}
+                {form.sessionLabel}.
+              </p>
+            ) : null}
           </div>
 
           <Field label="Tags, comma separated">

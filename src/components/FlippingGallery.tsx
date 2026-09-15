@@ -20,10 +20,7 @@ export function FlippingGallery({
       {slots.map((imgs, idx) => {
         const offset = idx * 1;
         return (
-          <div
-            key={idx}
-            className="group relative aspect-[3/4] overflow-hidden bg-foreground"
-          >
+          <div key={idx} className="group relative aspect-[3/4] overflow-hidden bg-foreground">
             {imgs.map((src, i) => {
               const active = i === (tick + offset) % imgs.length;
               return (
@@ -41,7 +38,10 @@ export function FlippingGallery({
           </div>
         );
       })}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"
+        aria-hidden
+      />
     </section>
   );
 }

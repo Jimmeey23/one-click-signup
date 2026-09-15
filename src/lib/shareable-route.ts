@@ -10,6 +10,12 @@ export type ShareableRoutePayload = {
   paymentType: "paid" | "free";
   sessionLink: string;
   isKids: boolean;
+  /** Momence session the signup is booked into. 0 means "no class booked by the route". */
+  sessionId: number;
+  sessionLabel: string;
+  /** Momence membership the new member is put on. 0 falls back to the studio default. */
+  membershipId: number;
+  membershipLabel: string;
   includeKidsConsent: boolean;
   includeWaiver: boolean;
   leadSource: string;
@@ -73,6 +79,10 @@ export function decodeShareableRoutePayload(encoded: string): ShareableRoutePayl
       paymentType: parsed.paymentType === "free" ? "free" : "paid",
       sessionLink: String(parsed.sessionLink || "").trim(),
       isKids: Boolean(parsed.isKids),
+      sessionId: Number.isFinite(Number(parsed.sessionId)) ? Number(parsed.sessionId) : 0,
+      sessionLabel: String(parsed.sessionLabel || "").trim(),
+      membershipId: Number.isFinite(Number(parsed.membershipId)) ? Number(parsed.membershipId) : 0,
+      membershipLabel: String(parsed.membershipLabel || "").trim(),
       includeKidsConsent: Boolean(parsed.includeKidsConsent),
       includeWaiver: Boolean(parsed.includeWaiver),
       leadSource: String(parsed.leadSource || "").trim(),

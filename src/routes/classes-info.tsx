@@ -78,8 +78,8 @@ function ClassesInfoPage() {
                 Mumbai studios
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle,
-                and StrengthLab.
+                Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle, and
+                StrengthLab.
               </p>
             </div>
           )}
@@ -125,18 +125,18 @@ function ClassesInfoPage() {
             <h2 className="font-display text-2xl mb-4">Every BODY, every level.</h2>
             <ul className="space-y-3 text-sm text-muted-foreground leading-relaxed">
               <li>
-                Classes span three levels - Beginner, Intermediate, and Advanced - so you can
-                match a format to your fitness experience and goals.
+                Classes span three levels - Beginner, Intermediate, and Advanced - so you can match
+                a format to your fitness experience and goals.
               </li>
               <li>
                 New here? Start with Barre{isBengaluru ? "" : " 57"}
-                {isBengaluru ? "" : " or Mat 57"}. Instructors offer modifications and
-                progressions in every class, so you're never locked out by level.
+                {isBengaluru ? "" : " or Mat 57"}. Instructors offer modifications and progressions
+                in every class, so you're never locked out by level.
               </li>
               <li>
-                Pregnant, postpartum, or managing an injury, PCOS, thyroid concerns, or
-                menopause? Physique 57's low-impact method is trained for modifications across
-                all of these - always inform your instructor before class begins.
+                Pregnant, postpartum, or managing an injury, PCOS, thyroid concerns, or menopause?
+                Physique 57's low-impact method is trained for modifications across all of these -
+                always inform your instructor before class begins.
               </li>
               <li>
                 While Physique 57 is widely popular among women, the method is built for "Every
@@ -188,8 +188,8 @@ function ClassesInfoPage() {
             {isBengaluru
               ? "Bengaluru private classes start at ₹3,925 plus taxes."
               : "In Mumbai, a single studio private class is ₹5,000 plus taxes, and a virtual private class is ₹4,500 plus taxes."}{" "}
-            Packages of 10 private classes are available at discounted rates - contact the studio
-            to book.
+            Packages of 10 private classes are available at discounted rates - contact the studio to
+            book.
           </p>
         </div>
 
@@ -198,13 +198,15 @@ function ClassesInfoPage() {
             <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
               Physique 57 Juniors
             </p>
-            <h2 className="font-display text-2xl mb-3">A kids program, built for growing bodies.</h2>
+            <h2 className="font-display text-2xl mb-3">
+              A kids program, built for growing bodies.
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
               Physique 57 Juniors introduces children aged 7-9 and 9-12 to the method in a safe,
               age-appropriate, and fun way, building strength, flexibility, coordination, and
-              confidence across a 12-week semester of 45-minute classes held twice a week at
-              Kemps Corner and Bandra. 8-class and 12-class packages are available - contact the
-              studio to register.
+              confidence across a 12-week semester of 45-minute classes held twice a week at Kemps
+              Corner and Bandra. 8-class and 12-class packages are available - contact the studio to
+              register.
             </p>
           </div>
         )}

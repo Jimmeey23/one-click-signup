@@ -9,9 +9,17 @@ import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from 
 import { classTypeValueForClassFormatKey, type ClassFormatKey } from "./class-format-matchers";
 import {
   BENGALURU_MOMENCE_HOST_ID,
+  buildMembershipCheckoutRequest,
   buildOpenBarreCheckoutRequestForLocation,
   isBengaluruLocation,
 } from "./momence-booking.helpers";
+import { bookSessionWithMomenceMembership } from "./momence-sessions.functions";
+import {
+  defaultMembershipIdForLocation,
+  isFreeMembershipId,
+  membershipOptionById,
+} from "./membership-catalog";
+import { JUNIORS_PROGRAM_NAME } from "./kids-program";
 import { buildHostMemberCreateRequest } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
@@ -299,7 +307,9 @@ function requestClientMeta(): MetaRequestContext {
   }
 }
 
-async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; error?: string }> {
+export async function captureLead(
+  payload: LeadCapturePayload,
+): Promise<{ ok: boolean; error?: string }> {
   const isBengaluru = payload.abVariant === "bengaluru";
   const token = isBengaluru
     ? process.env.MOMENCE_API_TOKEN_BLR?.trim() || BENGALURU_LEADS_FALLBACK_TOKEN
@@ -342,6 +352,15 @@ async function captureLead(payload: LeadCapturePayload): Promise<{ ok: boolean; 
       referrer: payload.referrer ?? "",
       ab_variant: payload.abVariant ?? "",
       lead_stage: payload.stage ?? "completed",
+      ...(payload.childName
+        ? {
+            childName: payload.childName,
+            childAge: payload.childAge ?? "",
+            childDateOfBirth: payload.childDateOfBirth ?? "",
+            batch: payload.batch ?? "",
+          }
+        : {}),
+      ...(payload.sourceForm ? { source_form: payload.sourceForm } : {}),
     };
 
     const leadsHostId = isBengaluru ? BENGALURU_LEADS_HOST_ID : 13752;
@@ -770,4 +789,259 @@ export const bookSession = createServerFn({ method: "POST" })
     throw new Error(
       `Direct free session booking is disabled. Book member ${data.memberId} into session ${data.sessionId} through bookWithMembership instead.`,
     );
+  });
+
+// --- Shareable route enrolment -------------------------------------------------------
+//
+// A route built in the Route Builder can name both the membership a signup should land on
+// and the exact session it should be booked into. Free memberships are granted here and
+// the booking follows immediately; a paid membership is never granted silently - the
+// caller is told to send the member through Stripe checkout instead.
+
+const RouteEnrollInput = SignupInput.extend({
+  membershipId: z.number().int().positive().optional(),
+  sessionId: z.number().int().positive().optional(),
+});
+
+async function grantFreeMembership(memberId: number, homeLocationId: number, membershipId: number) {
+  const request = buildMembershipCheckoutRequest({
+    memberId,
+    homeLocationId,
+    membershipId,
+    attemptedPriceInCurrency: "0",
+    paymentMethodType: "free",
+  });
+  await momenceFetch(
+    request.path,
+    { method: "POST", body: JSON.stringify(request.body) },
+    isBengaluruLocation(homeLocationId) ? "bengaluru" : "default",
+  );
+}
+
+export type RouteEnrollResult = {
+  memberId: number;
+  membershipId: number;
+  membershipGranted: boolean;
+  /** True when the route names a paid membership - the client must run Stripe checkout. */
+  paymentRequired: boolean;
+  booked: boolean;
+  bookingError: string | null;
+  signedCount: number;
+  leadCaptured: boolean;
+  leadError: string | null;
+};
+
+export const signupEnrollAndBookRoute = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => RouteEnrollInput.parse(input))
+  .handler(async ({ data }): Promise<RouteEnrollResult> => {
+    const { membershipId: requestedMembershipId, sessionId, ...signupData } = data;
+    const membershipId =
+      requestedMembershipId ?? defaultMembershipIdForLocation(signupData.homeLocationId);
+    const free =
+      isFreeMembershipId(membershipId) ||
+      membershipId === defaultMembershipIdForLocation(signupData.homeLocationId);
+
+    // Create the member and sign the waivers, but skip the built-in Open Barre grant so
+    // the route's own membership choice is the only one applied.
+    const signup = await runSignupAndEnroll(
+      signupData,
+      { ...signupAndEnrollDependencies, enrollOpenBarre: async () => {} },
+      { captureLead: true },
+    );
+
+    let membershipGranted = false;
+    if (free) {
+      await grantFreeMembership(signup.memberId, signupData.homeLocationId, membershipId);
+      membershipGranted = true;
+    }
+
+    let booked = false;
+    let bookingError: string | null = null;
+    if (sessionId && membershipGranted) {
+      try {
+        await bookSessionWithMomenceMembership({
+          memberId: signup.memberId,
+          sessionId,
+          homeLocationId: signupData.homeLocationId,
+          membershipId,
+          membershipLabel:
+            membershipOptionById(membershipId)?.label ?? `membership ${membershipId}`,
+          hostId: isBengaluruLocation(signupData.homeLocationId)
+            ? BENGALURU_MOMENCE_HOST_ID
+            : MOMENCE_HOST_ID,
+          momenceAccount: isBengaluruLocation(signupData.homeLocationId) ? "bengaluru" : "default",
+        });
+        booked = true;
+      } catch (error) {
+        bookingError = error instanceof Error ? error.message : "Booking failed";
+      }
+    }
+
+    return {
+      memberId: signup.memberId,
+      membershipId,
+      membershipGranted,
+      paymentRequired: !free,
+      booked,
+      bookingError,
+      signedCount: signup.signedCount,
+      leadCaptured: signup.leadCaptured,
+      leadError: signup.leadError,
+    };
+  });
+
+// --- Juniors ------------------------------------------------------------------------
+//
+// A Juniors signup is a lead by default: the studio team confirms the batch and the child
+// never becomes a Momence member off the back of a web form. A route may additionally name
+// a free session, in which case the parent is registered and the child's place is booked.
+
+const KidsRegistrationInput = z.object({
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(150),
+  countryCode: z.string().regex(/^\+\d{1,4}$/),
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(5)
+    .max(20)
+    .regex(/^[0-9 -]+$/),
+  homeLocationId: z.number().int().positive(),
+  childName: z.string().trim().min(1).max(120),
+  childAge: z
+    .string()
+    .trim()
+    .regex(/^\d{1,2}$/),
+  childDateOfBirth: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/),
+  batch: z.string().trim().max(200).optional().default(""),
+  signatureName: z.string().trim().min(2).max(120),
+  signatureRealSignature: z.string().min(2).max(300000),
+  waiverAccepted: z.literal(true),
+  // Set by a shareable route that offers a specific complimentary Juniors session.
+  sessionId: z.number().int().positive().optional(),
+  membershipId: z.number().int().positive().optional(),
+  utmSource: z.string().max(200).optional(),
+  utmMedium: z.string().max(200).optional(),
+  utmCampaign: z.string().max(200).optional(),
+  utmTerm: z.string().max(200).optional(),
+  utmContent: z.string().max(200).optional(),
+  gclid: z.string().max(200).optional(),
+  fbclid: z.string().max(200).optional(),
+  referrer: z.string().max(500).optional(),
+  landingPage: z.string().max(500).optional(),
+  fbp: z.string().max(100).optional(),
+  fbc: z.string().max(200).optional(),
+  leadEventId: z.string().max(100).optional(),
+});
+
+export type KidsRegistrationResult = {
+  leadCaptured: boolean;
+  leadError: string | null;
+  memberId: number | null;
+  booked: boolean;
+  bookingError: string | null;
+};
+
+export const submitKidsRegistration = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => KidsRegistrationInput.parse(input))
+  .handler(async ({ data }): Promise<KidsRegistrationResult> => {
+    const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
+    const center = webhookCenterForLocationId(data.homeLocationId);
+
+    const lead = await captureLead({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phoneE164,
+      center,
+      classType: JUNIORS_PROGRAM_NAME,
+      waiverAccepted: true,
+      childName: data.childName,
+      childAge: data.childAge,
+      childDateOfBirth: data.childDateOfBirth,
+      batch: data.batch,
+      sourceForm: "kids-trial-form",
+      utmSource: data.utmSource,
+      utmMedium: data.utmMedium ?? "website kids",
+      utmCampaign: data.utmCampaign,
+      utmTerm: data.utmTerm,
+      utmContent: data.utmContent,
+      gclid: data.gclid,
+      fbclid: data.fbclid,
+      referrer: data.referrer,
+      landingPage: data.landingPage,
+      stage: "completed",
+      fbp: data.fbp,
+      fbc: data.fbc,
+      metaEventId: data.leadEventId,
+    });
+
+    if (!data.sessionId) {
+      return {
+        leadCaptured: lead.ok,
+        leadError: lead.error ?? null,
+        memberId: null,
+        booked: false,
+        bookingError: null,
+      };
+    }
+
+    // The route offers a complimentary Juniors session. Register the parent as the member
+    // of record - the child is a minor and the batch is confirmed by the studio team - and
+    // book the named session against the route's free membership.
+    const membershipId = data.membershipId ?? defaultMembershipIdForLocation(data.homeLocationId);
+
+    try {
+      const signup = await runSignupAndEnroll(
+        {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          countryCode: data.countryCode,
+          phoneNumber: data.phoneNumber,
+          homeLocationId: data.homeLocationId,
+          waiverAccepted: true,
+          signatureName: data.signatureName,
+          signatureRealSignature: data.signatureRealSignature,
+          classType: JUNIORS_PROGRAM_NAME,
+        },
+        { ...signupAndEnrollDependencies, enrollOpenBarre: async () => {} },
+        { captureLead: false },
+      );
+
+      await grantFreeMembership(signup.memberId, data.homeLocationId, membershipId);
+      await bookSessionWithMomenceMembership({
+        memberId: signup.memberId,
+        sessionId: data.sessionId,
+        homeLocationId: data.homeLocationId,
+        membershipId,
+        membershipLabel: membershipOptionById(membershipId)?.label ?? "Juniors session",
+        hostId: isBengaluruLocation(data.homeLocationId)
+          ? BENGALURU_MOMENCE_HOST_ID
+          : MOMENCE_HOST_ID,
+        momenceAccount: isBengaluruLocation(data.homeLocationId) ? "bengaluru" : "default",
+      });
+
+      return {
+        leadCaptured: lead.ok,
+        leadError: lead.error ?? null,
+        memberId: signup.memberId,
+        booked: true,
+        bookingError: null,
+      };
+    } catch (error) {
+      // The lead is already recorded, so a booking failure must not fail the submission -
+      // the studio team can still complete the booking by hand.
+      return {
+        leadCaptured: lead.ok,
+        leadError: lead.error ?? null,
+        memberId: null,
+        booked: false,
+        bookingError: error instanceof Error ? error.message : "Session booking failed",
+      };
+    }
   });

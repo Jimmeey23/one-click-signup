@@ -62,6 +62,13 @@ export type LeadCapturePayload = {
   fbp?: string;
   fbc?: string;
   metaEventId?: string;
+  // Juniors-only. Carried through to the lead webhook so the studio team has the child's
+  // details and preferred batch on the same record as the parent's contact details.
+  childName?: string;
+  childAge?: string;
+  childDateOfBirth?: string;
+  batch?: string;
+  sourceForm?: string;
 };
 
 export class WaiverConsentError extends Error {

@@ -25,9 +25,6 @@ function PrivacyPage() {
   const { studio } = Route.useSearch();
   const isBengaluru = studio === "bengaluru";
   return (
-    <LegalPage
-      document={privacyDocument}
-      studioVariant={isBengaluru ? "bengaluru" : "mumbai"}
-    />
+    <LegalPage document={privacyDocument} studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
   );
 }
