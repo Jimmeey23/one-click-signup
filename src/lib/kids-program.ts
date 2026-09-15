@@ -63,6 +63,10 @@ export const JUNIORS_BATCHES_BY_LOCATION_ID: Record<number, JuniorsBatch[]> = {
   ],
 };
 
+// Juniors runs at the two Mumbai studios only, so the centre picker must not offer
+// locations where no batch exists.
+export const JUNIORS_LOCATION_IDS = [9030, 29821];
+
 export function juniorsBatchesForLocation(locationId: number): JuniorsBatch[] {
   return JUNIORS_BATCHES_BY_LOCATION_ID[locationId] ?? [];
 }

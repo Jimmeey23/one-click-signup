@@ -45,6 +45,7 @@ import { submitKidsRegistration } from "@/lib/momence.functions";
 import {
   JUNIORS_BUILD_AREAS,
   JUNIORS_HERO_IMAGES,
+  JUNIORS_LOCATION_IDS,
   JUNIORS_JOURNEY_STEPS,
   JUNIORS_MAX_AGE,
   JUNIORS_MIN_AGE,
@@ -74,6 +75,12 @@ const ICONS = {
 } as const;
 
 const ALL_LOCATIONS = [...MUMBAI_LOCATIONS, ...BENGALURU_LOCATIONS];
+
+// Only the studios that actually run Juniors classes are selectable; a route may still
+// lock the page to another location, which is resolved against the full list.
+const JUNIORS_LOCATIONS = ALL_LOCATIONS.filter((location) =>
+  JUNIORS_LOCATION_IDS.includes(location.id as number),
+);
 
 const FIELD_GROUP_CLASS = "group/field space-y-2.5";
 const FIELD_LABEL_CLASS =
@@ -156,6 +163,7 @@ export function KidsLanding({
   const [consentOpen, setConsentOpen] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
   const sigRef = useRef<SignaturePadHandle | null>(null);
+  const signatureNameTouchedRef = useRef(false);
 
   const locationId = Number(form.locationId) || 0;
   const location = ALL_LOCATIONS.find((item) => item.id === locationId);
@@ -190,7 +198,18 @@ export function KidsLanding({
     };
   }, [consentOpen]);
 
+  // The signature name is the parent's own name, so fill it in for them - until they
+  // edit it themselves, after which their version wins.
+  useEffect(() => {
+    if (signatureNameTouchedRef.current) return;
+    const parentName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+    setForm((current) =>
+      current.signatureName === parentName ? current : { ...current, signatureName: parentName },
+    );
+  }, [form.firstName, form.lastName]);
+
   function update(field: keyof typeof form, value: string | boolean) {
+    if (field === "signatureName") signatureNameTouchedRef.current = true;
     setForm((current) => ({
       ...current,
       [field]: value,
@@ -568,7 +587,7 @@ export function KidsLanding({
                               <SelectValue placeholder="Select center" />
                             </SelectTrigger>
                             <SelectContent>
-                              {ALL_LOCATIONS.map((item) => (
+                              {JUNIORS_LOCATIONS.map((item) => (
                                 <SelectItem key={item.id} value={String(item.id)}>
                                   <div>
                                     <div className="font-medium">{item.name}</div>
