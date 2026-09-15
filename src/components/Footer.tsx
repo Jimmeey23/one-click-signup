@@ -59,6 +59,15 @@ export function Footer({
               <FooterLink to="/classes-info" search={studioSearch}>
                 Classes
               </FooterLink>
+              <FooterLink to="/kids" search={studioSearch}>
+                Kids
+              </FooterLink>
+              <FooterLink to="/influencers" search={studioSearch}>
+                Influencers
+              </FooterLink>
+              <FooterLink to="/route-builder" search={studioSearch}>
+                Route Builder
+              </FooterLink>
               <FooterLink to="/faq" search={studioSearch}>
                 FAQ
               </FooterLink>

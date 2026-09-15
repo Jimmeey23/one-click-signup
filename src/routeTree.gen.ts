@@ -12,13 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WaiverRouteImport } from './routes/waiver'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SkipLeadRouteImport } from './routes/skip-lead'
+import { Route as RouteBuilderRouteImport } from './routes/route-builder'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as KidsRouteImport } from './routes/kids'
+import { Route as InfluencersRouteImport } from './routes/influencers'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ClassesInfoRouteImport } from './routes/classes-info'
 import { Route as BengaluruRouteImport } from './routes/bengaluru'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignupShareIdRouteImport } from './routes/signup.$shareId'
+import { Route as ShareShareIdRouteImport } from './routes/share.$shareId'
 import { Route as ClassesMemberIdRouteImport } from './routes/classes.$memberId'
 
 const WaiverRoute = WaiverRouteImport.update({
@@ -36,9 +41,24 @@ const SkipLeadRoute = SkipLeadRouteImport.update({
   path: '/skip-lead',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RouteBuilderRoute = RouteBuilderRouteImport.update({
+  id: '/route-builder',
+  path: '/route-builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KidsRoute = KidsRouteImport.update({
+  id: '/kids',
+  path: '/kids',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencersRoute = InfluencersRouteImport.update({
+  id: '/influencers',
+  path: '/influencers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -71,6 +91,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupShareIdRoute = SignupShareIdRouteImport.update({
+  id: '/signup/$shareId',
+  path: '/signup/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareShareIdRoute = ShareShareIdRouteImport.update({
+  id: '/share/$shareId',
+  path: '/share/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClassesMemberIdRoute = ClassesMemberIdRouteImport.update({
   id: '/classes/$memberId',
   path: '/classes/$memberId',
@@ -84,11 +114,16 @@ export interface FileRoutesByFullPath {
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/influencers': typeof InfluencersRoute
+  '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
+  '/route-builder': typeof RouteBuilderRoute
   '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
+  '/share/$shareId': typeof ShareShareIdRoute
+  '/signup/$shareId': typeof SignupShareIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,11 +132,16 @@ export interface FileRoutesByTo {
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/influencers': typeof InfluencersRoute
+  '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
+  '/route-builder': typeof RouteBuilderRoute
   '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
+  '/share/$shareId': typeof ShareShareIdRoute
+  '/signup/$shareId': typeof SignupShareIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,11 +151,16 @@ export interface FileRoutesById {
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/influencers': typeof InfluencersRoute
+  '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
+  '/route-builder': typeof RouteBuilderRoute
   '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
+  '/share/$shareId': typeof ShareShareIdRoute
+  '/signup/$shareId': typeof SignupShareIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -126,11 +171,16 @@ export interface FileRouteTypes {
     | '/classes-info'
     | '/contact'
     | '/faq'
+    | '/influencers'
+    | '/kids'
     | '/privacy'
+    | '/route-builder'
     | '/skip-lead'
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
+    | '/share/$shareId'
+    | '/signup/$shareId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,11 +189,16 @@ export interface FileRouteTypes {
     | '/classes-info'
     | '/contact'
     | '/faq'
+    | '/influencers'
+    | '/kids'
     | '/privacy'
+    | '/route-builder'
     | '/skip-lead'
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
+    | '/share/$shareId'
+    | '/signup/$shareId'
   id:
     | '__root__'
     | '/'
@@ -152,11 +207,16 @@ export interface FileRouteTypes {
     | '/classes-info'
     | '/contact'
     | '/faq'
+    | '/influencers'
+    | '/kids'
     | '/privacy'
+    | '/route-builder'
     | '/skip-lead'
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
+    | '/share/$shareId'
+    | '/signup/$shareId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -166,11 +226,16 @@ export interface RootRouteChildren {
   ClassesInfoRoute: typeof ClassesInfoRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
+  InfluencersRoute: typeof InfluencersRoute
+  KidsRoute: typeof KidsRoute
   PrivacyRoute: typeof PrivacyRoute
+  RouteBuilderRoute: typeof RouteBuilderRoute
   SkipLeadRoute: typeof SkipLeadRoute
   TermsRoute: typeof TermsRoute
   WaiverRoute: typeof WaiverRoute
   ClassesMemberIdRoute: typeof ClassesMemberIdRoute
+  ShareShareIdRoute: typeof ShareShareIdRoute
+  SignupShareIdRoute: typeof SignupShareIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -196,11 +261,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkipLeadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/route-builder': {
+      id: '/route-builder'
+      path: '/route-builder'
+      fullPath: '/route-builder'
+      preLoaderRoute: typeof RouteBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kids': {
+      id: '/kids'
+      path: '/kids'
+      fullPath: '/kids'
+      preLoaderRoute: typeof KidsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencers': {
+      id: '/influencers'
+      path: '/influencers'
+      fullPath: '/influencers'
+      preLoaderRoute: typeof InfluencersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -245,6 +331,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup/$shareId': {
+      id: '/signup/$shareId'
+      path: '/signup/$shareId'
+      fullPath: '/signup/$shareId'
+      preLoaderRoute: typeof SignupShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/$shareId': {
+      id: '/share/$shareId'
+      path: '/share/$shareId'
+      fullPath: '/share/$shareId'
+      preLoaderRoute: typeof ShareShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/classes/$memberId': {
       id: '/classes/$memberId'
       path: '/classes/$memberId'
@@ -262,11 +362,16 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesInfoRoute: ClassesInfoRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
+  InfluencersRoute: InfluencersRoute,
+  KidsRoute: KidsRoute,
   PrivacyRoute: PrivacyRoute,
+  RouteBuilderRoute: RouteBuilderRoute,
   SkipLeadRoute: SkipLeadRoute,
   TermsRoute: TermsRoute,
   WaiverRoute: WaiverRoute,
   ClassesMemberIdRoute: ClassesMemberIdRoute,
+  ShareShareIdRoute: ShareShareIdRoute,
+  SignupShareIdRoute: SignupShareIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

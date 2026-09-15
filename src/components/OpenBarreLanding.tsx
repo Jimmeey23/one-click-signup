@@ -127,6 +127,10 @@ function readStoredAttribution(): StoredAttribution {
   }
 }
 
+function trimToMaxLength(value: string | undefined, maxLength = 500) {
+  return String(value || "").slice(0, maxLength);
+}
+
 type FormState = {
   firstName: string;
   lastName: string;
@@ -187,12 +191,27 @@ type OpenBarreLandingProps = {
   captureLead?: boolean;
   routeSource?: string;
   studioVariant?: StudioVariant;
+  heroImageUrl?: string;
+  heroImageFallback?: string;
+  initialSearch?: string;
+  isKidsRoute?: boolean;
 };
+
+const KIDS_HERO_QUOTES = [
+  "A joyful first class for young movers.",
+  "Confident kids start with great movement.",
+  "Built for growing bodies, guided by expert coaches.",
+];
+
+const KIDS_HERO_IMAGE = "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1600&q=80";
 
 export function OpenBarreLanding({
   captureLead = true,
   routeSource = "landing",
   studioVariant = "mumbai",
+  heroImageUrl,
+  heroImageFallback,
+  initialSearch,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -250,7 +269,7 @@ export function OpenBarreLanding({
     if (typeof window === "undefined") return;
     persistAttributionIfPresent(routeSource);
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(initialSearch || window.location.search);
     const updates: Partial<FormState> = {};
 
     const firstName = params.get("firstName") || params.get("first_name") || params.get("fname");
@@ -388,7 +407,7 @@ export function OpenBarreLanding({
         gclid: params.get("gclid") ?? stored.gclid,
         fbclid: readRawFbclid(window.location.search) ?? stored.fbclid,
         referrer: stored.referrer ?? document.referrer,
-        landingPage: stored.landingPage ?? window.location.href,
+        landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
         abVariant: isBengaluru ? "bengaluru" : variant,
         classType: form.classType,
         whatsappConsent: form.whatsappConsent,
@@ -487,9 +506,9 @@ export function OpenBarreLanding({
             fbclid: readRawFbclid(window.location.search) ?? stored.fbclid ?? undefined,
             referrer:
               stored.referrer ?? (typeof document !== "undefined" ? document.referrer : undefined),
-            landingPage:
-              stored.landingPage ??
-              (typeof window !== "undefined" ? window.location.href : undefined),
+            landingPage: trimToMaxLength(
+              stored.landingPage ?? (typeof window !== "undefined" ? window.location.href : undefined),
+            ),
             abVariant: isBengaluru ? "bengaluru" : variant,
           }
         : { abVariant: variant };
@@ -540,7 +559,7 @@ export function OpenBarreLanding({
           classType: form.classType,
           countryIso: form.countryIso,
           locationId: form.homeLocationId,
-          landingPage: window.location.href,
+          landingPage: trimToMaxLength(window.location.href),
           fbp: metaCookies.fbp,
           fbc: metaCookies.fbc,
         },
@@ -620,7 +639,7 @@ export function OpenBarreLanding({
       <section className="hero-shell relative overflow-hidden">
         <div
           className="hero-image absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${groupBarre})` }}
+          style={{ backgroundImage: `url(${heroImageUrl || groupBarre})` }}
           aria-hidden
         />
         <div
@@ -643,7 +662,7 @@ export function OpenBarreLanding({
               {studioConfig.heroLocationLine}
             </p>
             <h1 className="max-w-xl font-display text-[clamp(3rem,6vw,5.5rem)] leading-[0.94] tracking-[-0.035em] text-balance">
-              {heroQuote}
+              {heroImageFallback ? `${heroImageFallback} · ${heroQuote}` : heroQuote}
             </h1>
             <p className="mt-7 max-w-lg text-base md:text-lg text-white/72 leading-relaxed text-pretty">
               {studioConfig.description}
@@ -669,6 +688,7 @@ export function OpenBarreLanding({
             ctaLabel={isBengaluru ? studioConfig.signupCta : variantCopy.ctaLabel}
             studioVariant={studioVariant}
             onViewSchedule={handleViewSchedule}
+            isKidsRoute={isKidsRoute}
           />
         </div>
       </section>
@@ -1451,10 +1471,10 @@ function SignupCard({
       <div className="flex items-start justify-between gap-4 border-b border-border/80 pb-6">
         <div>
           <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
-            Activate your trial
+            {isKidsRoute ? "Book a Juniors class" : "Activate your trial"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1.5">
-            Takes 60 seconds. No card required.
+            {isKidsRoute ? "Kids-specific signup with consent and waiver support." : "Takes 60 seconds. No card required."}
           </p>
         </div>
         {!isBengaluru && (
