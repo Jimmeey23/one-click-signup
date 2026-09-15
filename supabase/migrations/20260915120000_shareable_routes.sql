@@ -1,14 +1,13 @@
 -- Named signup routes built in the Route Builder.
 --
--- The encoded /signup/<token> links stay valid; this table is what lets the same route
--- also be reached at a readable path such as /battle-school. The slug is the primary key
--- because it is the URL.
+-- Without this table a route has to carry its whole configuration inside the URL, which is
+-- why the encoded links run past 900 characters. A row here is what lets the same route be
+-- reached at /the-ballet-school instead.
 create table if not exists public.shareable_routes (
   slug text primary key,
   payload jsonb not null,
   event_name text not null default '',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  created_at timestamptz not null default now()
 );
 
 alter table public.shareable_routes enable row level security;
@@ -20,9 +19,22 @@ create policy "shareable_routes are publicly readable"
   for select
   using (true);
 
--- No insert/update/delete policy on purpose. Writes go through the server function using
--- the service role key, which bypasses RLS. Without this, anyone could publish a page on
--- the studio's own domain with a headline and hero image of their choosing.
+-- The Route Builder publishes with the publishable key, so inserts are open. This is the
+-- same exposure the encoded /signup/<token> links already carry: the builder is a public
+-- page and those links already accept any payload.
+drop policy if exists "anyone can publish a route" on public.shareable_routes;
+create policy "anyone can publish a route"
+  on public.shareable_routes
+  for insert
+  with check (
+    length(slug) between 2 and 60
+    and slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+    and length(event_name) <= 200
+    and pg_column_size(payload) <= 16384
+  );
+
+-- No update or delete policy on purpose: a published link keeps pointing at what it
+-- pointed at when it was shared, and nobody can repoint somebody else's route.
 
 create index if not exists shareable_routes_created_at_idx
   on public.shareable_routes (created_at desc);

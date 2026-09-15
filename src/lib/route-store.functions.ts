@@ -1,42 +1,42 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { decodeShareableRoutePayload, type ShareableRoutePayload } from "./shareable-route";
 import { isReservedSlug } from "./route-slug";
 
-// The generated Database types carry no tables yet, so the table is addressed by name and
-// the row shape is asserted here instead of inferred.
+const TABLE = "shareable_routes";
+
 type ShareableRouteRow = {
   slug: string;
   payload: unknown;
   event_name: string;
 };
 
-const TABLE = "shareable_routes";
+// PostgREST is called directly rather than through supabase-js: the SDK builds a Realtime
+// client on construction, which throws on Node 20 for want of a native WebSocket. The
+// publishable key is used either way, so the table's row-level policies still apply - a
+// public read, a validated insert, and no update or delete at all.
+function routeStoreConfig() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+  return { url: url.replace(/\/+$/, ""), key };
+}
 
-// The generated Database type is still empty (no migrations had been applied when it was
-// produced), so the typed client refuses an unknown table name. Address this one table
-// through an untyped view of the same client and assert the row shape locally.
-type UntypedFrom = {
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (
-        column: string,
-        value: string,
-      ) => { maybeSingle: <T>() => Promise<{ data: T | null; error: { message: string } | null }> };
-    };
-    upsert: (
-      values: Record<string, unknown>,
-      options: { onConflict: string },
-    ) => Promise<{ error: { message: string } | null }>;
-  };
-};
-
-// Reads go through the publishable key and the table's public select policy, so a shared
-// link opens with the keys the app already has. Only publishing needs the service role.
-const routeReader = supabase as unknown as UntypedFrom;
-const routeWriter = supabaseAdmin as unknown as UntypedFrom;
+async function routeStoreFetch(path: string, init?: RequestInit) {
+  const config = routeStoreConfig();
+  if (!config) {
+    throw new Error("The route store is not configured (SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY).");
+  }
+  return fetch(`${config.url}/rest/v1/${path}`, {
+    ...init,
+    headers: {
+      apikey: config.key,
+      Authorization: `Bearer ${config.key}`,
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+}
 
 const SaveInput = z.object({
   slug: z
@@ -52,8 +52,25 @@ const SaveInput = z.object({
 export type SaveNamedRouteResult = {
   saved: boolean;
   slug: string;
+  /** The slug is already published; the caller should try another name. */
+  taken: boolean;
   error: string | null;
 };
+
+function routeStoreMessage(status: number, body: string): string {
+  if (status === 404 || /relation .* does not exist/i.test(body)) {
+    return "The shareable_routes table does not exist yet. Apply the migration in supabase/migrations.";
+  }
+  if (status === 401 || status === 403) {
+    return "The route store rejected the key. Check the insert policy on shareable_routes.";
+  }
+  try {
+    const parsed = JSON.parse(body) as { message?: string; hint?: string };
+    return parsed.message || parsed.hint || `Route store error ${status}`;
+  } catch {
+    return `Route store error ${status}`;
+  }
+}
 
 /**
  * Publishes a route at a readable path. The encoded token is stored alongside so the
@@ -66,29 +83,37 @@ export const saveNamedRoute = createServerFn({ method: "POST" })
       return {
         saved: false,
         slug: data.slug,
+        taken: true,
         error: `/${data.slug} is a page on the site already.`,
       };
     }
 
     try {
-      const { error } = await routeWriter.from(TABLE).upsert(
-        {
+      const response = await routeStoreFetch(TABLE, {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
           slug: data.slug,
           payload: { token: data.token },
           event_name: data.eventName,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "slug" },
-      );
+        }),
+      });
 
-      if (error) {
-        return { saved: false, slug: data.slug, error: error.message };
+      if (!response.ok) {
+        const body = await response.text();
+        return {
+          saved: false,
+          slug: data.slug,
+          taken: response.status === 409 || /duplicate key|already exists/i.test(body),
+          error: routeStoreMessage(response.status, body),
+        };
       }
-      return { saved: true, slug: data.slug, error: null };
+      return { saved: true, slug: data.slug, taken: false, error: null };
     } catch (error) {
       return {
         saved: false,
         slug: data.slug,
+        taken: false,
         error: error instanceof Error ? error.message : "Could not reach the route store",
       };
     }
@@ -106,13 +131,14 @@ export const loadNamedRoute = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => LoadInput.parse(input))
   .handler(async ({ data }): Promise<LoadNamedRouteResult> => {
     try {
-      const { data: row, error } = await routeReader
-        .from(TABLE)
-        .select("slug, payload, event_name")
-        .eq("slug", data.slug)
-        .maybeSingle<ShareableRouteRow>();
+      const response = await routeStoreFetch(
+        `${TABLE}?slug=eq.${encodeURIComponent(data.slug)}&select=slug,payload,event_name&limit=1`,
+      );
+      if (!response.ok) return { found: false, token: null, payload: null };
 
-      if (error || !row) return { found: false, token: null, payload: null };
+      const rows = (await response.json()) as ShareableRouteRow[];
+      const row = rows[0];
+      if (!row) return { found: false, token: null, payload: null };
 
       const token = (row.payload as { token?: string } | null)?.token ?? null;
       if (!token) return { found: false, token: null, payload: null };
@@ -132,13 +158,16 @@ export const checkSlugAvailable = createServerFn({ method: "POST" })
       return { available: false, reason: `/${data.slug} is a page on the site already.` };
     }
     try {
-      const { data: row } = await routeReader
-        .from(TABLE)
-        .select("slug")
-        .eq("slug", data.slug)
-        .maybeSingle<{ slug: string }>();
-      return row
-        ? { available: false, reason: `/${data.slug} is already in use. Saving will replace it.` }
+      const response = await routeStoreFetch(
+        `${TABLE}?slug=eq.${encodeURIComponent(data.slug)}&select=slug&limit=1`,
+      );
+      if (!response.ok) return { available: true, reason: null };
+      const rows = (await response.json()) as Array<{ slug: string }>;
+      return rows.length
+        ? {
+            available: false,
+            reason: `/${data.slug} is taken. This route will publish at /${data.slug}-2.`,
+          }
         : { available: true, reason: null };
     } catch {
       // Availability is a convenience; a store that cannot be reached must not block the

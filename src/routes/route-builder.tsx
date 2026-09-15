@@ -316,7 +316,7 @@ function RouteBuilderPage() {
 
     setPublishing(true);
     setPublishError(null);
-    publishRoute({ data: { slug, token: encoded, eventName: form.eventName } })
+    publishUnderFreeName(slug, encoded)
       .then((result) => {
         setPublishedSlug(result.saved ? result.slug : "");
         setPublishError(result.error);
@@ -392,6 +392,35 @@ function RouteBuilderPage() {
       membershipLabel: option?.label ?? "",
       paymentType: option?.free === false ? "paid" : current.paymentType,
     }));
+  }
+
+  /**
+   * A published link is never repointed, so a name already in use gets the next free
+   * variant rather than overwriting the route someone has already shared.
+   */
+  async function publishUnderFreeName(preferredSlug: string, token: string) {
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const candidate = attempt === 0 ? preferredSlug : `${preferredSlug}-${attempt + 1}`;
+      const result = await publishRoute({
+        data: { slug: candidate, token, eventName: form.eventName },
+      });
+      if (result.saved) {
+        return {
+          saved: true,
+          slug: result.slug,
+          error:
+            attempt === 0
+              ? null
+              : `/${preferredSlug} was already taken, so this route is published at /${result.slug}.`,
+        };
+      }
+      if (!result.taken) return { saved: false, slug: candidate, error: result.error };
+    }
+    return {
+      saved: false,
+      slug: preferredSlug,
+      error: `Every name from /${preferredSlug} onwards is taken. Try a different name.`,
+    };
   }
 
   function addCustomBatch() {
@@ -981,8 +1010,10 @@ function RouteBuilderPage() {
               <h2 className="rb-issued-title">Route issued</h2>
               {publishing ? <p className="rb-note">Publishing /{slug}…</p> : null}
               {publishError ? (
-                <p className="rb-error">
-                  Saved the link below, but /{slug} could not be published: {publishError}
+                <p className={publishedSlug ? "rb-note" : "rb-error"}>
+                  {publishedSlug
+                    ? publishError
+                    : `Saved the link below, but /${slug} could not be published: ${publishError}`}
                 </p>
               ) : null}
               {publishedSlug ? (
