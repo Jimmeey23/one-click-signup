@@ -3,6 +3,13 @@ import { OpenBarreLanding } from "@/components/OpenBarreLanding";
 import { decodeShareableRoutePayload } from "@/lib/shareable-route";
 
 export const Route = createFileRoute("/signup/$shareId")({
+  head: ({ params }) => {
+    const decoded = decodeShareableRoutePayload(params.shareId);
+    const title = decoded?.eventName
+      ? `${decoded.eventName} - Physique 57 India`
+      : "Physique 57 India";
+    return { meta: [{ title }] };
+  },
   component: SignupRoutePage,
 });
 
@@ -17,7 +24,8 @@ function SignupRoutePage() {
   const params = new URLSearchParams();
   if (payload.eventName) params.set("eventName", payload.eventName);
   if (payload.classType) params.set("classType", payload.classType);
-  if (payload.studio) params.set("center", payload.studio);
+  if (payload.homeLocationId) params.set("homeLocationId", String(payload.homeLocationId));
+  else if (payload.studio) params.set("center", payload.studio);
   if (payload.leadSource) params.set("utm_medium", payload.leadSource);
   if (payload.utmSource) params.set("utm_source", payload.utmSource);
   if (payload.utmCampaign) params.set("utm_campaign", payload.utmCampaign);
@@ -29,9 +37,8 @@ function SignupRoutePage() {
     <OpenBarreLanding
       captureLead={payload.paymentType !== "free"}
       routeSource={payload.isKids ? "kids" : payload.leadSource || "signup-builder"}
-      studioVariant="mumbai"
+      studioVariant={payload.studioVariant}
       heroImageUrl={payload.heroImageUrl || undefined}
-      heroImageFallback={payload.heroImagePreset || undefined}
       initialSearch={params.toString()}
       isKidsRoute={payload.isKids}
     />

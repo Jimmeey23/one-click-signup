@@ -15,5 +15,5 @@ export const Route = createFileRoute("/kids")({
 });
 
 function KidsLanding() {
-  return <OpenBarreLanding captureLead routeSource="kids" studioVariant="mumbai" />;
+  return <OpenBarreLanding captureLead routeSource="kids" studioVariant="mumbai" isKidsRoute />;
 }

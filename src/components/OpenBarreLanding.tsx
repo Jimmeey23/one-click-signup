@@ -203,7 +203,8 @@ const KIDS_HERO_QUOTES = [
   "Built for growing bodies, guided by expert coaches.",
 ];
 
-const KIDS_HERO_IMAGE = "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1600&q=80";
+const KIDS_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1600&q=80";
 
 export function OpenBarreLanding({
   captureLead = true,
@@ -212,6 +213,7 @@ export function OpenBarreLanding({
   heroImageUrl,
   heroImageFallback,
   initialSearch,
+  isKidsRoute = false,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -507,7 +509,8 @@ export function OpenBarreLanding({
             referrer:
               stored.referrer ?? (typeof document !== "undefined" ? document.referrer : undefined),
             landingPage: trimToMaxLength(
-              stored.landingPage ?? (typeof window !== "undefined" ? window.location.href : undefined),
+              stored.landingPage ??
+                (typeof window !== "undefined" ? window.location.href : undefined),
             ),
             abVariant: isBengaluru ? "bengaluru" : variant,
           }
@@ -1414,6 +1417,7 @@ function SignupCard({
   ctaLabel,
   studioVariant,
   onViewSchedule,
+  isKidsRoute = false,
 }: {
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
@@ -1428,6 +1432,7 @@ function SignupCard({
   ctaLabel: string;
   studioVariant: StudioVariant;
   onViewSchedule: (locationId: number) => void;
+  isKidsRoute?: boolean;
 }) {
   const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
   const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
@@ -1474,7 +1479,9 @@ function SignupCard({
             {isKidsRoute ? "Book a Juniors class" : "Activate your trial"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1.5">
-            {isKidsRoute ? "Kids-specific signup with consent and waiver support." : "Takes 60 seconds. No card required."}
+            {isKidsRoute
+              ? "Kids-specific signup with consent and waiver support."
+              : "Takes 60 seconds. No card required."}
           </p>
         </div>
         {!isBengaluru && (
