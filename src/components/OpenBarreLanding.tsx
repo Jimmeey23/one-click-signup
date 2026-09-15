@@ -38,7 +38,11 @@ import {
   metaGeoForLocationId,
 } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
-import { parseAttributionFromSearch, type StoredAttribution } from "@/lib/attribution.helpers";
+import {
+  parseAttributionFromSearch,
+  trimToMaxLength,
+  type StoredAttribution,
+} from "@/lib/attribution.helpers";
 import {
   CLASS_FORMAT_KEYS,
   classFormatKeyForSessionName,
@@ -126,10 +130,6 @@ function readStoredAttribution(): StoredAttribution {
   } catch {
     return {};
   }
-}
-
-function trimToMaxLength(value: string | undefined, maxLength = 500) {
-  return String(value || "").slice(0, maxLength);
 }
 
 type FormState = {

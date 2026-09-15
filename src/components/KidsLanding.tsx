@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
 import { KidsConsentModal } from "@/components/KidsConsentModal";
+import { trimToMaxLength } from "@/lib/attribution.helpers";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { submitKidsRegistration } from "@/lib/momence.functions";
@@ -320,8 +321,14 @@ export function KidsLanding({
           utmSource: utmSource ?? params.get("utm_source") ?? undefined,
           utmMedium: routeSource,
           utmCampaign: utmCampaign ?? params.get("utm_campaign") ?? undefined,
-          referrer: typeof document === "undefined" ? undefined : document.referrer || undefined,
-          landingPage: typeof window === "undefined" ? undefined : window.location.href,
+          referrer:
+            typeof document === "undefined"
+              ? undefined
+              : trimToMaxLength(document.referrer) || undefined,
+          landingPage:
+            typeof window === "undefined"
+              ? undefined
+              : trimToMaxLength(window.location.href) || undefined,
         },
       });
 

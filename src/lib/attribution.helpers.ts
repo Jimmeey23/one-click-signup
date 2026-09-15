@@ -34,3 +34,12 @@ export function parseAttributionFromSearch(
   if (fbclid) attribution.fbclid = fbclid;
   return attribution;
 }
+
+/**
+ * Attribution URLs are capped at 500 characters by the signup schemas. A shareable route's
+ * encoded token alone runs past that, so any href or referrer taken from the browser has to
+ * be trimmed before it is sent.
+ */
+export function trimToMaxLength(value: string | undefined, maxLength = 500) {
+  return String(value || "").slice(0, maxLength);
+}
