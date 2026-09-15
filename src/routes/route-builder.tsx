@@ -16,7 +16,11 @@ import {
   leadSourceLabel,
 } from "@/lib/lead-sources";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
-import { encodeShareableRoutePayload, type ShareableRoutePayload } from "@/lib/shareable-route";
+import {
+  encodeShareableRoutePayload,
+  type CustomBatch,
+  type ShareableRoutePayload,
+} from "@/lib/shareable-route";
 
 const ALL_LOCATIONS = [
   ...MUMBAI_LOCATIONS.map((l) => ({
@@ -50,6 +54,8 @@ const DEFAULT_FORM: ShareableRoutePayload = {
   membershipId: 0,
   membershipLabel: "",
   includeKidsConsent: false,
+  includeBatches: true,
+  customBatches: [],
   includeWaiver: false,
   leadSource: "",
   sourceId: "",
@@ -243,6 +249,8 @@ function RouteBuilderPage() {
     event.preventDefault();
     const payload: ShareableRoutePayload = {
       ...form,
+      // A batch with no days and no time would render as an unpickable blank card.
+      customBatches: form.customBatches.filter((batch) => batch.days.trim() || batch.time.trim()),
       tags: tagsInput
         .split(",")
         .map((tag) => tag.trim())
@@ -322,6 +330,29 @@ function RouteBuilderPage() {
       membershipId: option?.membershipId ?? 0,
       membershipLabel: option?.label ?? "",
       paymentType: option?.free === false ? "paid" : current.paymentType,
+    }));
+  }
+
+  function addCustomBatch() {
+    setForm((current) => ({
+      ...current,
+      customBatches: [...current.customBatches, { days: "", time: "", instructors: "", note: "" }],
+    }));
+  }
+
+  function updateCustomBatch(index: number, field: keyof CustomBatch, value: string) {
+    setForm((current) => ({
+      ...current,
+      customBatches: current.customBatches.map((batch, i) =>
+        i === index ? { ...batch, [field]: value } : batch,
+      ),
+    }));
+  }
+
+  function removeCustomBatch(index: number) {
+    setForm((current) => ({
+      ...current,
+      customBatches: current.customBatches.filter((_, i) => i !== index),
     }));
   }
 
@@ -426,6 +457,12 @@ function RouteBuilderPage() {
                 </span>
                 {form.includeWaiver ? <span className="rb-chip">Waiver</span> : null}
                 {form.includeKidsConsent ? <span className="rb-chip">Consent</span> : null}
+                {form.isKids && !form.includeBatches ? (
+                  <span className="rb-chip">No batches</span>
+                ) : null}
+                {form.isKids && form.includeBatches && form.customBatches.length ? (
+                  <span className="rb-chip">{form.customBatches.length} custom batches</span>
+                ) : null}
                 {tagsInput
                   .split(",")
                   .map((tag) => tag.trim())
@@ -686,7 +723,83 @@ function RouteBuilderPage() {
                   label="Waiver"
                   hint="Records the standard waiver on signup."
                 />
+
+                {form.isKids ? (
+                  <Switch
+                    checked={form.includeBatches}
+                    onChange={(checked) => setForm({ ...form, includeBatches: checked })}
+                    label="Batch choice"
+                    hint={
+                      form.sessionId
+                        ? "A class is already booked by this route, so the form hides batches either way."
+                        : "Off removes the whole batch section from the Juniors form."
+                    }
+                  />
+                ) : null}
               </div>
+
+              {form.isKids && form.includeBatches ? (
+                <div className="rb-batches">
+                  <div className="rb-batches-head">
+                    <div>
+                      <p className="rb-batches-title">Batches</p>
+                      <p className="rb-batches-hint">
+                        {form.customBatches.length
+                          ? "Parents choose from these instead of the studio's standard Juniors batches."
+                          : "Parents see this studio's standard Juniors batches. Add one to write your own."}
+                      </p>
+                    </div>
+                    <button type="button" className="rb-ghost rb-ghost-sm" onClick={addCustomBatch}>
+                      Add batch
+                    </button>
+                  </div>
+
+                  {form.customBatches.map((batch, index) => (
+                    <div key={index} className="rb-batch">
+                      <div className="rb-batch-grid">
+                        <Field label="Days">
+                          <Input
+                            value={batch.days}
+                            placeholder="Monday & Thursday"
+                            onChange={(e) => updateCustomBatch(index, "days", e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Time">
+                          <Input
+                            value={batch.time}
+                            placeholder="4:30 PM"
+                            onChange={(e) => updateCustomBatch(index, "time", e.target.value)}
+                          />
+                        </Field>
+                        <Field label="Instructors">
+                          <Input
+                            value={batch.instructors}
+                            placeholder="Mon: Simonelle, Thu: Karanvir"
+                            onChange={(e) =>
+                              updateCustomBatch(index, "instructors", e.target.value)
+                            }
+                          />
+                        </Field>
+                        <Field label="Note" wide>
+                          <Input
+                            value={batch.note}
+                            placeholder="An after-school class for young movers."
+                            onChange={(e) => updateCustomBatch(index, "note", e.target.value)}
+                          />
+                        </Field>
+                      </div>
+                      <button
+                        type="button"
+                        className="rb-batch-remove"
+                        aria-label={`Remove batch ${index + 1}`}
+                        onClick={() => removeCustomBatch(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </Step>
 
             <Step index={3} title="Tracking" hint="How this route reports back in Momence.">
@@ -1304,6 +1417,51 @@ const RB_CSS = `
 .rb-switch.is-on .rb-switch-knob { transform: translateX(14px); background: var(--cyan); }
 .rb-switch-label { display: block; font-size: 14px; font-weight: 500; }
 .rb-switch-hint { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.5; color: var(--mute); }
+
+.rb-batches {
+  margin-top: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 16px;
+}
+.rb-batches-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.rb-batches-title { margin: 0; font-size: 14px; font-weight: 600; }
+.rb-batches-hint { margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--mute); max-width: 56ch; }
+.rb-ghost-sm { height: 34px; padding: 0 14px; font-size: 13px; }
+.rb-batch {
+  position: relative;
+  margin-top: 14px;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: #fafbfc;
+  animation: rb-settle 240ms ease-out;
+}
+.rb-batch-grid {
+  display: grid;
+  gap: 12px 14px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.rb-batch-remove {
+  margin-top: 10px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12.5px;
+  color: var(--mute);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rb-batch-remove:hover { color: #b4233a; }
+.rb-batch-remove:focus-visible { outline: 2px solid var(--cyan-deep); outline-offset: 2px; }
 
 .rb-heroes {
   display: grid;

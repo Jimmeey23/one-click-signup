@@ -26,6 +26,8 @@ function SignupRoutePage() {
     return (
       <KidsLanding
         lockedLocationId={payload.homeLocationId || undefined}
+        hideBatchSelection={!payload.includeBatches}
+        customBatches={payload.customBatches.length ? payload.customBatches : undefined}
         sessionId={payload.sessionId || undefined}
         sessionLabel={payload.sessionLabel || undefined}
         membershipId={payload.membershipId || undefined}

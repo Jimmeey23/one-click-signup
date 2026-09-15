@@ -1,3 +1,10 @@
+export type CustomBatch = {
+  days: string;
+  time: string;
+  instructors: string;
+  note: string;
+};
+
 export type ShareableRoutePayload = {
   eventName: string;
   eventDate: string;
@@ -17,6 +24,10 @@ export type ShareableRoutePayload = {
   membershipId: number;
   membershipLabel: string;
   includeKidsConsent: boolean;
+  /** Juniors routes only: show the batch chooser on the form at all. */
+  includeBatches: boolean;
+  /** Replaces the studio's standard Juniors batches when non-empty. */
+  customBatches: CustomBatch[];
   includeWaiver: boolean;
   leadSource: string;
   sourceId: string;
@@ -84,6 +95,20 @@ export function decodeShareableRoutePayload(encoded: string): ShareableRoutePayl
       membershipId: Number.isFinite(Number(parsed.membershipId)) ? Number(parsed.membershipId) : 0,
       membershipLabel: String(parsed.membershipLabel || "").trim(),
       includeKidsConsent: Boolean(parsed.includeKidsConsent),
+      // Routes encoded before batches were configurable carry no flag, and those forms
+      // did show the chooser - so absent means included.
+      includeBatches: parsed.includeBatches !== false,
+      customBatches: Array.isArray(parsed.customBatches)
+        ? parsed.customBatches
+            .map((batch) => ({
+              days: String(batch?.days || "").trim(),
+              time: String(batch?.time || "").trim(),
+              instructors: String(batch?.instructors || "").trim(),
+              note: String(batch?.note || "").trim(),
+            }))
+            .filter((batch) => batch.days || batch.time)
+            .slice(0, 6)
+        : [],
       includeWaiver: Boolean(parsed.includeWaiver),
       leadSource: String(parsed.leadSource || "").trim(),
       sourceId: String(parsed.sourceId || "").trim(),

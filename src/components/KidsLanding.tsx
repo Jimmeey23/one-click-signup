@@ -42,6 +42,7 @@ import { KidsConsentModal } from "@/components/KidsConsentModal";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { submitKidsRegistration } from "@/lib/momence.functions";
+import type { CustomBatch } from "@/lib/shareable-route";
 import {
   JUNIORS_BUILD_AREAS,
   JUNIORS_HERO_IMAGES,
@@ -82,6 +83,16 @@ const JUNIORS_LOCATIONS = ALL_LOCATIONS.filter((location) =>
   JUNIORS_LOCATION_IDS.includes(location.id as number),
 );
 
+const CUSTOM_BATCH_ACCENTS = [
+  { accent: "bg-sky-50 text-sky-700 ring-1 ring-sky-100", metaAccent: "text-sky-700" },
+  {
+    accent: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+    metaAccent: "text-emerald-700",
+  },
+  { accent: "bg-rose-50 text-rose-700 ring-1 ring-rose-100", metaAccent: "text-rose-700" },
+  { accent: "bg-violet-50 text-violet-700 ring-1 ring-violet-100", metaAccent: "text-violet-700" },
+];
+
 const FIELD_GROUP_CLASS = "group/field space-y-2.5";
 const FIELD_LABEL_CLASS =
   "inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600 transition-colors group-focus-within/field:text-slate-950";
@@ -100,7 +111,10 @@ const SECTION_BADGE_CLASS =
 export type KidsLandingProps = {
   /** Lock the page to one studio - used by shareable routes built for a single centre. */
   lockedLocationId?: number;
+  /** Drops the batch chooser from the form entirely. */
   hideBatchSelection?: boolean;
+  /** Batches written for this route, used instead of the studio's standard ones. */
+  customBatches?: CustomBatch[];
   /** When set, the signup also books this exact session for the child, free of charge. */
   sessionId?: number;
   sessionLabel?: string;
@@ -124,6 +138,7 @@ type Errors = Record<string, string>;
 export function KidsLanding({
   lockedLocationId,
   hideBatchSelection = false,
+  customBatches,
   sessionId,
   sessionLabel,
   membershipId,
@@ -170,7 +185,25 @@ export function KidsLanding({
   const lockedLocation = lockedLocationId
     ? ALL_LOCATIONS.find((item) => item.id === lockedLocationId)
     : undefined;
-  const batches = useMemo(() => juniorsBatchesForLocation(locationId), [locationId]);
+  const batches = useMemo(() => {
+    if (customBatches?.length) {
+      // A route's own batches have no studio palette of their own, so cycle the standard
+      // accents to keep the cards distinguishable.
+      return customBatches.map((batch, index) => {
+        const accent = CUSTOM_BATCH_ACCENTS[index % CUSTOM_BATCH_ACCENTS.length];
+        return {
+          value: [batch.days, batch.time, batch.instructors].filter(Boolean).join(" - "),
+          days: batch.days,
+          time: batch.time,
+          instructors: batch.instructors,
+          studio: location?.name.split(",")[0] ?? "",
+          note: batch.note,
+          ...accent,
+        };
+      });
+    }
+    return juniorsBatchesForLocation(locationId);
+  }, [customBatches, locationId, location]);
   const country = COUNTRY_CODES.find((item) => item.iso === form.countryIso) ?? COUNTRY_CODES[0];
   // A route that books a specific session has already decided the class, so the batch
   // question would only contradict it.
