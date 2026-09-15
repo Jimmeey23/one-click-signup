@@ -20,6 +20,8 @@ export type SignupAndEnrollInput = {
   signatureDataUrl?: string;
   signatures?: Array<{ documentId: number; signatureText: string }>;
   classType?: string;
+  /** Momence lead source id chosen for this route. Empty falls back to the studio default. */
+  sourceId?: string;
   whatsappConsent?: boolean;
   whatsappConsentAt?: string;
   utmSource?: string;
@@ -44,6 +46,7 @@ export type LeadCapturePayload = {
   phoneE164: string;
   center: string;
   classType?: string;
+  sourceId?: string;
   waiverAccepted: boolean;
   whatsappConsent?: boolean;
   whatsappConsentAt?: string;
@@ -189,6 +192,7 @@ export async function runSignupAndEnroll(
       fbclid: data.fbclid,
       referrer: data.referrer,
       landingPage: data.landingPage,
+      sourceId: data.sourceId,
       abVariant: data.abVariant,
       memberId: created.memberId,
       stage: "completed",

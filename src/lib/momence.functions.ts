@@ -12,6 +12,7 @@ import {
   buildMembershipCheckoutRequest,
   buildOpenBarreCheckoutRequestForLocation,
   isBengaluruLocation,
+  momenceHomeLocationIdForLocation,
 } from "./momence-booking.helpers";
 import { bookSessionWithMomenceMembership } from "./momence-sessions.functions";
 import {
@@ -20,7 +21,11 @@ import {
   membershipOptionById,
 } from "./membership-catalog";
 import { JUNIORS_PROGRAM_NAME } from "./kids-program";
-import { buildHostMemberCreateRequest } from "./momence-member.helpers";
+import {
+  buildHostMemberCreateRequest,
+  childEmailVariant,
+  splitChildName,
+} from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
   type DashboardWaiver,
@@ -54,6 +59,7 @@ const SignupInput = z.object({
   signatureDataUrl: z.string().max(300000).optional(),
   signatures: z.array(SignatureSchema).max(20).optional().default([]),
   classType: z.string().max(100).optional(),
+  sourceId: z.string().max(40).optional(),
   whatsappConsent: z.boolean().optional().default(false),
   whatsappConsentAt: z.string().max(40).optional(),
   // Tracking
@@ -73,6 +79,7 @@ const SignupInput = z.object({
 });
 
 const PartialLeadInput = z.object({
+  sourceId: z.string().max(40).optional(),
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().max(100).optional().default(""),
   email: z.string().trim().email().max(150),
@@ -290,6 +297,18 @@ const BENGALURU_LEADS_HOST_ID = 33905;
 const BENGALURU_LEADS_SOURCE_ID = "11615";
 const BENGALURU_LEADS_FALLBACK_TOKEN = "qy71rOk8en";
 
+/**
+ * The source a lead is filed under in Momence. A route built in the Route Builder names its
+ * own; everything else keeps the studio default. Bengaluru posts to a different host whose
+ * source ids are its own, so a Mumbai id is never applied there.
+ */
+export function webhookSourceId(sourceId: string | undefined, isBengaluru: boolean): string {
+  if (isBengaluru) return BENGALURU_LEADS_SOURCE_ID;
+  return sourceId?.trim() || DEFAULT_LEADS_SOURCE_ID;
+}
+
+export const DEFAULT_LEADS_SOURCE_ID = "8082";
+
 export function webhookCenterForLocationId(homeLocationId: number | undefined): string {
   if (homeLocationId === 22116) return "Kenkere House";
   if (homeLocationId === 36372) return "The Studio - By Copper & Cloves";
@@ -321,7 +340,9 @@ export async function captureLead(
   try {
     const leadBody = {
       token,
-      sourceId: isBengaluru ? BENGALURU_LEADS_SOURCE_ID : "8082",
+      // The route's chosen source, falling back to the studio default. Bengaluru posts to a
+      // different host whose source ids are its own, so a Mumbai id is never applied there.
+      sourceId: isBengaluru ? BENGALURU_LEADS_SOURCE_ID : payload.sourceId?.trim() || "8082",
       firstName: payload.firstName,
       lastName: payload.lastName,
       email: payload.email,
@@ -731,6 +752,7 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
       landingPage: data.landingPage,
       abVariant: data.abVariant,
       classType: data.classType,
+      sourceId: data.sourceId,
       stage: "partial",
       fbp: data.fbp,
       fbc: data.fbc,
@@ -918,6 +940,7 @@ const KidsRegistrationInput = z.object({
     .trim()
     .regex(/^\d{4}-\d{2}-\d{2}$/),
   batch: z.string().trim().max(200).optional().default(""),
+  sourceId: z.string().max(40).optional(),
   signatureName: z.string().trim().min(2).max(120),
   signatureRealSignature: z.string().min(2).max(300000),
   waiverAccepted: z.literal(true),
@@ -941,10 +964,61 @@ const KidsRegistrationInput = z.object({
 export type KidsRegistrationResult = {
   leadCaptured: boolean;
   leadError: string | null;
+  /** The child's Momence member id. */
   memberId: number | null;
+  accountError: string | null;
+  waiversSigned: number;
+  waiverError: string | null;
   booked: boolean;
   bookingError: string | null;
 };
+
+/**
+ * Creates the child's Momence record. The child has no address of their own, so the
+ * parent's is used; if Momence already knows that address, the plus-addressed variant is
+ * tried instead rather than abandoning the account.
+ */
+async function createChildMember({
+  firstName,
+  lastName,
+  parentEmail,
+  phoneE164,
+  homeLocationId,
+}: {
+  firstName: string;
+  lastName: string;
+  parentEmail: string;
+  phoneE164: string;
+  homeLocationId: number;
+}): Promise<{ memberId: number; email: string }> {
+  const account = isBengaluruLocation(homeLocationId) ? "bengaluru" : "default";
+  const attemptEmails = [parentEmail, childEmailVariant(parentEmail, firstName)].filter(
+    (email, index, all) => all.indexOf(email) === index,
+  );
+
+  let lastError: unknown;
+  for (const email of attemptEmails) {
+    const request = buildHostMemberCreateRequest({
+      firstName,
+      lastName,
+      email,
+      phoneNumber: phoneE164,
+      homeLocationId: momenceHomeLocationIdForLocation(homeLocationId),
+    });
+    try {
+      const created = await momenceFetch<{ memberId: number }>(
+        request.path,
+        { method: request.method, body: JSON.stringify(request.body) },
+        account,
+      );
+      return { memberId: created.memberId, email };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Child account could not be created");
+}
 
 export const submitKidsRegistration = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => KidsRegistrationInput.parse(input))
@@ -964,6 +1038,7 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       childAge: data.childAge,
       childDateOfBirth: data.childDateOfBirth,
       batch: data.batch,
+      sourceId: data.sourceId,
       sourceForm: "kids-trial-form",
       utmSource: data.utmSource,
       utmMedium: data.utmMedium ?? "kids",
@@ -980,68 +1055,82 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       metaEventId: data.leadEventId,
     });
 
-    if (!data.sessionId) {
-      return {
-        leadCaptured: lead.ok,
-        leadError: lead.error ?? null,
-        memberId: null,
-        booked: false,
-        bookingError: null,
-      };
-    }
-
-    // The route offers a complimentary Juniors session. Register the parent as the member
-    // of record - the child is a minor and the batch is confirmed by the studio team - and
-    // book the named session against the route's free membership.
-    const membershipId = data.membershipId ?? defaultMembershipIdForLocation(data.homeLocationId);
+    // Every Juniors registration creates the child's own Momence record and signs the
+    // consent and waiver against it, free signup or not. The parent's contact details and
+    // drawn signature are used, because the child is a minor.
+    const child = splitChildName(data.childName, data.lastName);
+    let memberId: number | null = null;
+    let accountError: string | null = null;
+    let waiversSigned = 0;
+    let waiverError: string | null = null;
 
     try {
-      const signup = await runSignupAndEnroll(
-        {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          countryCode: data.countryCode,
-          phoneNumber: data.phoneNumber,
-          homeLocationId: data.homeLocationId,
-          waiverAccepted: true,
-          signatureName: data.signatureName,
-          signatureRealSignature: data.signatureRealSignature,
-          classType: JUNIORS_PROGRAM_NAME,
-        },
-        { ...signupAndEnrollDependencies, enrollOpenBarre: async () => {} },
-        { captureLead: false },
-      );
-
-      await grantFreeMembership(signup.memberId, data.homeLocationId, membershipId);
-      await bookSessionWithMomenceMembership({
-        memberId: signup.memberId,
-        sessionId: data.sessionId,
+      const created = await createChildMember({
+        firstName: child.firstName,
+        lastName: child.lastName,
+        parentEmail: data.email,
+        phoneE164,
         homeLocationId: data.homeLocationId,
-        membershipId,
-        membershipLabel: membershipOptionById(membershipId)?.label ?? "Juniors session",
-        hostId: isBengaluruLocation(data.homeLocationId)
-          ? BENGALURU_MOMENCE_HOST_ID
-          : MOMENCE_HOST_ID,
-        momenceAccount: isBengaluruLocation(data.homeLocationId) ? "bengaluru" : "default",
       });
-
-      return {
-        leadCaptured: lead.ok,
-        leadError: lead.error ?? null,
-        memberId: signup.memberId,
-        booked: true,
-        bookingError: null,
-      };
+      memberId = created.memberId;
     } catch (error) {
-      // The lead is already recorded, so a booking failure must not fail the submission -
-      // the studio team can still complete the booking by hand.
-      return {
-        leadCaptured: lead.ok,
-        leadError: lead.error ?? null,
-        memberId: null,
-        booked: false,
-        bookingError: error instanceof Error ? error.message : "Session booking failed",
-      };
+      accountError =
+        error instanceof Error ? error.message : "The child's Momence account could not be created";
     }
+
+    if (memberId) {
+      try {
+        const consent = await signMemberWaivers({
+          memberId,
+          realSignature: data.signatureRealSignature,
+          homeLocationId: data.homeLocationId,
+        });
+        waiversSigned = consent.signedCount;
+        if (consent.signedCount === 0) {
+          waiverError = "No waiver was available to sign on the child's profile.";
+        } else if (consent.signedCount < consent.availableCount) {
+          waiverError = `Only ${consent.signedCount} of ${consent.availableCount} waivers were signed.`;
+        }
+      } catch (error) {
+        waiverError =
+          error instanceof Error ? error.message : "The child's waivers could not be signed";
+      }
+    }
+
+    let booked = false;
+    let bookingError: string | null = null;
+
+    if (data.sessionId && memberId) {
+      const membershipId = data.membershipId ?? defaultMembershipIdForLocation(data.homeLocationId);
+      try {
+        await grantFreeMembership(memberId, data.homeLocationId, membershipId);
+        await bookSessionWithMomenceMembership({
+          memberId,
+          sessionId: data.sessionId,
+          homeLocationId: data.homeLocationId,
+          membershipId,
+          membershipLabel: membershipOptionById(membershipId)?.label ?? "Juniors session",
+          hostId: isBengaluruLocation(data.homeLocationId)
+            ? BENGALURU_MOMENCE_HOST_ID
+            : MOMENCE_HOST_ID,
+          momenceAccount: isBengaluruLocation(data.homeLocationId) ? "bengaluru" : "default",
+        });
+        booked = true;
+      } catch (error) {
+        // The lead is already recorded, so a booking failure must not fail the submission -
+        // the studio team can still complete the booking by hand.
+        bookingError = error instanceof Error ? error.message : "Session booking failed";
+      }
+    }
+
+    return {
+      leadCaptured: lead.ok,
+      leadError: lead.error ?? null,
+      memberId,
+      accountError,
+      waiversSigned,
+      waiverError,
+      booked,
+      bookingError,
+    };
   });

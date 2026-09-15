@@ -130,6 +130,8 @@ export type KidsLandingProps = {
   formDescription?: string;
   formBadge?: string;
   routeSource?: string;
+  /** Momence lead source id for this route, sent with the lead webhook. */
+  sourceId?: string;
   utmSource?: string;
   utmCampaign?: string;
 };
@@ -153,6 +155,7 @@ export function KidsLanding({
   formDescription = "Tell us where you would like to visit and which Juniors class works best for your child.",
   formBadge = "P57 Juniors",
   routeSource = "kids",
+  sourceId,
   utmSource,
   utmCampaign,
 }: KidsLandingProps) {
@@ -320,6 +323,7 @@ export function KidsLanding({
           ...(membershipId ? { membershipId } : {}),
           utmSource: utmSource ?? params.get("utm_source") ?? undefined,
           utmMedium: routeSource,
+          ...(sourceId ? { sourceId } : {}),
           utmCampaign: utmCampaign ?? params.get("utm_campaign") ?? undefined,
           referrer:
             typeof document === "undefined"
@@ -332,7 +336,7 @@ export function KidsLanding({
         },
       });
 
-      if (!result.leadCaptured && !result.booked) {
+      if (!result.leadCaptured && !result.memberId) {
         setStatus({
           text: result.leadError || "Submission failed. Please try again.",
           tone: "error",
@@ -340,12 +344,23 @@ export function KidsLanding({
         return;
       }
 
-      if (result.bookingError) {
-        // The lead landed, so this is a partial success: say so rather than claiming a seat
-        // that was never booked.
+      // Anything the studio has to finish by hand is said plainly rather than hidden behind
+      // a success screen.
+      const unfinished = [
+        result.accountError ? `the profile for ${form.childName.trim()}` : null,
+        result.waiverError ? "the signed consent" : null,
+        result.bookingError ? "the class booking" : null,
+      ].filter(Boolean);
+
+      if (unfinished.length) {
         setStatus({
-          text: `Request received. We could not confirm the class automatically (${result.bookingError}), so our team will complete the booking for you.`,
+          text: `Request received. Our team will confirm ${unfinished.join(", ")} with you directly.`,
           tone: "success",
+        });
+        console.warn("[kids-signup] incomplete", {
+          accountError: result.accountError,
+          waiverError: result.waiverError,
+          bookingError: result.bookingError,
         });
       }
 

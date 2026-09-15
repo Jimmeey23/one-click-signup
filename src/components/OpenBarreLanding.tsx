@@ -199,6 +199,8 @@ type OpenBarreLandingProps = {
   /** Set by a shareable route that names its own membership / class to book into. */
   routeMembershipId?: number;
   routeSessionId?: number;
+  /** Momence lead source id for this route, sent with the lead webhook. */
+  routeSourceId?: string;
 };
 
 const KIDS_HERO_QUOTES = [
@@ -220,6 +222,7 @@ export function OpenBarreLanding({
   isKidsRoute = false,
   routeMembershipId,
   routeSessionId,
+  routeSourceId,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -418,10 +421,11 @@ export function OpenBarreLanding({
         utmContent: params.get("utm_content") ?? stored.utmContent,
         gclid: params.get("gclid") ?? stored.gclid,
         fbclid: readRawFbclid(window.location.search) ?? stored.fbclid,
-        referrer: stored.referrer ?? document.referrer,
+        referrer: trimToMaxLength(stored.referrer ?? document.referrer),
         landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
         abVariant: isBengaluru ? "bengaluru" : variant,
         classType: form.classType,
+        ...(routeSourceId ? { sourceId: routeSourceId } : {}),
         whatsappConsent: form.whatsappConsent,
         whatsappConsentAt: form.whatsappConsentAt ?? undefined,
         fbp: metaCookies.fbp,
@@ -523,6 +527,7 @@ export function OpenBarreLanding({
                 (typeof window !== "undefined" ? window.location.href : undefined),
             ),
             abVariant: isBengaluru ? "bengaluru" : variant,
+            ...(routeSourceId ? { sourceId: routeSourceId } : {}),
           }
         : { abVariant: variant };
       console.debug("[debug:signup] calling signup server fn", { captureLead });
