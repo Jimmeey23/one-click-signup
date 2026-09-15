@@ -34,3 +34,6 @@ dist-ssr
 .vercel
 .env*.local
 .superpowers/
+
+# Supabase CLI scratch
+supabase/.temp/

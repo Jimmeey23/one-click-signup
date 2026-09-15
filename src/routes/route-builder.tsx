@@ -15,6 +15,8 @@ import {
   leadSourceIdForName,
   leadSourceLabel,
 } from "@/lib/lead-sources";
+import { checkSlugAvailable, saveNamedRoute } from "@/lib/route-store.functions";
+import { slugifyRouteName } from "@/lib/route-slug";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import {
   encodeShareableRoutePayload,
@@ -171,12 +173,20 @@ function RouteBuilderPage() {
   const [form, setForm] = useState<ShareableRoutePayload>(DEFAULT_FORM);
   const [tagsInput, setTagsInput] = useState("");
   const [shareId, setShareId] = useState("");
-  const [copied, setCopied] = useState<"share" | "signup" | null>(null);
+  const [copied, setCopied] = useState<"share" | "signup" | "named" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sessions, setSessions] = useState<SessionDTO[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [customMembershipId, setCustomMembershipId] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [slugNote, setSlugNote] = useState<string | null>(null);
+  const [publishedSlug, setPublishedSlug] = useState("");
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const publishRoute = useServerFn(saveNamedRoute);
+  const checkSlug = useServerFn(checkSlugAvailable);
 
   const membershipOptions = useMemo(
     () => membershipOptionsForLocation(form.homeLocationId),
@@ -242,6 +252,34 @@ function RouteBuilderPage() {
     setCustomMembershipId("");
   }, [form.homeLocationId]);
 
+  // The link is the event's name, so keep it in step with the name until it is edited by
+  // hand - after that the typed slug wins.
+  useEffect(() => {
+    if (slugTouched) return;
+    setSlug(slugifyRouteName(form.eventName));
+  }, [form.eventName, slugTouched]);
+
+  useEffect(() => {
+    if (!slug) {
+      setSlugNote(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      checkSlug({ data: { slug } })
+        .then((result) => {
+          if (!cancelled) setSlugNote(result.reason);
+        })
+        .catch(() => {
+          if (!cancelled) setSlugNote(null);
+        });
+    }, 350);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [checkSlug, slug]);
+
   const shareUrl = shareId ? `/share/${shareId}` : "";
   const signupUrl = shareId ? `/signup/${shareId}` : "";
 
@@ -269,6 +307,29 @@ function RouteBuilderPage() {
     setError(null);
     setShareId(encoded);
     setCopied(null);
+
+    if (!slug) {
+      setPublishedSlug("");
+      setPublishError(null);
+      return;
+    }
+
+    setPublishing(true);
+    setPublishError(null);
+    publishRoute({ data: { slug, token: encoded, eventName: form.eventName } })
+      .then((result) => {
+        setPublishedSlug(result.saved ? result.slug : "");
+        setPublishError(result.error);
+      })
+      .catch((publishFailure: unknown) => {
+        setPublishedSlug("");
+        setPublishError(
+          publishFailure instanceof Error
+            ? publishFailure.message
+            : "The route store could not be reached.",
+        );
+      })
+      .finally(() => setPublishing(false));
   }
 
   function applyPreset(preset: Partial<ShareableRoutePayload>) {
@@ -375,7 +436,7 @@ function RouteBuilderPage() {
     }));
   }
 
-  async function copyUrl(path: string, which: "share" | "signup") {
+  async function copyUrl(path: string, which: "share" | "signup" | "named") {
     await navigator.clipboard.writeText(new URL(path, window.location.origin).toString());
     setCopied(which);
     window.setTimeout(() => setCopied(null), 1800);
@@ -487,7 +548,7 @@ function RouteBuilderPage() {
               {shareId ? (
                 <>
                   <p className="rb-tear-label">Signup link</p>
-                  <p className="rb-tear-url">{signupUrl}</p>
+                  <p className="rb-tear-url">{publishedSlug ? `/${publishedSlug}` : signupUrl}</p>
                 </>
               ) : (
                 <p className="rb-tear-empty">The link appears here once the route is generated.</p>
@@ -553,6 +614,24 @@ function RouteBuilderPage() {
                     onChange={(e) => setForm({ ...form, sessionLink: e.target.value })}
                     placeholder="Optional"
                   />
+                </Field>
+                <Field
+                  label="Link"
+                  hint={slugNote ?? "This is the address the route is shared at."}
+                  wide
+                >
+                  <div className="rb-slug">
+                    <span className="rb-slug-prefix">/</span>
+                    <Input
+                      className="rb-slug-input"
+                      value={slug}
+                      placeholder="battle-school"
+                      onChange={(e) => {
+                        setSlugTouched(true);
+                        setSlug(slugifyRouteName(e.target.value));
+                      }}
+                    />
+                  </div>
                 </Field>
               </div>
             </Step>
@@ -900,6 +979,23 @@ function RouteBuilderPage() {
           {shareId ? (
             <section className="rb-issued" aria-live="polite">
               <h2 className="rb-issued-title">Route issued</h2>
+              {publishing ? <p className="rb-note">Publishing /{slug}…</p> : null}
+              {publishError ? (
+                <p className="rb-error">
+                  Saved the link below, but /{slug} could not be published: {publishError}
+                </p>
+              ) : null}
+              {publishedSlug ? (
+                <GeneratedLink
+                  title="Named link"
+                  description="The address to share. Opens the signup form directly."
+                  to="/$slug"
+                  params={{ slug: publishedSlug }}
+                  href={`/${publishedSlug}`}
+                  copied={copied === "named"}
+                  onCopy={() => copyUrl(`/${publishedSlug}`, "named")}
+                />
+              ) : null}
               <GeneratedLink
                 title="Share page"
                 description="A summary of the event with copy and share actions."
@@ -996,31 +1092,38 @@ function Switch({
   );
 }
 
+type GeneratedLinkTarget =
+  | { to: "/share/$shareId" | "/signup/$shareId"; shareId: string; params?: undefined }
+  | { to: "/$slug"; params: { slug: string }; shareId?: undefined };
+
 function GeneratedLink({
   title,
   description,
-  to,
-  shareId,
   href,
   copied,
   onCopy,
+  ...target
 }: {
   title: string;
   description: string;
-  to: "/share/$shareId" | "/signup/$shareId";
-  shareId: string;
   href: string;
   copied: boolean;
   onCopy: () => void;
-}) {
+} & GeneratedLinkTarget) {
   return (
     <div className="rb-link">
       <div className="rb-link-text">
         <p className="rb-link-title">{title}</p>
         <p className="rb-link-desc">{description}</p>
-        <Link className="rb-link-url" to={to} params={{ shareId }}>
-          {href}
-        </Link>
+        {target.to === "/$slug" ? (
+          <Link className="rb-link-url" to="/$slug" params={target.params}>
+            {href}
+          </Link>
+        ) : (
+          <Link className="rb-link-url" to={target.to} params={{ shareId: target.shareId }}>
+            {href}
+          </Link>
+        )}
       </div>
       <div className="rb-link-actions">
         <button type="button" className="rb-ghost" onClick={onCopy}>
@@ -1374,6 +1477,21 @@ const RB_CSS = `
   box-shadow: 0 0 0 3px rgba(127, 211, 247, 0.34);
 }
 .rb-select:disabled { background: #eceef1; color: var(--mute); }
+.rb-slug { display: flex; align-items: center; gap: 0; }
+.rb-slug-prefix {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--rule);
+  border-right: none;
+  border-radius: 9px 0 0 9px;
+  background: #eceef1;
+  color: var(--mute);
+  font-size: 14px;
+}
+.rb-slug-input { border-radius: 0 9px 9px 0 !important; }
+
 .rb-readonly { background: #eceef1; color: var(--mute); cursor: default; }
 
 .rb-switches { display: grid; gap: 8px; margin-top: 20px; }
