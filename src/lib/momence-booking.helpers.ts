@@ -48,8 +48,8 @@ export function openBarreMembershipIdForLocation(homeLocationId: number): number
 }
 // Momence's own catalog price for this membership (matches mum_price_metadata in the
 // products export) - this is what must be sent back to Momence's checkout API.
-export const STANDARD_CLASS_PRICE_INR = "1750";
-export const NEWCOMERS_2_FOR_1_PRICE_INR = "1750";
+export const STANDARD_CLASS_PRICE_INR = "1850";
+export const NEWCOMERS_2_FOR_1_PRICE_INR = "1850";
 export const MOMENCE_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 4578;
 // Custom payment methods are per-host in Momence - Bengaluru (host 33905) has its own id.
 export const BENGALURU_STRIPE_LINK_CUSTOM_PAYMENT_METHOD_ID = 5801;

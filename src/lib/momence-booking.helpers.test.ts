@@ -88,23 +88,23 @@ describe("Momence booking helpers", () => {
 
   it("builds schedule price display with free Open Barre and half-off newcomers pricing", () => {
     assert.deepEqual(getSchedulePriceDisplay("Barre 57"), {
-      originalPriceInCurrency: "1750",
+      originalPriceInCurrency: "1850",
       bookingPriceInCurrency: "0",
       label: "Open Barre trial",
       slashOriginalPrice: true,
     });
 
-    // Displayed price is pre-tax; 5% GST is only added on the Stripe checkout page (1750 -> 1838).
+    // Displayed price is pre-tax; 5% GST is only added on the Stripe checkout page (1850 -> 1943).
     assert.deepEqual(getSchedulePriceDisplay("powerCycle"), {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: "1750",
+      bookingPriceInCurrency: "1850",
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     });
 
     assert.deepEqual(getSchedulePriceDisplay("Strength Lab Push"), {
       originalPriceInCurrency: null,
-      bookingPriceInCurrency: "1750",
+      bookingPriceInCurrency: "1850",
       label: "Newcomers 2 for 1",
       slashOriginalPrice: false,
     });
@@ -128,7 +128,7 @@ describe("Momence booking helpers", () => {
   });
 
   it("builds the paid membership checkout request using Momence custom payment", () => {
-    assert.equal(NEWCOMERS_2_FOR_1_PRICE_INR, "1750");
+    assert.equal(NEWCOMERS_2_FOR_1_PRICE_INR, "1850");
 
     const request = buildMembershipCheckoutRequest({
       memberId: 27473761,
@@ -148,7 +148,7 @@ describe("Momence booking helpers", () => {
           id: "1",
           type: "subscription",
           membershipId: 240932,
-          attemptedPriceInCurrency: "1750",
+          attemptedPriceInCurrency: "1850",
         },
       ],
       paymentMethods: [{ id: "1", type: "custom", customPaymentMethodId: 9876 }],
@@ -171,7 +171,7 @@ describe("Momence booking helpers", () => {
           id: "1",
           type: "subscription",
           membershipId: 240932,
-          attemptedPriceInCurrency: "1750",
+          attemptedPriceInCurrency: "1850",
         },
       ],
       paymentMethods: [{ id: "1", type: "custom", customPaymentMethodId: 4578 }],
