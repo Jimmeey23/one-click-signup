@@ -31,6 +31,7 @@ import {
   readRawFbclid,
 } from "@/lib/analytics";
 import { storeRegistrationMeta } from "@/lib/registration-meta.helpers";
+import { isValidPhoneNumber, phoneNumberError } from "@/lib/phone-validation";
 import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
 import {
   MUMBAI_LOCATIONS,
@@ -472,7 +473,7 @@ export function OpenBarreLanding({
       form.lastName.trim().length > 0 &&
       /\S+@\S+\.\S+/.test(form.email) &&
       form.countryCode.trim().length > 0 &&
-      form.phoneNumber.replace(/[^0-9]/g, "").length >= 6 &&
+      isValidPhoneNumber(form.phoneNumber, form.countryCode) &&
       LOCATIONS.some((l) => l.id === form.homeLocationId) &&
       form.waiverAccepted &&
       form.signatureName.trim().length >= 2,
@@ -487,7 +488,7 @@ export function OpenBarreLanding({
         lastName: form.lastName.trim().length > 0,
         email: /\S+@\S+\.\S+/.test(form.email),
         countryCode: form.countryCode.trim().length > 0,
-        phoneNumber: form.phoneNumber.replace(/[^0-9]/g, "").length >= 6,
+        phoneNumber: isValidPhoneNumber(form.phoneNumber, form.countryCode),
         homeLocationId: LOCATIONS.some((l) => l.id === form.homeLocationId),
         waiverAndSignature: form.waiverAccepted && form.signatureName.trim().length >= 2,
       });
@@ -1584,9 +1585,15 @@ function SignupCard({
                 value={form.phoneNumber}
                 onChange={(e) => setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
                 placeholder="98765 43210"
+                aria-invalid={phoneNumberError(form.phoneNumber, form.countryCode) != null}
                 className="flex-1 h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+            {phoneNumberError(form.phoneNumber, form.countryCode) ? (
+              <p className="mt-1.5 text-xs text-destructive">
+                {phoneNumberError(form.phoneNumber, form.countryCode)}
+              </p>
+            ) : null}
           </div>
           <label className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
             <input

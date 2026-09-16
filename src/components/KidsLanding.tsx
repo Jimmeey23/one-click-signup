@@ -41,6 +41,7 @@ import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad
 import { KidsConsentModal } from "@/components/KidsConsentModal";
 import { trimToMaxLength } from "@/lib/attribution.helpers";
 import { COUNTRY_CODES } from "@/lib/country-codes";
+import { isValidPhoneNumber, phoneNumberError } from "@/lib/phone-validation";
 import { MUMBAI_LOCATIONS, BENGALURU_LOCATIONS } from "@/lib/momence-locations";
 import { submitKidsRegistration } from "@/lib/momence.functions";
 import type { CustomBatch } from "@/lib/shareable-route";
@@ -268,7 +269,10 @@ export function KidsLanding({
     if (!form.email.trim()) next.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
       next.email = "Enter a valid email";
-    if (form.phone.replace(/[^0-9]/g, "").length < 6) next.phone = "Enter a valid phone number";
+    const phoneError = phoneNumberError(form.phone, country.dial);
+    if (phoneError) next.phone = phoneError;
+    else if (!isValidPhoneNumber(form.phone, country.dial))
+      next.phone = "Parent/guardian phone is required";
     if (!locationId) next.locationId = "Select a center";
     if (!form.childName.trim()) next.childName = "Child name is required";
     if (!form.childAge.trim()) next.childAge = "Child age is required";
@@ -381,7 +385,7 @@ export function KidsLanding({
     form.firstName.trim() &&
     form.lastName.trim() &&
     form.email.trim() &&
-    form.phone.trim() &&
+    isValidPhoneNumber(form.phone, country.dial) &&
     locationId &&
     form.childName.trim() &&
     form.childAge.trim() &&
