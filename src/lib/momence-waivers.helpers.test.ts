@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildDashboardPublicWaiverSignRequests,
+  KIDS_CHILD_PREDEFINED_WAIVER_IDS,
+  KIDS_PARENT_PREDEFINED_WAIVER_IDS,
   buildMemberHostSignableDocumentsSignRequest,
 } from "./momence-waivers.helpers.ts";
 
@@ -74,5 +76,57 @@ describe("Momence waiver helpers", () => {
         },
       },
     ]);
+  });
+});
+
+describe("Juniors waiver selection", () => {
+  const waivers = [
+    { type: "predefined" as const, id: "waiver", signatureStatus: "unsigned", signatureKey: "w" },
+    {
+      type: "predefined" as const,
+      id: "membership-waiver",
+      signatureStatus: "unsigned",
+      signatureKey: "m",
+    },
+    {
+      type: "predefined" as const,
+      id: "child-waiver",
+      signatureStatus: "unsigned",
+      signatureKey: "c",
+    },
+  ];
+
+  it("signs the child waiver when it is the requested waiver", () => {
+    const requests = buildDashboardPublicWaiverSignRequests({
+      hostId: 13752,
+      memberId: 123,
+      realSignature: "sig",
+      waivers,
+      predefinedWaiverIds: new Set(KIDS_CHILD_PREDEFINED_WAIVER_IDS),
+    });
+
+    assert.equal(requests.length, 1);
+    assert.equal(
+      requests[0].path,
+      "/public/hosts/13752/members/123/waivers/child-waiver/sign?signatureKey=c",
+    );
+  });
+
+  it("leaves the child waiver alone for the parent's own record", () => {
+    const requests = buildDashboardPublicWaiverSignRequests({
+      hostId: 13752,
+      memberId: 123,
+      realSignature: "sig",
+      waivers,
+      predefinedWaiverIds: new Set(KIDS_PARENT_PREDEFINED_WAIVER_IDS),
+    });
+
+    assert.deepEqual(
+      requests.map((request) => request.path),
+      [
+        "/public/hosts/13752/members/123/waivers/waiver/sign?signatureKey=w",
+        "/public/hosts/13752/members/123/waivers/membership-waiver/sign?signatureKey=m",
+      ],
+    );
   });
 });

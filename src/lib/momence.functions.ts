@@ -21,15 +21,17 @@ import {
   membershipOptionById,
 } from "./membership-catalog";
 import { JUNIORS_PROGRAM_NAME } from "./kids-program";
-import {
-  buildHostMemberCreateRequest,
-  childEmailVariant,
-  splitChildName,
-} from "./momence-member.helpers";
+import { buildHostMemberCreateRequest, splitChildName } from "./momence-member.helpers";
 import {
   buildDashboardPublicWaiverSignRequests,
+  KIDS_CHILD_PREDEFINED_WAIVER_IDS,
+  KIDS_PARENT_PREDEFINED_WAIVER_IDS,
   type DashboardWaiver,
 } from "./momence-waivers.helpers";
+import {
+  buildChildAccountCreateRequest,
+  parseChildAccountMemberId,
+} from "./momence-child-account.helpers";
 import {
   runSignupAndEnroll,
   type LeadCapturePayload,
@@ -443,24 +445,31 @@ async function signMemberWaivers({
   memberId,
   realSignature,
   homeLocationId,
+  predefinedWaiverIds,
+  requireAll,
 }: {
   memberId: number;
   realSignature: string;
   homeLocationId: number;
+  /** Defaults to the studio waiver pair signed on an adult signup. */
+  predefinedWaiverIds?: string[];
+  /** When true every requested waiver must exist on the member before signing. */
+  requireAll?: boolean;
 }): Promise<{ signedCount: number; availableCount: number }> {
   const isBengaluru = isBengaluruLocation(homeLocationId);
   const hostId = isBengaluru ? BENGALURU_MOMENCE_HOST_ID : MOMENCE_HOST_ID;
-  const requiredBengaluruWaiverIds = new Set(["waiver", "membership-waiver"]);
+  const requiredWaiverIds = new Set(predefinedWaiverIds ?? ["waiver", "membership-waiver"]);
+  const mustHaveEveryWaiver = requireAll ?? isBengaluru;
 
   let waivers: DashboardWaiver[] = [];
-  const maxAttempts = isBengaluru ? 5 : 3;
+  const maxAttempts = 5;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const res = await momenceDashboardFetch<{ waivers?: DashboardWaiver[] }>(
       `/host/${hostId}/members/${memberId}/waivers`,
       { method: "GET" },
     );
     waivers = res.waivers ?? [];
-    const bengaluruWaiversReady = [...requiredBengaluruWaiverIds].every((waiverId) =>
+    const requestedWaiversReady = [...requiredWaiverIds].every((waiverId) =>
       waivers.some(
         (waiver) =>
           waiver.type === "predefined" &&
@@ -468,7 +477,7 @@ async function signMemberWaivers({
           (waiver.signatureStatus?.toLowerCase() === "signed" || Boolean(waiver.signatureKey)),
       ),
     );
-    if (isBengaluru ? bengaluruWaiversReady : waivers.length > 0) break;
+    if (requestedWaiversReady) break;
     // Momence provisions a fresh member's waiver records asynchronously, so the
     // very first read right after createMember can briefly return none.
     if (attempt < maxAttempts) {
@@ -480,17 +489,23 @@ async function signMemberWaivers({
     throw new Error("No Momence waiver records were available for this member.");
   }
 
-  const waiversToProcess = isBengaluru
-    ? waivers.filter(
-        (waiver) =>
-          waiver.type === "predefined" &&
-          typeof waiver.id === "string" &&
-          requiredBengaluruWaiverIds.has(waiver.id),
-      )
-    : waivers;
+  const waiversToProcess = waivers.filter(
+    (waiver) =>
+      waiver.type === "predefined" &&
+      typeof waiver.id === "string" &&
+      requiredWaiverIds.has(waiver.id),
+  );
 
-  if (isBengaluru && waiversToProcess.length !== requiredBengaluruWaiverIds.size) {
-    throw new Error("Both Bengaluru waiver and membership-waiver records are required.");
+  if (waiversToProcess.length === 0) {
+    throw new Error(
+      `None of the required waivers (${[...requiredWaiverIds].join(", ")}) exist on this member.`,
+    );
+  }
+
+  if (mustHaveEveryWaiver && waiversToProcess.length !== requiredWaiverIds.size) {
+    throw new Error(
+      `All of ${[...requiredWaiverIds].join(", ")} are required, but only ${waiversToProcess.length} were available.`,
+    );
   }
 
   const signRequests = buildDashboardPublicWaiverSignRequests({
@@ -498,6 +513,7 @@ async function signMemberWaivers({
     memberId,
     realSignature,
     waivers: waiversToProcess,
+    predefinedWaiverIds: requiredWaiverIds,
   });
 
   await Promise.all(
@@ -966,6 +982,8 @@ export type KidsRegistrationResult = {
   leadError: string | null;
   /** The child's Momence member id. */
   memberId: number | null;
+  /** The parent's own Momence member id. */
+  parentMemberId: number | null;
   accountError: string | null;
   waiversSigned: number;
   waiverError: string | null;
@@ -974,50 +992,92 @@ export type KidsRegistrationResult = {
 };
 
 /**
- * Creates the child's Momence record. The child has no address of their own, so the
- * parent's is used; if Momence already knows that address, the plus-addressed variant is
- * tried instead rather than abandoning the account.
+ * Adds a member to a session at no charge through the public host API. Juniors places are
+ * complimentary, so no membership is granted or consumed - the child is simply booked in.
  */
-async function createChildMember({
+async function addMemberToSessionForFree({
+  memberId,
+  sessionId,
+  homeLocationId,
+}: {
+  memberId: number;
+  sessionId: number;
+  homeLocationId: number;
+}): Promise<void> {
+  await momenceFetch(
+    `/host/sessions/${sessionId}/bookings/free`,
+    { method: "POST", body: JSON.stringify({ memberId }) },
+    isBengaluruLocation(homeLocationId) ? "bengaluru" : "default",
+  );
+}
+
+/**
+ * Creates the parent's own Momence member record. The parent is the contracting adult, so
+ * the studio waiver and membership waiver are signed against this record.
+ */
+async function createParentMember({
   firstName,
   lastName,
-  parentEmail,
+  email,
   phoneE164,
   homeLocationId,
 }: {
   firstName: string;
   lastName: string;
-  parentEmail: string;
+  email: string;
   phoneE164: string;
   homeLocationId: number;
-}): Promise<{ memberId: number; email: string }> {
-  const account = isBengaluruLocation(homeLocationId) ? "bengaluru" : "default";
-  const attemptEmails = [parentEmail, childEmailVariant(parentEmail, firstName)].filter(
-    (email, index, all) => all.indexOf(email) === index,
+}): Promise<number> {
+  const request = buildHostMemberCreateRequest({
+    firstName,
+    lastName,
+    email,
+    phoneNumber: phoneE164,
+    homeLocationId: momenceHomeLocationIdForLocation(homeLocationId),
+  });
+  const created = await momenceFetch<{ memberId: number }>(
+    request.path,
+    { method: request.method, body: JSON.stringify(request.body) },
+    isBengaluruLocation(homeLocationId) ? "bengaluru" : "default",
   );
+  return created.memberId;
+}
 
-  let lastError: unknown;
-  for (const email of attemptEmails) {
-    const request = buildHostMemberCreateRequest({
-      firstName,
-      lastName,
-      email,
-      phoneNumber: phoneE164,
-      homeLocationId: momenceHomeLocationIdForLocation(homeLocationId),
-    });
-    try {
-      const created = await momenceFetch<{ memberId: number }>(
-        request.path,
-        { method: request.method, body: JSON.stringify(request.body) },
-        account,
-      );
-      return { memberId: created.memberId, email };
-    } catch (error) {
-      lastError = error;
-    }
+/**
+ * Creates the child as a child account under the parent. Momence only provisions the
+ * `child-waiver` record - and only accepts an age-restricted booking - for a member created
+ * this way with a date of birth, which a standalone public-API member never gets.
+ */
+async function createChildAccount({
+  parentMemberId,
+  firstName,
+  lastName,
+  childDateOfBirth,
+  homeLocationId,
+}: {
+  parentMemberId: number;
+  firstName: string;
+  lastName: string;
+  childDateOfBirth: string;
+  homeLocationId: number;
+}): Promise<number> {
+  const request = buildChildAccountCreateRequest({
+    hostId: isBengaluruLocation(homeLocationId) ? BENGALURU_MOMENCE_HOST_ID : MOMENCE_HOST_ID,
+    parentMemberId,
+    firstName,
+    lastName,
+    childDateOfBirth,
+  });
+  const data = await momenceDashboardFetch<unknown>(request.path, {
+    method: request.method,
+    headers: request.headers,
+    body: JSON.stringify(request.body),
+  });
+  const childMemberId = parseChildAccountMemberId(data);
+  if (!childMemberId) {
+    throw new Error("Momence did not return a member id for the child account.");
   }
-
-  throw lastError instanceof Error ? lastError : new Error("Child account could not be created");
+  return childMemberId;
 }
 
 export const submitKidsRegistration = createServerFn({ method: "POST" })
@@ -1055,65 +1115,100 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       metaEventId: data.leadEventId,
     });
 
-    // Every Juniors registration creates the child's own Momence record and signs the
-    // consent and waiver against it, free signup or not. The parent's contact details and
-    // drawn signature are used, because the child is a minor.
+    // Every Juniors registration provisions the parent's member record and the child's
+    // child account under it, free signup or not. Consent is split the way Momence models
+    // it: the parent signs the studio waivers on their own record, the child's record
+    // carries the child-waiver. Both are signed with the parent's drawn signature.
     const child = splitChildName(data.childName, data.lastName);
+    let parentMemberId: number | null = null;
     let memberId: number | null = null;
     let accountError: string | null = null;
     let waiversSigned = 0;
     let waiverError: string | null = null;
+    const waiverErrors: string[] = [];
 
     try {
-      const created = await createChildMember({
-        firstName: child.firstName,
-        lastName: child.lastName,
-        parentEmail: data.email,
+      parentMemberId = await createParentMember({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
         phoneE164,
         homeLocationId: data.homeLocationId,
       });
-      memberId = created.memberId;
     } catch (error) {
       accountError =
-        error instanceof Error ? error.message : "The child's Momence account could not be created";
+        error instanceof Error
+          ? error.message
+          : "The parent's Momence account could not be created";
+    }
+
+    if (parentMemberId) {
+      try {
+        memberId = await createChildAccount({
+          parentMemberId,
+          firstName: child.firstName,
+          lastName: child.lastName,
+          childDateOfBirth: data.childDateOfBirth,
+          homeLocationId: data.homeLocationId,
+        });
+      } catch (error) {
+        accountError =
+          error instanceof Error
+            ? error.message
+            : "The child's Momence account could not be created";
+      }
+    }
+
+    if (parentMemberId) {
+      try {
+        const parentConsent = await signMemberWaivers({
+          memberId: parentMemberId,
+          realSignature: data.signatureRealSignature,
+          homeLocationId: data.homeLocationId,
+          predefinedWaiverIds: KIDS_PARENT_PREDEFINED_WAIVER_IDS,
+        });
+        waiversSigned += parentConsent.signedCount;
+      } catch (error) {
+        waiverErrors.push(
+          error instanceof Error ? error.message : "The parent's waivers could not be signed",
+        );
+      }
     }
 
     if (memberId) {
       try {
-        const consent = await signMemberWaivers({
+        const childConsent = await signMemberWaivers({
           memberId,
           realSignature: data.signatureRealSignature,
           homeLocationId: data.homeLocationId,
+          predefinedWaiverIds: KIDS_CHILD_PREDEFINED_WAIVER_IDS,
+          requireAll: true,
         });
-        waiversSigned = consent.signedCount;
-        if (consent.signedCount === 0) {
-          waiverError = "No waiver was available to sign on the child's profile.";
-        } else if (consent.signedCount < consent.availableCount) {
-          waiverError = `Only ${consent.signedCount} of ${consent.availableCount} waivers were signed.`;
-        }
+        waiversSigned += childConsent.signedCount;
       } catch (error) {
-        waiverError =
-          error instanceof Error ? error.message : "The child's waivers could not be signed";
+        waiverErrors.push(
+          error instanceof Error ? error.message : "The child waiver could not be signed",
+        );
       }
+    }
+
+    if (waiverErrors.length) {
+      waiverError = waiverErrors.join(" ");
+    } else if (waiversSigned === 0) {
+      waiverError = "No waiver was available to sign.";
     }
 
     let booked = false;
     let bookingError: string | null = null;
 
     if (data.sessionId && memberId) {
-      const membershipId = data.membershipId ?? defaultMembershipIdForLocation(data.homeLocationId);
       try {
-        await grantFreeMembership(memberId, data.homeLocationId, membershipId);
-        await bookSessionWithMomenceMembership({
+        // A Juniors place is complimentary: the child goes straight into the session at no
+        // charge, instead of being granted the adult Open Barre trial membership first.
+        await addMemberToSessionForFree({
           memberId,
           sessionId: data.sessionId,
           homeLocationId: data.homeLocationId,
-          membershipId,
-          membershipLabel: membershipOptionById(membershipId)?.label ?? "Juniors session",
-          hostId: isBengaluruLocation(data.homeLocationId)
-            ? BENGALURU_MOMENCE_HOST_ID
-            : MOMENCE_HOST_ID,
-          momenceAccount: isBengaluruLocation(data.homeLocationId) ? "bengaluru" : "default",
         });
         booked = true;
       } catch (error) {
@@ -1127,6 +1222,7 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       leadCaptured: lead.ok,
       leadError: lead.error ?? null,
       memberId,
+      parentMemberId,
       accountError,
       waiversSigned,
       waiverError,

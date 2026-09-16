@@ -59,6 +59,15 @@ const DEFAULT_PREDEFINED_WAIVER_TYPES: PredefinedWaiverType[] = [
 
 const DEFAULT_DASHBOARD_PREDEFINED_WAIVER_IDS = new Set(["waiver", "membership-waiver"]);
 
+/** Signed against the parent's own member record on a Juniors registration. */
+export const KIDS_PARENT_PREDEFINED_WAIVER_IDS: PredefinedWaiverType[] = [
+  "waiver",
+  "membership-waiver",
+];
+
+/** Signed against the child's member record. Momence only offers it on a child account. */
+export const KIDS_CHILD_PREDEFINED_WAIVER_IDS: PredefinedWaiverType[] = ["child-waiver"];
+
 function uniquePositiveIntegers(values: number[]): number[] {
   return [...new Set(values.filter((value) => Number.isInteger(value) && value > 0))];
 }
@@ -116,18 +125,20 @@ export function buildDashboardPublicWaiverSignRequests({
   waivers: DashboardWaiver[];
   predefinedWaiverIds?: Set<string>;
 }): DashboardPublicWaiverSignRequest[] {
-  return waivers.flatMap((waiver) => {
-    if (
-      waiver.type !== "predefined" ||
-      typeof waiver.id !== "string" ||
-      waiver.signatureStatus?.toLowerCase() === "signed" ||
-      !waiver.signatureKey ||
-      !predefinedWaiverIds.has(waiver.id)
-    ) {
+  const availableById = new Map(
+    waivers
+      .filter((waiver) => waiver.type === "predefined" && typeof waiver.id === "string")
+      .map((waiver) => [String(waiver.id), waiver]),
+  );
+
+  // Driven by the requested ids rather than the response order, so the caller decides which
+  // waivers a member signs - a parent signs the studio waivers, a child the child-waiver.
+  return [...predefinedWaiverIds].flatMap((waiverId) => {
+    const waiver = availableById.get(waiverId);
+    if (!waiver || waiver.signatureStatus?.toLowerCase() === "signed" || !waiver.signatureKey) {
       return [];
     }
 
-    const waiverId = waiver.id;
     const signatureKey = waiver.signatureKey;
     const signPageUrl = dashboardWaiverSignPageUrl({
       hostId,
@@ -141,7 +152,7 @@ export function buildDashboardPublicWaiverSignRequests({
         path: `/public/hosts/${hostId}/members/${memberId}/waivers/${encodeURIComponent(
           waiverId,
         )}/sign?signatureKey=${encodeURIComponent(signatureKey)}`,
-        method: "POST",
+        method: "POST" as const,
         body: { realSignature },
         headers: {
           Referer: signPageUrl,
