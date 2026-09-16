@@ -45,6 +45,8 @@ export type LeadCapturePayload = {
   email: string;
   phoneE164: string;
   center: string;
+  /** Kept alongside the centre name so stored submissions can be filtered by studio. */
+  homeLocationId?: number;
   classType?: string;
   sourceId?: string;
   waiverAccepted: boolean;
@@ -179,6 +181,7 @@ export async function runSignupAndEnroll(
       email: data.email,
       phoneE164,
       center: dependencies.resolveCenterName(data.homeLocationId),
+      homeLocationId: data.homeLocationId,
       classType: data.classType,
       waiverAccepted: data.waiverAccepted,
       whatsappConsent: data.whatsappConsent ?? false,

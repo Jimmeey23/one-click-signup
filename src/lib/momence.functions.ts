@@ -328,7 +328,7 @@ function requestClientMeta(): MetaRequestContext {
   }
 }
 
-export async function captureLead(
+async function sendLeadToMomence(
   payload: LeadCapturePayload,
 ): Promise<{ ok: boolean; error?: string }> {
   const isBengaluru = payload.abVariant === "bengaluru";
@@ -439,6 +439,28 @@ export async function captureLead(
     console.error(msg);
     return { ok: false, error: msg };
   }
+}
+
+/**
+ * Sends the lead to Momence, then keeps our own copy of the submission.
+ *
+ * The record is written whatever the webhook did, including when it was skipped for a
+ * missing token, because a lead Momence rejected is exactly the one worth having. The
+ * record never changes what this returns - the caller's signup must not fail over an
+ * audit row.
+ */
+export async function captureLead(
+  payload: LeadCapturePayload,
+): Promise<{ ok: boolean; error?: string }> {
+  const outcome = await sendLeadToMomence(payload);
+
+  const { recordSubmission } = await import("./submission-store.server");
+  const stored = await recordSubmission(payload, outcome);
+  if (!stored.stored) {
+    console.warn("[debug:signup] submission not recorded", { error: stored.error });
+  }
+
+  return outcome;
 }
 
 async function signMemberWaivers({
@@ -713,6 +735,7 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       email: data.email,
       phoneE164,
       center: webhookCenterForLocationId(data.homeLocationId),
+      homeLocationId: data.homeLocationId,
       waiverAccepted: true,
       whatsappConsent: data.whatsappConsent ?? false,
       whatsappConsentAt: data.whatsappConsentAt,
@@ -754,6 +777,7 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
       email: data.email,
       phoneE164,
       center,
+      homeLocationId: data.homeLocationId,
       waiverAccepted: false,
       whatsappConsent: data.whatsappConsent ?? false,
       whatsappConsentAt: data.whatsappConsentAt,
@@ -1092,6 +1116,7 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       email: data.email,
       phoneE164,
       center,
+      homeLocationId: data.homeLocationId,
       classType: JUNIORS_PROGRAM_NAME,
       waiverAccepted: true,
       childName: data.childName,
