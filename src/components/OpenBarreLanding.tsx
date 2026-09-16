@@ -1337,6 +1337,8 @@ function BengaluruSchedulePreview({
   function scheduleDocumentFor(centerId: number) {
     const locationIds = centerId === 287883 ? "[287883,36372]" : `[${centerId}]`;
     const tagIds = centerId === 287883 ? "[383332]" : "[]";
+    // The closing script tag is written as / so this source file never
+    // contains a literal </script> that could cut the bundle short.
     return `<!doctype html>
 <html>
   <head>
@@ -1361,7 +1363,7 @@ function BengaluruSchedulePreview({
       locale="en"
       lock_timezone="Asia/Kolkata"
       src="https://momence.com/plugin/host-schedule/host-schedule.js"
-    ><\/script>
+    ></script>
   </body>
 </html>`;
   }

@@ -56,6 +56,15 @@ async function readLocalEnv(): Promise<Record<string, string> | null> {
   return localEnvCache;
 }
 
+/**
+ * Pins the .env fallback so tests exercise process.env alone and never pick up
+ * the developer's real credentials. Called with no arguments it restores the
+ * normal "read .env on first use" behaviour.
+ */
+export function setLocalEnvCacheForTests(values?: Record<string, string> | null): void {
+  localEnvCache = values;
+}
+
 export async function requireServerEnv(name: string): Promise<string> {
   const value = process.env[name]?.trim() ?? (await readLocalEnv())?.[name]?.trim();
   if (!value) {

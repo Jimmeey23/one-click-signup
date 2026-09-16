@@ -6,6 +6,7 @@ import {
   getMomenceCookies,
   resetMomenceCookiesCacheForTests,
 } from "./momence-auth.server.ts";
+import { setLocalEnvCacheForTests } from "./momence.server.ts";
 
 const ORIGINAL_FETCH = globalThis.fetch;
 const ORIGINAL_ENV = { ...process.env };
@@ -53,12 +54,16 @@ describe("Momence TOTP generation", () => {
 describe("getMomenceCookies", () => {
   beforeEach(() => {
     resetMomenceCookiesCacheForTests();
+    // Without this the .env fallback in requireServerEnv would supply the real
+    // credentials and the "missing variable" test would hit the live API.
+    setLocalEnvCacheForTests(null);
     setLoginEnv();
   });
 
   afterEach(() => {
     globalThis.fetch = ORIGINAL_FETCH;
     process.env = { ...ORIGINAL_ENV };
+    setLocalEnvCacheForTests();
     resetMomenceCookiesCacheForTests();
   });
 
@@ -151,6 +156,9 @@ describe("getMomenceCookies", () => {
 
   it("throws when login credentials are missing", async () => {
     delete process.env.MOMENCE_LOGIN_EMAIL;
+    globalThis.fetch = (async () => {
+      throw new Error("no request should be made when a credential is missing");
+    }) as typeof fetch;
     await assert.rejects(
       () => getMomenceCookies(),
       /Missing server environment variable: MOMENCE_LOGIN_EMAIL/,
