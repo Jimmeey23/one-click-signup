@@ -8,6 +8,12 @@ export const PARTIAL_SUBMISSIONS_TABLE = "partial_submissions";
 export type SubmissionWebhookOutcome = {
   ok: boolean;
   error?: string | null;
+  /**
+   * True when the lead was never offered to Momence at all - the /skip-lead route. The
+   * row is still stored, but with no webhook verdict, so the "chase these" queries that
+   * look for a failed webhook do not pick up leads nobody ever meant to send.
+   */
+  skipped?: boolean;
 };
 
 export type SubmissionRow = {
@@ -101,8 +107,34 @@ export function buildSubmissionRow(
     landing_page: orNull(payload.landingPage),
     meta_event_id: orNull(payload.metaEventId),
     member_id: payload.memberId ?? null,
-    lead_webhook_ok: outcome.ok,
+    lead_webhook_ok: outcome.skipped ? null : outcome.ok,
     lead_webhook_error: orNull(outcome.error),
     raw: { ...payload } as Record<string, unknown>,
   };
+}
+
+/**
+ * PostgREST `or` filter matching the partial rows left behind by someone who has now
+ * completed the form, so the partial table only ever holds people who never made it
+ * through.
+ *
+ * Phone and email are matched independently: a visitor can correct one of them between the
+ * partial capture and the final submit, and the partial row still belongs to them. Email is
+ * matched case-insensitively because it is stored exactly as typed. Returns null when there
+ * is nothing safe to match on - a blank filter would delete the whole table.
+ *
+ * Values are double-quoted so a comma or bracket in them cannot end the condition early,
+ * and the caller passes the result through URLSearchParams so `+` survives as a plus and
+ * not as a space.
+ */
+export function partialPruneFilter(payload: LeadCapturePayload): string | null {
+  const conditions: string[] = [];
+  const phone = payload.phoneE164?.trim();
+  const email = payload.email?.trim();
+  // A double quote inside a quoted value would end it; no real phone or email has one.
+  const quote = (value: string) => `"${value.replace(/"/g, "")}"`;
+  if (phone) conditions.push(`phone_e164.eq.${quote(phone)}`);
+  if (email) conditions.push(`email.ilike.${quote(email)}`);
+  if (conditions.length === 0) return null;
+  return `(${conditions.join(",")})`;
 }

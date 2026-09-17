@@ -50,9 +50,9 @@ function createDependencies(calls: string[]): SignupAndEnrollDependencies {
       assert.equal(memberId, 32166499);
       assert.equal(homeLocationId, 29821);
     },
-    captureLead: async () => {
+    captureLead: async (_payload, { sendToMomence }) => {
       calls.push("captureLead");
-      return { ok: true };
+      return sendToMomence ? { ok: true } : { ok: false, skipped: true };
     },
     resolveCenterName: () => "Supreme HQ, Bandra",
   };
@@ -62,10 +62,17 @@ describe("signup and enroll helper", () => {
   it("skips lead capture while still creating the member, signing waivers, and enrolling Open Barre", async () => {
     const calls: string[] = [];
     const result = await runSignupAndEnroll(completeInput, createDependencies(calls), {
-      captureLead: false,
+      sendLeadToMomence: false,
     });
 
-    assert.deepEqual(calls, ["createMember", "signMemberWaivers", "enrollOpenBarre"]);
+    // The lead is still captured - that is what records the submission - it simply never
+    // reaches the Momence webhook.
+    assert.deepEqual(calls, [
+      "createMember",
+      "signMemberWaivers",
+      "enrollOpenBarre",
+      "captureLead",
+    ]);
     assert.deepEqual(result, {
       memberId: 32166499,
       homeLocationId: 29821,
@@ -81,7 +88,7 @@ describe("signup and enroll helper", () => {
   it("captures lead details when lead capture is enabled", async () => {
     const calls: string[] = [];
     const result = await runSignupAndEnroll(completeInput, createDependencies(calls), {
-      captureLead: true,
+      sendLeadToMomence: true,
     });
 
     assert.deepEqual(calls, [
@@ -91,6 +98,24 @@ describe("signup and enroll helper", () => {
       "captureLead",
     ]);
     assert.equal(result.leadCaptured, true);
+    assert.equal(result.leadError, null);
+  });
+
+  it("still records the submission when the lead is not sent to Momence", async () => {
+    let options: { sendToMomence: boolean } | undefined;
+    const dependencies = createDependencies([]);
+    dependencies.captureLead = async (_payload, opts) => {
+      options = opts;
+      return { ok: false, skipped: true, error: "Lead webhook not sent for this signup" };
+    };
+
+    const result = await runSignupAndEnroll(completeInput, dependencies, {
+      sendLeadToMomence: false,
+    });
+
+    assert.deepEqual(options, { sendToMomence: false });
+    assert.equal(result.leadCaptured, false);
+    // Skipped on purpose, so nothing is reported as having gone wrong.
     assert.equal(result.leadError, null);
   });
 
@@ -104,10 +129,15 @@ describe("signup and enroll helper", () => {
     };
 
     const result = await runSignupAndEnroll(completeInput, dependencies, {
-      captureLead: false,
+      sendLeadToMomence: false,
     });
 
-    assert.deepEqual(calls, ["createMember", "signMemberWaivers", "enrollOpenBarre"]);
+    assert.deepEqual(calls, [
+      "createMember",
+      "signMemberWaivers",
+      "enrollOpenBarre",
+      "captureLead",
+    ]);
     assert.equal(result.memberId, 32166499);
     assert.equal(result.enrolled, true);
     assert.equal(result.signedCount, 0);
@@ -141,7 +171,7 @@ describe("signup and enroll helper", () => {
         classType: "barre-57",
       },
       dependencies,
-      { captureLead: true },
+      { sendLeadToMomence: true },
     );
 
     assert.equal(capturedPayload?.classType, "barre-57");

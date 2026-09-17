@@ -6,6 +6,7 @@ import {
   COMPLETED_SUBMISSIONS_TABLE,
   PARTIAL_SUBMISSIONS_TABLE,
   buildSubmissionRow,
+  partialPruneFilter,
   tableForStage,
 } from "./submission-store.helpers.ts";
 
@@ -55,6 +56,17 @@ describe("Submission rows", () => {
     assert.equal(row.lead_webhook_error, null);
   });
 
+  it("leaves the webhook verdict empty when the lead was never sent", () => {
+    const row = buildSubmissionRow(BASE, {
+      ok: false,
+      skipped: true,
+      error: "Lead webhook not sent for this signup",
+    });
+    // Not a failure to chase - nobody meant to send it.
+    assert.equal(row.lead_webhook_ok, null);
+    assert.equal(row.lead_webhook_error, "Lead webhook not sent for this signup");
+  });
+
   it("records the webhook failure rather than dropping the submission", () => {
     const row = buildSubmissionRow(BASE, { ok: false, error: "Lead capture 500" });
     assert.equal(row.lead_webhook_ok, false);
@@ -93,5 +105,23 @@ describe("Submission rows", () => {
     const row = buildSubmissionRow(payload, { ok: true });
     assert.equal(row.raw.somethingAddedLater, "kept");
     assert.equal(row.raw.email, "ada@example.com");
+  });
+});
+
+describe("Partial submission cleanup", () => {
+  it("matches the completing member's partial rows on phone or email", () => {
+    assert.equal(
+      partialPruneFilter(BASE),
+      '(phone_e164.eq."+919876543210",email.ilike."ada@example.com")',
+    );
+  });
+
+  it("still matches when only one contact detail was given", () => {
+    assert.equal(partialPruneFilter({ ...BASE, email: "" }), '(phone_e164.eq."+919876543210")');
+    assert.equal(partialPruneFilter({ ...BASE, phoneE164: "" }), '(email.ilike."ada@example.com")');
+  });
+
+  it("matches nothing rather than everything when there is no contact detail", () => {
+    assert.equal(partialPruneFilter({ ...BASE, email: "", phoneE164: "" }), null);
   });
 });

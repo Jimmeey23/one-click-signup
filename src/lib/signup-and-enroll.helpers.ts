@@ -104,14 +104,22 @@ export type SignupAndEnrollDependencies = {
     homeLocationId: number;
   }) => Promise<{ signedCount: number; availableCount: number }>;
   enrollOpenBarre: (input: { memberId: number; homeLocationId: number }) => Promise<void>;
-  captureLead: (payload: LeadCapturePayload) => Promise<{ ok: boolean; error?: string | null }>;
+  /**
+   * Always called, on every signup. `sendToMomence` decides only whether the lead is
+   * offered to the Momence webhook - the submission itself is recorded either way, so a
+   * /skip-lead signup still leaves us a record of what was submitted.
+   */
+  captureLead: (
+    payload: LeadCapturePayload,
+    options: { sendToMomence: boolean },
+  ) => Promise<{ ok: boolean; error?: string | null; skipped?: boolean }>;
   resolveCenterName: (homeLocationId: number) => string;
 };
 
 export async function runSignupAndEnroll(
   data: SignupAndEnrollInput,
   dependencies: SignupAndEnrollDependencies,
-  { captureLead }: { captureLead: boolean },
+  { sendLeadToMomence }: { sendLeadToMomence: boolean },
 ): Promise<SignupAndEnrollResult> {
   const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
   const signatureRealSignature = data.signatureRealSignature;
@@ -172,10 +180,8 @@ export async function runSignupAndEnroll(
     }
   }
 
-  let leadCaptured = false;
-  let leadError: string | null = null;
-  if (captureLead) {
-    const lead = await dependencies.captureLead({
+  const lead = await dependencies.captureLead(
+    {
       firstName: createMemberRequest.body.firstName,
       lastName: createMemberRequest.body.lastName,
       email: data.email,
@@ -202,11 +208,17 @@ export async function runSignupAndEnroll(
       fbp: data.fbp,
       fbc: data.fbc,
       metaEventId: data.leadEventId,
-    });
-    leadCaptured = lead.ok;
-    leadError = lead.error ?? null;
-    console.debug("[debug:signup] lead capture", { leadCaptured, leadError });
-  }
+    },
+    { sendToMomence: sendLeadToMomence },
+  );
+  // A skipped lead is not a failed one, so it reports no error to the caller.
+  const leadCaptured = lead.ok;
+  const leadError = lead.skipped ? null : (lead.error ?? null);
+  console.debug("[debug:signup] lead capture", {
+    leadCaptured,
+    leadError,
+    sent: sendLeadToMomence,
+  });
 
   return {
     memberId: created.memberId,

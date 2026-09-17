@@ -37,6 +37,7 @@ import {
   type LeadCapturePayload,
   type SignupAndEnrollDependencies,
 } from "./signup-and-enroll.helpers";
+import type { SubmissionWebhookOutcome } from "./submission-store.helpers";
 
 const SignatureSchema = z.object({
   documentId: z.number().int().positive(),
@@ -445,14 +446,17 @@ async function sendLeadToMomence(
  * Sends the lead to Momence, then keeps our own copy of the submission.
  *
  * The record is written whatever the webhook did, including when it was skipped for a
- * missing token, because a lead Momence rejected is exactly the one worth having. The
- * record never changes what this returns - the caller's signup must not fail over an
- * audit row.
+ * missing token or by `sendToMomence: false` on the /skip-lead route, because a lead
+ * Momence never received is exactly the one worth having. The record never changes what
+ * this returns - the caller's signup must not fail over an audit row.
  */
 export async function captureLead(
   payload: LeadCapturePayload,
-): Promise<{ ok: boolean; error?: string }> {
-  const outcome = await sendLeadToMomence(payload);
+  { sendToMomence = true }: { sendToMomence?: boolean } = {},
+): Promise<{ ok: boolean; error?: string | null; skipped?: boolean }> {
+  const outcome: SubmissionWebhookOutcome = sendToMomence
+    ? await sendLeadToMomence(payload)
+    : { ok: false, error: "Lead webhook not sent for this signup", skipped: true };
 
   const { recordSubmission } = await import("./submission-store.server");
   const stored = await recordSubmission(payload, outcome);
@@ -588,13 +592,19 @@ const signupAndEnrollDependencies: SignupAndEnrollDependencies = {
 export const signupAndEnroll = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
   .handler(async ({ data }) => {
-    return runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: true });
+    return runSignupAndEnroll(data, signupAndEnrollDependencies, {
+      sendLeadToMomence: true,
+    });
   });
 
 export const signupAndEnrollWithoutLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => SignupInput.parse(input))
   .handler(async ({ data }) => {
-    return runSignupAndEnroll(data, signupAndEnrollDependencies, { captureLead: false });
+    // /skip-lead: nothing goes to the Momence webhook, but the submission is still ours
+    // to keep, so runSignupAndEnroll records it either way.
+    return runSignupAndEnroll(data, signupAndEnrollDependencies, {
+      sendLeadToMomence: false,
+    });
   });
 
 // Lead goes to the Conversions API from its own server fn, called by the client at the
@@ -908,7 +918,7 @@ export const signupEnrollAndBookRoute = createServerFn({ method: "POST" })
     const signup = await runSignupAndEnroll(
       signupData,
       { ...signupAndEnrollDependencies, enrollOpenBarre: async () => {} },
-      { captureLead: true },
+      { sendLeadToMomence: true },
     );
 
     let membershipGranted = false;

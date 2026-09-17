@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Check,
@@ -101,6 +101,13 @@ const HERO_QUOTES = [
 ];
 
 const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
+
+/**
+ * How long a half-filled form can sit untouched before the lead is treated as abandoned
+ * and sent. Long enough that someone reading the waiver or picking a class is not counted
+ * as gone, short enough that a lead is not lost to a browser that closes without warning.
+ */
+const PARTIAL_LEAD_IDLE_MS = 90_000;
 
 // Captures UTMs into sessionStorage on the first hit so attribution survives if
 // the visitor navigates around the site before finishing the signup form -
@@ -246,6 +253,9 @@ export function OpenBarreLanding({
   const variantCopy = VARIANT_COPY[variant];
   const waiverSignedTrackedRef = useRef(false);
   const partialCapturedRef = useRef(false);
+  // Set the moment a real submit starts, so a member who is midway through signing up is
+  // never also recorded as an abandoned lead.
+  const signupStartedRef = useRef(false);
   const leadEventIdRef = useRef<string>(
     typeof window !== "undefined" && window.crypto?.randomUUID
       ? window.crypto.randomUUID()
@@ -396,58 +406,97 @@ export function OpenBarreLanding({
     });
   }, [form.firstName, form.lastName, form.email, form.phoneNumber, form.countryCode]);
 
+  // The abandoned-signup capture. It runs at most once, guarded by partialCapturedRef, and
+  // never after the member has submitted - by then the completed record is the real one.
+  //
+  // Waiting for the studio keeps the brand-wide fallback centre out of the lead, but it
+  // cannot be a hard requirement: someone who types their details and leaves without ever
+  // picking a studio is exactly the lead worth chasing. So the studio is what we wait for,
+  // not what we insist on - the visitor leaving, or going quiet, sends it regardless.
+  const firePartialLead = useCallback(
+    (reason: "studio-selected" | "leaving" | "idle") => {
+      if (partialCapturedRef.current || signupStartedRef.current || !captureLead) return;
+      const emailValid = /\S+@\S+\.\S+/.test(form.email);
+      const phoneValid = form.phoneNumber.replace(/[^0-9]/g, "").length >= 6;
+      if (!form.firstName.trim() || !emailValid || !phoneValid) return;
+
+      partialCapturedRef.current = true;
+      console.debug("[debug:signup] partial lead capture", {
+        reason,
+        homeLocationId: form.homeLocationId,
+      });
+      const params = new URLSearchParams(window.location.search);
+      const stored = readStoredAttribution();
+      const metaCookies = readMetaCookies(readRawFbclid(window.location.search) ?? stored.fbclid);
+
+      submitPartialLead({
+        data: {
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          email: form.email.trim(),
+          countryCode: form.countryCode,
+          phoneNumber: form.phoneNumber.trim(),
+          // Left off when they never picked one, so the server records the studio as
+          // unknown rather than guessing at it.
+          homeLocationId: form.homeLocationId || undefined,
+          utmSource: params.get("utm_source") ?? stored.utmSource,
+          utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? routeSource,
+          utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
+          utmTerm: params.get("utm_term") ?? stored.utmTerm,
+          utmContent: params.get("utm_content") ?? stored.utmContent,
+          gclid: params.get("gclid") ?? stored.gclid,
+          fbclid: readRawFbclid(window.location.search) ?? stored.fbclid,
+          referrer: trimToMaxLength(stored.referrer ?? document.referrer),
+          landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
+          abVariant: isBengaluru ? "bengaluru" : variant,
+          classType: form.classType,
+          ...(routeSourceId ? { sourceId: routeSourceId } : {}),
+          whatsappConsent: form.whatsappConsent,
+          whatsappConsentAt: form.whatsappConsentAt ?? undefined,
+          fbp: metaCookies.fbp,
+          fbc: metaCookies.fbc,
+          metaEventId: leadEventIdRef.current,
+        },
+      }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
+    },
+    [captureLead, form, isBengaluru, routeSource, routeSourceId, submitPartialLead, variant],
+  );
+
+  // Listeners and timers read this so they always send the details as they stand now,
+  // rather than whatever they were when the listener was attached.
+  const firePartialLeadRef = useRef(firePartialLead);
   useEffect(() => {
-    if (partialCapturedRef.current || !captureLead) return;
-    const emailValid = /\S+@\S+\.\S+/.test(form.email);
-    const phoneValid = form.phoneNumber.replace(/[^0-9]/g, "").length >= 6;
-    if (!form.firstName.trim() || !emailValid || !phoneValid) return;
+    firePartialLeadRef.current = firePartialLead;
+  }, [firePartialLead]);
 
-    partialCapturedRef.current = true;
-    const params = new URLSearchParams(window.location.search);
-    const stored = readStoredAttribution();
-    const metaCookies = readMetaCookies(readRawFbclid(window.location.search) ?? stored.fbclid);
+  // The happy path: contact details plus a real studio, sent as soon as both are there.
+  useEffect(() => {
+    if (!LOCATIONS.some((l) => l.id === form.homeLocationId)) return;
+    firePartialLead("studio-selected");
+  }, [LOCATIONS, firePartialLead, form.homeLocationId]);
 
-    submitPartialLead({
-      data: {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim(),
-        countryCode: form.countryCode,
-        phoneNumber: form.phoneNumber.trim(),
-        homeLocationId: form.homeLocationId || undefined,
-        utmSource: params.get("utm_source") ?? stored.utmSource,
-        utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? routeSource,
-        utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
-        utmTerm: params.get("utm_term") ?? stored.utmTerm,
-        utmContent: params.get("utm_content") ?? stored.utmContent,
-        gclid: params.get("gclid") ?? stored.gclid,
-        fbclid: readRawFbclid(window.location.search) ?? stored.fbclid,
-        referrer: trimToMaxLength(stored.referrer ?? document.referrer),
-        landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
-        abVariant: isBengaluru ? "bengaluru" : variant,
-        classType: form.classType,
-        ...(routeSourceId ? { sourceId: routeSourceId } : {}),
-        whatsappConsent: form.whatsappConsent,
-        whatsappConsentAt: form.whatsappConsentAt ?? undefined,
-        fbp: metaCookies.fbp,
-        fbc: metaCookies.fbc,
-        metaEventId: leadEventIdRef.current,
-      },
-    }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
-  }, [
-    form.firstName,
-    form.lastName,
-    form.email,
-    form.phoneNumber,
-    form.homeLocationId,
-    form.countryCode,
-    form.whatsappConsent,
-    captureLead,
-    variant,
-    routeSource,
-    submitPartialLead,
-    isBengaluru,
-  ]);
+  // They are leaving. visibilitychange fires while the page is still alive, which pagehide
+  // does not reliably do on mobile, so it is the one that usually gets the request away.
+  useEffect(() => {
+    const send = () => firePartialLeadRef.current("leaving");
+    const onHidden = () => {
+      if (document.visibilityState === "hidden") send();
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", send);
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", send);
+    };
+  }, []);
+
+  // Gone quiet with the form half-filled. Sending early costs nothing: if they come back
+  // and finish, the completed submission prunes this partial row away.
+  useEffect(() => {
+    if (partialCapturedRef.current) return;
+    const timer = setTimeout(() => firePartialLeadRef.current("idle"), PARTIAL_LEAD_IDLE_MS);
+    return () => clearTimeout(timer);
+  }, [form.firstName, form.lastName, form.email, form.phoneNumber, form.countryCode]);
 
   function handleSignChange(isSigned: boolean) {
     setSigned(isSigned);
@@ -499,6 +548,7 @@ export function OpenBarreLanding({
       setError("Please add your signature in the box above to consent to the waiver.");
       return;
     }
+    signupStartedRef.current = true;
     setLoading(true);
     setError(null);
     const params = new URLSearchParams(window.location.search);
