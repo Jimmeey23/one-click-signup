@@ -1,5 +1,6 @@
 import { KidsLanding } from "@/components/KidsLanding";
 import { OpenBarreLanding } from "@/components/OpenBarreLanding";
+import type { RouteEvent } from "@/lib/route-event";
 import type { ShareableRoutePayload } from "@/lib/shareable-route";
 
 /**
@@ -29,7 +30,6 @@ export function ShareableRouteLanding({ payload }: { payload: ShareableRoutePayl
   }
 
   const params = new URLSearchParams();
-  if (payload.eventName) params.set("eventName", payload.eventName);
   if (payload.classType) params.set("classType", payload.classType);
   if (payload.homeLocationId) params.set("homeLocationId", String(payload.homeLocationId));
   else if (payload.studio) params.set("center", payload.studio);
@@ -38,9 +38,24 @@ export function ShareableRouteLanding({ payload }: { payload: ShareableRoutePayl
   if (payload.utmCampaign) params.set("utm_campaign", payload.utmCampaign);
   if (payload.includeWaiver) params.set("waiverAccepted", "true");
 
+  // Only a named route has an event to lead with; an unnamed one keeps the studio's
+  // standard copy rather than showing a blank headline.
+  const routeEvent: RouteEvent | undefined = payload.eventName
+    ? {
+        name: payload.eventName,
+        date: payload.eventDate,
+        time: payload.eventTime,
+        instructor: payload.instructorName,
+        studio: payload.studio,
+        details: payload.otherDetails,
+        paid: payload.paymentType === "paid",
+      }
+    : undefined;
+
   return (
     <OpenBarreLanding
       captureLead={payload.paymentType !== "free"}
+      routeEvent={routeEvent}
       routeSource={payload.leadSource || "signup-builder"}
       studioVariant={payload.studioVariant}
       heroImageUrl={payload.heroImageUrl || undefined}

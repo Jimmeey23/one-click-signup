@@ -51,6 +51,7 @@ import {
 } from "@/lib/class-format-matchers";
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
 import { isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
+import { eventDetailLine, type RouteEvent } from "@/lib/route-event";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
@@ -108,6 +109,13 @@ const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
  * as gone, short enough that a lead is not lost to a browser that closes without warning.
  */
 const PARTIAL_LEAD_IDLE_MS = 90_000;
+
+/**
+ * Stands in for the studio's hero copy on a paid route. The standard line promises the
+ * first class is complimentary, which is not true of an event someone is paying for.
+ */
+const PAID_EVENT_DESCRIPTION =
+  "Reserve your place below. Sign up takes 60 seconds, and payment is taken at checkout.";
 
 // Captures UTMs into sessionStorage on the first hit so attribution survives if
 // the visitor navigates around the site before finishing the signup form -
@@ -209,6 +217,12 @@ type OpenBarreLandingProps = {
   routeSessionId?: number;
   /** Momence lead source id for this route, sent with the lead webhook. */
   routeSourceId?: string;
+  /**
+   * The event a Route Builder link was made for. When set, the page leads with the event
+   * rather than the studio's standard trial copy. Absent on the main landing and on the
+   * standing pages, which keep the copy they have always had.
+   */
+  routeEvent?: RouteEvent;
 };
 
 const KIDS_HERO_QUOTES = [
@@ -231,6 +245,7 @@ export function OpenBarreLanding({
   routeMembershipId,
   routeSessionId,
   routeSourceId,
+  routeEvent,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -283,6 +298,7 @@ export function OpenBarreLanding({
 
   const isBengaluru = studioVariant === "bengaluru";
   const studioConfig = STUDIO_CONFIG[studioVariant];
+  const routeEventDetail = routeEvent ? eventDetailLine(routeEvent) : null;
   const LOCATIONS = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
 
   useEffect(() => {
@@ -740,15 +756,28 @@ export function OpenBarreLanding({
         />
         <div className="relative max-w-7xl mx-auto px-5 sm:px-6 pt-32 pb-16 lg:pt-36 lg:pb-24 grid lg:grid-cols-[0.88fr_1.12fr] gap-12 lg:gap-16 items-start text-white">
           <div className="pt-2 lg:sticky lg:top-32">
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold mb-7 backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
-              {studioConfig.heroLocationLine}
-            </p>
+            <div className="mb-7 flex flex-wrap items-center gap-2">
+              <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold backdrop-blur-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
+                {routeEvent?.studio || studioConfig.heroLocationLine}
+              </p>
+              {routeEvent && (
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] font-bold text-white/80 backdrop-blur-md">
+                  {routeEvent.paid ? "Paid class" : "Complimentary"}
+                </span>
+              )}
+            </div>
             <h1 className="max-w-xl font-display text-[clamp(3rem,6vw,5.5rem)] leading-[0.94] tracking-[-0.035em] text-balance">
-              {heroImageFallback ? `${heroImageFallback} · ${heroQuote}` : heroQuote}
+              {routeEvent?.name ||
+                (heroImageFallback ? `${heroImageFallback} · ${heroQuote}` : heroQuote)}
             </h1>
+            {routeEventDetail && (
+              <p className="mt-5 text-sm md:text-base font-semibold uppercase tracking-[0.18em] text-primary">
+                {routeEventDetail}
+              </p>
+            )}
             <p className="mt-7 max-w-lg text-base md:text-lg text-white/72 leading-relaxed text-pretty">
-              {studioConfig.description}
+              {routeEvent?.paid ? PAID_EVENT_DESCRIPTION : studioConfig.description}
             </p>
             <div className="mt-9 grid grid-cols-3 gap-3 max-w-lg border-t border-white/15 pt-7">
               <Stat n="57" label="minutes" />
@@ -768,13 +797,34 @@ export function OpenBarreLanding({
             onSignChange={handleSignChange}
             studioSelected={studioSelected}
             onStudioSelectedChange={setStudioSelected}
-            ctaLabel={isBengaluru ? studioConfig.signupCta : variantCopy.ctaLabel}
+            ctaLabel={
+              routeEvent?.paid
+                ? "Book My Place"
+                : isBengaluru
+                  ? studioConfig.signupCta
+                  : variantCopy.ctaLabel
+            }
             studioVariant={studioVariant}
             onViewSchedule={handleViewSchedule}
             isKidsRoute={isKidsRoute}
+            routeEvent={routeEvent}
+            routeEventDetail={routeEventDetail}
           />
         </div>
       </section>
+
+      {routeEvent?.details?.trim() && (
+        <section className="border-b border-border/60 bg-secondary py-14 lg:py-16">
+          <div className="mx-auto max-w-3xl px-5 sm:px-6">
+            <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold">
+              About this event
+            </p>
+            <p className="mt-4 whitespace-pre-line text-base md:text-lg leading-relaxed text-muted-foreground">
+              {routeEvent.details.trim()}
+            </p>
+          </div>
+        </section>
+      )}
 
       <section className="bg-foreground text-background overflow-hidden py-5 border-y border-white/10">
         <div className="flex gap-12 animate-marquee whitespace-nowrap font-display text-3xl md:text-4xl italic">
@@ -1500,6 +1550,8 @@ function SignupCard({
   studioVariant,
   onViewSchedule,
   isKidsRoute = false,
+  routeEvent,
+  routeEventDetail,
 }: {
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
@@ -1515,6 +1567,9 @@ function SignupCard({
   studioVariant: StudioVariant;
   onViewSchedule: (locationId: number) => void;
   isKidsRoute?: boolean;
+  routeEvent?: RouteEvent;
+  /** Pre-formatted by the page so the card and the hero can never disagree. */
+  routeEventDetail?: string | null;
 }) {
   const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
   const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
@@ -1558,19 +1613,33 @@ function SignupCard({
       <div className="flex items-start justify-between gap-4 border-b border-border/80 pb-6">
         <div>
           <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
-            {isKidsRoute ? "Book a Juniors class" : "Activate your trial"}
+            {routeEvent?.name
+              ? `Book ${routeEvent.name}`
+              : isKidsRoute
+                ? "Book a Juniors class"
+                : "Activate your trial"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1.5">
-            {isKidsRoute
-              ? "Kids-specific signup with consent and waiver support."
-              : "Takes 60 seconds. No card required."}
+            {routeEvent
+              ? // The when-and-with-whom line if the route gave one, so the card stands on
+                // its own for anyone who scrolled past the hero.
+                (routeEventDetail ?? "Takes 60 seconds. Your place is held once you submit.")
+              : isKidsRoute
+                ? "Kids-specific signup with consent and waiver support."
+                : "Takes 60 seconds. No card required."}
           </p>
         </div>
-        {!isBengaluru && (
-          <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
-            Complimentary
-          </span>
-        )}
+        {routeEvent
+          ? !routeEvent.paid && (
+              <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
+                Complimentary
+              </span>
+            )
+          : !isBengaluru && (
+              <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
+                Complimentary
+              </span>
+            )}
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
