@@ -329,6 +329,18 @@ function requestClientMeta(): MetaRequestContext {
   }
 }
 
+/** respond.io is follow-up tooling, never a reason to fail a signup, so it only ever logs. */
+async function syncRespondIoQuietly(payload: LeadCapturePayload): Promise<void> {
+  try {
+    await syncRespondIoContactAndConversation(payload);
+  } catch (respondError) {
+    console.error(
+      "Respond.io sync failed",
+      respondError instanceof Error ? respondError.message : respondError,
+    );
+  }
+}
+
 async function sendLeadToMomence(
   payload: LeadCapturePayload,
 ): Promise<{ ok: boolean; error?: string }> {
@@ -356,7 +368,10 @@ async function sendLeadToMomence(
       waiverAccepted: payload.waiverAccepted ? "accepted" : "declined",
       whatsapp_consent: payload.whatsappConsent ? "opted_in" : "not_opted_in",
       whatsapp_consent_at: payload.whatsappConsentAt ?? "",
-      event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? "prospect"}_${Date.now()}`,
+      // Deterministic on purpose. A clock reading here made every post unique, so a lead
+      // Momence had already seen was filed again as a new one; the member id (or the email
+      // when there is not one yet) identifies the same person on every retry.
+      event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? payload.email.trim().toLowerCase()}`,
       utm_source: payload.utmSource ?? "website",
       utm_medium:
         payload.utmMedium ??
@@ -405,14 +420,7 @@ async function sendLeadToMomence(
       return { ok: false, error: `Lead capture ${res.status}` };
     }
 
-    try {
-      await syncRespondIoContactAndConversation(payload);
-    } catch (respondError) {
-      console.error(
-        "Respond.io sync failed",
-        respondError instanceof Error ? respondError.message : respondError,
-      );
-    }
+    await syncRespondIoQuietly(payload);
 
     const additionalWebhookUrl = process.env.MOMENCE_LEADS_WEBHOOK_URL?.trim();
     if (additionalWebhookUrl) {
@@ -442,6 +450,36 @@ async function sendLeadToMomence(
   }
 }
 
+async function resolveLeadWebhookOutcome(
+  payload: LeadCapturePayload,
+  sendToMomence: boolean,
+): Promise<SubmissionWebhookOutcome> {
+  if (!sendToMomence) {
+    return { ok: false, error: "Lead webhook not sent for this signup", skipped: true };
+  }
+
+  if (payload.stage === "partial") {
+    await syncRespondIoQuietly(payload);
+    return { ok: false, error: "Partial leads are not sent to Momence", skipped: true };
+  }
+
+  const { recentDuplicateSubmission } = await import("./submission-store.server");
+  const duplicate = await recentDuplicateSubmission(payload);
+  if (duplicate) {
+    console.warn("[debug:signup] duplicate submission - lead webhook not resent", {
+      email: payload.email,
+      previouslyStoredAt: duplicate.createdAt,
+    });
+    return {
+      ok: false,
+      error: `Duplicate of a submission stored at ${duplicate.createdAt} - lead webhook not resent`,
+      skipped: true,
+    };
+  }
+
+  return await sendLeadToMomence(payload);
+}
+
 /**
  * Sends the lead to Momence, then keeps our own copy of the submission.
  *
@@ -449,14 +487,19 @@ async function sendLeadToMomence(
  * missing token or by `sendToMomence: false` on the /skip-lead route, because a lead
  * Momence never received is exactly the one worth having. The record never changes what
  * this returns - the caller's signup must not fail over an audit row.
+ *
+ * Two things are deliberately kept out of Momence, because both were filing the same
+ * person as several leads:
+ * - partial captures, which arrived alongside the completed lead for anyone who finished;
+ * - a repeat of a submission Momence already has, from someone who refilled the form.
+ * Both are still stored here, and a partial still reaches respond.io - chasing an
+ * abandoned form is the entire reason for capturing it.
  */
 export async function captureLead(
   payload: LeadCapturePayload,
   { sendToMomence = true }: { sendToMomence?: boolean } = {},
 ): Promise<{ ok: boolean; error?: string | null; skipped?: boolean }> {
-  const outcome: SubmissionWebhookOutcome = sendToMomence
-    ? await sendLeadToMomence(payload)
-    : { ok: false, error: "Lead webhook not sent for this signup", skipped: true };
+  const outcome: SubmissionWebhookOutcome = await resolveLeadWebhookOutcome(payload, sendToMomence);
 
   const { recordSubmission } = await import("./submission-store.server");
   const stored = await recordSubmission(payload, outcome);

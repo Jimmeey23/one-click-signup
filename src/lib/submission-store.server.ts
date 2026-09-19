@@ -72,6 +72,64 @@ export async function recordSubmission(
 }
 
 /**
+ * How far back a stored submission still counts as the same one. Someone refilling the
+ * form after a page reload was reaching Momence as a second, third and fourth lead; a
+ * genuine second signup a day later is still let through.
+ */
+export const DUPLICATE_SUBMISSION_WINDOW_MS = 60 * 60 * 1000;
+
+/**
+ * The completed submission we already stored for this person inside the window, if there
+ * is one. Fails open: an unreadable store must never block a real lead, so any error here
+ * is logged and treated as "not a duplicate".
+ */
+export async function recentDuplicateSubmission(
+  payload: LeadCapturePayload,
+  nowMs: number = Date.now(),
+): Promise<{ createdAt: string } | null> {
+  const config = submissionStoreConfig();
+  if (!config) return null;
+
+  const filter = partialPruneFilter(payload);
+  if (!filter) return null;
+
+  const query = new URLSearchParams({
+    select: "created_at",
+    or: filter,
+    created_at: `gte.${new Date(nowMs - DUPLICATE_SUBMISSION_WINDOW_MS).toISOString()}`,
+    order: "created_at.desc",
+    limit: "1",
+  });
+
+  try {
+    const res = await fetch(`${config.url}/rest/v1/${COMPLETED_SUBMISSIONS_TABLE}?${query}`, {
+      headers: {
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) {
+      console.warn(
+        "Duplicate submission check failed:",
+        res.status,
+        await res.text().catch(() => ""),
+      );
+      return null;
+    }
+    const rows = (await res.json()) as Array<{ created_at?: string }>;
+    const createdAt = rows?.[0]?.created_at;
+    return createdAt ? { createdAt } : null;
+  } catch (e) {
+    console.warn(
+      "Duplicate submission check failed:",
+      e instanceof Error ? e.message : "unknown error",
+    );
+    return null;
+  }
+}
+
+/**
  * Removes the partial rows belonging to someone who has now completed the form. Failures
  * are logged and swallowed: a stale partial row is a reporting wrinkle, never a reason to
  * fail a submission that has already been stored.
