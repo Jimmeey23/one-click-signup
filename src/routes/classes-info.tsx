@@ -202,7 +202,7 @@ function ClassesInfoPage() {
               A kids program, built for growing bodies.
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-              Physique 57 Juniors introduces children aged 7-9 and 9-12 to the method in a safe,
+              Physique 57 Juniors introduces children aged 8-12 to the method in a safe,
               age-appropriate, and fun way, building strength, flexibility, coordination, and
               confidence across a 12-week semester of 45-minute classes held twice a week at Kemps
               Corner and Bandra. 8-class and 12-class packages are available - contact the studio to

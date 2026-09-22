@@ -138,7 +138,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Is there a class for children?",
-        a: "Yes - Physique 57 Juniors runs at the Kemps Corner and Bandra studios for two age groups (7-9 and 9-12 years), with 45-minute classes twice a week across a 12-week semester.",
+        a: "Yes - Physique 57 Juniors runs at the Kemps Corner and Bandra studios for ages 8-12, with 45-minute classes twice a week across a 12-week semester.",
         icon: Baby,
       },
       {

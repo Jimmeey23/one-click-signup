@@ -65,9 +65,6 @@ export function Footer({
               <FooterLink to="/influencers" search={studioSearch}>
                 Influencers
               </FooterLink>
-              <FooterLink to="/route-builder" search={studioSearch}>
-                Route Builder
-              </FooterLink>
               <FooterLink to="/faq" search={studioSearch}>
                 FAQ
               </FooterLink>
