@@ -156,7 +156,7 @@ export function classFormatForSessionName(sessionName: string): ClassFormat {
 
 const STUDIO_CLASS_TYPES: Record<number, ClassFormatKey[]> = {
   9030: ["barre-57", "power-cycle", "strength-lab"], // Kwality House, Kemps Corner
-  29821: ["barre-57", "power-cycle"], // Supreme HQ, Bandra
+  29821: ["barre-57", "power-cycle", "strength-lab"], // Supreme HQ, Bandra
 };
 
 const STUDIO_CLASS_TYPES_BY_STUDIO: Record<string, ClassFormatKey[]> = {
