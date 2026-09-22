@@ -3,8 +3,8 @@
 
 export const JUNIORS_PROGRAM_NAME = "Physique 57 - Juniors";
 
-export const JUNIORS_MIN_AGE = 9;
-export const JUNIORS_MAX_AGE = 13;
+export const JUNIORS_MIN_AGE = 8;
+export const JUNIORS_MAX_AGE = 12;
 
 export const JUNIORS_HERO_IMAGES = [
   "/p57-assets/p57-juniors-hero-1.jpg",

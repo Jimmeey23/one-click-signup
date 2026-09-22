@@ -8,7 +8,7 @@ export const Route = createFileRoute("/kids")({
       {
         name: "description",
         content:
-          "Physique 57 Juniors: a strength, balance and agility program for young movers aged 9 to 13. Book your child's first session.",
+          "Physique 57 Juniors: a strength, balance and agility program for young movers aged 8 to 12. Book your child's first session.",
       },
     ],
   }),
