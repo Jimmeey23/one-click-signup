@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  momenceSessionBookingUrl,
   parseStudioScheduleFilters,
   sessionMatchesStudioScheduleFilters,
   studioForScheduleSlug,
@@ -62,5 +63,12 @@ describe("Studio schedule helpers", () => {
     assert.equal(match({ time: "morning" }), false);
     assert.equal(match({ day: "mon" }), false);
     assert.equal(match({ trainer: "reshma" }), false);
+  });
+
+  it("links each session to its Momence booking page", () => {
+    assert.equal(
+      momenceSessionBookingUrl(142238352),
+      "https://momence.com/s/142238352?skipPreview=true",
+    );
   });
 });

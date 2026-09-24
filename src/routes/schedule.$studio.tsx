@@ -26,6 +26,7 @@ import { trainerImageForName } from "@/lib/trainer-thumbnails";
 import {
   isExcludedClassName,
   listScheduleStudios,
+  momenceSessionBookingUrl,
   parseStudioScheduleFilters,
   sessionMatchesStudioScheduleFilters,
   studioForScheduleSlug,
@@ -219,14 +220,6 @@ function StudioSchedulePage() {
     } catch {
       window.prompt("Copy this link", window.location.href);
     }
-  }
-
-  function bookHref(formatKey: ClassFormatKey): string {
-    const params = new URLSearchParams({
-      homeLocationId: String(location.id),
-      classType: formatKey,
-    });
-    return `${isBengaluru ? "/bengaluru" : "/"}?${params.toString()}`;
   }
 
   const lastLoadedKey = dateKey(addDays(new Date(), daysAhead - 1));
@@ -479,12 +472,12 @@ function StudioSchedulePage() {
                   </span>
                 </h2>
                 <div className="space-y-3">
-                  {dayItems.map(({ session, formatKey }) => (
+                  {dayItems.map(({ session }) => (
                     <SessionCard
                       key={session.id}
                       session={session}
                       locationId={location.id}
-                      bookHref={bookHref(formatKey)}
+                      bookHref={momenceSessionBookingUrl(session.id)}
                     />
                   ))}
                 </div>

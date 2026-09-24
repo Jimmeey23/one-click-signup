@@ -170,3 +170,8 @@ export function isExcludedClassName(name: string): boolean {
   const lower = name.toLowerCase();
   return EXCLUDED_CLASS_NAME_KEYWORDS.some((keyword) => lower.includes(keyword));
 }
+
+// Momence's hosted checkout for one session; skipPreview jumps straight to booking.
+export function momenceSessionBookingUrl(sessionId: number): string {
+  return `https://momence.com/s/${sessionId}?skipPreview=true`;
+}
