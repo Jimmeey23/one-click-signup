@@ -23,8 +23,10 @@ import { Route as BengaluruRouteImport } from './routes/bengaluru'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScheduleIndexRouteImport } from './routes/schedule.index'
 import { Route as SignupShareIdRouteImport } from './routes/signup.$shareId'
 import { Route as ShareShareIdRouteImport } from './routes/share.$shareId'
+import { Route as ScheduleStudioRouteImport } from './routes/schedule.$studio'
 import { Route as ClassesMemberIdRouteImport } from './routes/classes.$memberId'
 
 const WaiverRoute = WaiverRouteImport.update({
@@ -97,6 +99,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScheduleIndexRoute = ScheduleIndexRouteImport.update({
+  id: '/schedule/',
+  path: '/schedule/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupShareIdRoute = SignupShareIdRouteImport.update({
   id: '/signup/$shareId',
   path: '/signup/$shareId',
@@ -105,6 +112,11 @@ const SignupShareIdRoute = SignupShareIdRouteImport.update({
 const ShareShareIdRoute = ShareShareIdRouteImport.update({
   id: '/share/$shareId',
   path: '/share/$shareId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleStudioRoute = ScheduleStudioRouteImport.update({
+  id: '/schedule/$studio',
+  path: '/schedule/$studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClassesMemberIdRoute = ClassesMemberIdRouteImport.update({
@@ -129,8 +141,10 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
+  '/schedule/$studio': typeof ScheduleStudioRoute
   '/share/$shareId': typeof ShareShareIdRoute
   '/signup/$shareId': typeof SignupShareIdRoute
+  '/schedule/': typeof ScheduleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -148,8 +162,10 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
+  '/schedule/$studio': typeof ScheduleStudioRoute
   '/share/$shareId': typeof ShareShareIdRoute
   '/signup/$shareId': typeof SignupShareIdRoute
+  '/schedule': typeof ScheduleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -168,8 +184,10 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
   '/classes/$memberId': typeof ClassesMemberIdRoute
+  '/schedule/$studio': typeof ScheduleStudioRoute
   '/share/$shareId': typeof ShareShareIdRoute
   '/signup/$shareId': typeof SignupShareIdRoute
+  '/schedule/': typeof ScheduleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -189,8 +207,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
+    | '/schedule/$studio'
     | '/share/$shareId'
     | '/signup/$shareId'
+    | '/schedule/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -208,8 +228,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
+    | '/schedule/$studio'
     | '/share/$shareId'
     | '/signup/$shareId'
+    | '/schedule'
   id:
     | '__root__'
     | '/'
@@ -227,8 +249,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/waiver'
     | '/classes/$memberId'
+    | '/schedule/$studio'
     | '/share/$shareId'
     | '/signup/$shareId'
+    | '/schedule/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,8 +271,10 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WaiverRoute: typeof WaiverRoute
   ClassesMemberIdRoute: typeof ClassesMemberIdRoute
+  ScheduleStudioRoute: typeof ScheduleStudioRoute
   ShareShareIdRoute: typeof ShareShareIdRoute
   SignupShareIdRoute: typeof SignupShareIdRoute
+  ScheduleIndexRoute: typeof ScheduleIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -351,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/schedule/': {
+      id: '/schedule/'
+      path: '/schedule'
+      fullPath: '/schedule/'
+      preLoaderRoute: typeof ScheduleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup/$shareId': {
       id: '/signup/$shareId'
       path: '/signup/$shareId'
@@ -363,6 +396,13 @@ declare module '@tanstack/react-router' {
       path: '/share/$shareId'
       fullPath: '/share/$shareId'
       preLoaderRoute: typeof ShareShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule/$studio': {
+      id: '/schedule/$studio'
+      path: '/schedule/$studio'
+      fullPath: '/schedule/$studio'
+      preLoaderRoute: typeof ScheduleStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/classes/$memberId': {
@@ -391,8 +431,10 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WaiverRoute: WaiverRoute,
   ClassesMemberIdRoute: ClassesMemberIdRoute,
+  ScheduleStudioRoute: ScheduleStudioRoute,
   ShareShareIdRoute: ShareShareIdRoute,
   SignupShareIdRoute: SignupShareIdRoute,
+  ScheduleIndexRoute: ScheduleIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

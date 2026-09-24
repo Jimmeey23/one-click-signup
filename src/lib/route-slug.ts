@@ -26,6 +26,7 @@ export const RESERVED_SLUGS = new Set([
   "kids",
   "privacy",
   "route-builder",
+  "schedule",
   "share",
   "signup",
   "skip-lead",

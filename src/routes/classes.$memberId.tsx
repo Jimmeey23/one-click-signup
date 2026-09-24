@@ -44,6 +44,7 @@ import {
   isBengaluruLocation,
 } from "@/lib/momence-booking.helpers";
 import { buildClearedPaidCheckoutUrl } from "@/lib/classes-route.helpers";
+import { isExcludedClassName } from "@/lib/studio-schedule.helpers";
 import { setMetaAdvancedMatching, trackBookingComplete } from "@/lib/analytics";
 import { readRegistrationMeta, clearRegistrationMeta } from "@/lib/registration-meta.helpers";
 import { sendClassBookingCompleteRegistrationCapi } from "@/lib/momence.functions";
@@ -364,13 +365,6 @@ function formatInfoForKey(key: ClassFormatKey): FormatInfo {
 function requiresCycleShoeSize(session: SessionDTO): boolean {
   const name = session.name.toLowerCase();
   return name.includes("cycle") || name.includes("spin");
-}
-
-const EXCLUDED_CLASS_NAME_KEYWORDS = ["hosted", "physique 57", "p57", "studio juniors"];
-
-function isExcludedClassName(name: string): boolean {
-  const lower = name.toLowerCase();
-  return EXCLUDED_CLASS_NAME_KEYWORDS.some((keyword) => lower.includes(keyword));
 }
 
 function ClassesPage() {
