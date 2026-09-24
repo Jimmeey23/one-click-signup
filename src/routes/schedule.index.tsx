@@ -26,38 +26,31 @@ function ScheduleIndexPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
           <Link to="/">
-            <img src={logoUrl} alt="Physique 57" className="h-9 w-auto" />
+            <img src={logoUrl} alt="Physique 57" className="h-8 w-auto" />
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-5 py-10 md:px-8">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary-deep">
-          Class schedules
-        </p>
-        <h1 className="font-display mt-1 text-4xl italic tracking-[-0.01em] md:text-5xl">
-          Pick your studio
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+        <h1 className="font-display text-[44px] leading-none tracking-[-0.01em] sm:text-[56px]">
+          Schedule
         </h1>
+        <p className="mt-3 text-sm text-muted-foreground">Pick a studio to see its classes.</p>
 
         {cities.map((city) => (
           <section key={city} className="mt-10">
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              {city}
-            </h2>
-            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <h2 className="text-[15px] font-semibold">{city}</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               {studios
                 .filter((s) => s.location.city === city)
                 .map(({ slug, location }) => (
-                  <div
-                    key={slug}
-                    className="rounded-[22px] border border-border bg-card p-5 shadow-[var(--shadow-card)]"
-                  >
+                  <div key={slug} className="rounded-2xl border border-border bg-card p-5">
                     <Link
                       to="/schedule/$studio"
                       params={{ studio: slug }}
-                      className="font-display text-2xl italic tracking-[-0.01em] hover:text-primary-deep"
+                      className="text-xl font-semibold tracking-[-0.01em] hover:text-primary-deep"
                     >
                       {location.name.split(",")[0]}
                     </Link>
@@ -72,7 +65,7 @@ function ScheduleIndexPage() {
                       <Link
                         to="/schedule/$studio"
                         params={{ studio: slug }}
-                        className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background"
+                        className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background"
                       >
                         All classes
                       </Link>
@@ -82,7 +75,7 @@ function ScheduleIndexPage() {
                           to="/schedule/$studio"
                           params={{ studio: slug }}
                           search={{ format: key }}
-                          className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground/80 hover:border-primary-deep hover:text-primary-deep"
+                          className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground/80 hover:border-foreground/30 hover:text-foreground"
                         >
                           {classFormatForKey(key).name}
                         </Link>

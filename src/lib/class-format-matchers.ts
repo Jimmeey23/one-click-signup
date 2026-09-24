@@ -37,6 +37,25 @@ export function classFormatKeyForSessionName(value: string): ClassFormatKey {
   return "barre-57";
 }
 
+// Finer-grained than classFormatKeyForSessionName, which folds every barre-family class into
+// "barre-57" because only the three bookable class types matter for signup. This one is for
+// showing the right name and description on a schedule.
+export function detailedClassFormatKeyForSessionName(value: string): ClassFormatKey {
+  const name = normalizeClassFormatName(value);
+  const words = ` ${name} `;
+
+  if (words.includes(" back body blaze ")) return "back-body-blaze";
+  if (words.includes(" cardio barre plus ") || words.includes(" cardio barre + ")) {
+    return "cardio-barre-plus";
+  }
+  if (words.includes(" cardio barre ")) return "cardio-barre";
+  if (words.includes(" hiit ")) return "hiit";
+  if (words.includes(" fit ")) return "studio-fit";
+  if (words.includes(" mat ")) return "mat-57";
+  if (words.includes(" recovery ") || words.includes(" stretch ")) return "recovery";
+  return classFormatKeyForSessionName(value);
+}
+
 export function classTypeValueForClassFormatKey(key: ClassFormatKey): string {
   switch (key) {
     case "barre-57":
