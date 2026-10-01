@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OpenBarreLanding } from "@/components/OpenBarreLanding";
-import bengaluruInstructors from "@/assets/images/bengaluru-instructors-candid.png";
+import bengaluruInstructors from "@/assets/images/bengaluru-instructors-candid.webp";
 
 const title = "Physique 57 Bengaluru - Find your next class";
 const description =

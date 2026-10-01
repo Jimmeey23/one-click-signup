@@ -7,10 +7,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
@@ -37,10 +36,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -94,16 +89,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "Discover Physique 57 India studios, signature classes, and booking options.",
       },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a668fa8-2615-469d-a5e7-77e96e2c32b8/id-preview-d8de624d--2f4e0b0e-31c3-4143-a84b-4ddac40ad6e2.lovable.app-1780395324402.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3a668fa8-2615-469d-a5e7-77e96e2c32b8/id-preview-d8de624d--2f4e0b0e-31c3-4143-a84b-4ddac40ad6e2.lovable.app-1780395324402.png",
-      },
+      { property: "og:image", content: "/Physique57-800x600-1.jpg" },
+      { name: "twitter:image", content: "/Physique57-800x600-1.jpg" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

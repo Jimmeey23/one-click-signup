@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OpenBarreLanding } from "@/components/OpenBarreLanding";
-import groupBarre from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
+import groupBarre from "@/assets/landing-group-barre.webp";
 
 const landingHead = () => ({
   meta: [

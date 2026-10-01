@@ -63,13 +63,13 @@ import lunge from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04
 import kettlebellPink from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A3173.jpg";
 import trainerArm from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.jpg";
 import trainerLunge from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.jpg";
-import groupBarre from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
+import groupBarre from "@/assets/landing-group-barre.webp";
 import sculptSide from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.jpg";
 import cycleShot from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
 import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.jpg";
 import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg";
 import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
-import bengaluruInstructorCollage from "@/assets/images/bengaluru-instructors-candid.png";
+import bengaluruInstructorCollage from "@/assets/images/bengaluru-instructors-candid.webp";
 
 const logoUrl = "/physique57-logo-dark.png?v=79daf7";
 
@@ -262,9 +262,10 @@ export function OpenBarreLanding({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waiverFailed, setWaiverFailed] = useState(false);
-  const [schedulePreviewLocationId, setSchedulePreviewLocationId] = useState(22116);
   const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
-  const [variant] = useState(() => getVariant());
+  // Match the server's first render before reading browser-only A/B storage.
+  // Changing the CTA during hydration causes React error #418 for variant B.
+  const [variant, setVariant] = useState<"a" | "b">("a");
   const variantCopy = VARIANT_COPY[variant];
   const waiverSignedTrackedRef = useRef(false);
   const partialCapturedRef = useRef(false);
@@ -300,6 +301,10 @@ export function OpenBarreLanding({
   const studioConfig = STUDIO_CONFIG[studioVariant];
   const routeEventDetail = routeEvent ? eventDetailLine(routeEvent) : null;
   const LOCATIONS = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
+
+  useEffect(() => {
+    setVariant(getVariant());
+  }, []);
 
   useEffect(() => {
     setHeroQuote(
@@ -520,16 +525,6 @@ export function OpenBarreLanding({
       waiverSignedTrackedRef.current = true;
       trackWaiverSigned({ variant });
     }
-  }
-
-  function handleViewSchedule(locationId: number) {
-    setSchedulePreviewLocationId(locationId);
-    window.requestAnimationFrame(() => {
-      document.getElementById("bengaluru-schedule-content")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
   }
 
   const valid = useMemo(
@@ -805,7 +800,6 @@ export function OpenBarreLanding({
                   : variantCopy.ctaLabel
             }
             studioVariant={studioVariant}
-            onViewSchedule={handleViewSchedule}
             isKidsRoute={isKidsRoute}
             routeEvent={routeEvent}
             routeEventDetail={routeEventDetail}
@@ -909,14 +903,7 @@ export function OpenBarreLanding({
 
       {isBengaluru && <BengaluruInstructors />}
 
-      <StudioLocations studioVariant={studioVariant} onViewSchedule={handleViewSchedule} />
-
-      {isBengaluru && (
-        <BengaluruSchedulePreview
-          locationId={schedulePreviewLocationId}
-          onLocationChange={setSchedulePreviewLocationId}
-        />
-      )}
+      <StudioLocations studioVariant={studioVariant} />
 
       <section className="bg-secondary py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-6">
@@ -1299,13 +1286,7 @@ const BENGALURU_STUDIOS = [
   },
 ];
 
-function StudioLocations({
-  studioVariant,
-  onViewSchedule,
-}: {
-  studioVariant: StudioVariant;
-  onViewSchedule: (locationId: number) => void;
-}) {
+function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
   const STUDIOS = studioVariant === "bengaluru" ? BENGALURU_STUDIOS : MUMBAI_STUDIOS;
   return (
     <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
@@ -1395,15 +1376,6 @@ function StudioLocations({
               </dl>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                {"id" in studio && typeof studio.id === "number" && (
-                  <button
-                    type="button"
-                    onClick={() => onViewSchedule(studio.id as number)}
-                    className="inline-flex h-10 items-center justify-center rounded-full bg-foreground px-5 text-xs font-bold uppercase tracking-[0.15em] text-background transition hover:opacity-90"
-                  >
-                    View Schedule
-                  </button>
-                )}
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`}
                   target="_blank"
@@ -1416,120 +1388,6 @@ function StudioLocations({
             </div>
           </div>
         ))}
-      </div>
-    </section>
-  );
-}
-
-const BENGALURU_SCHEDULE_CENTERS = [
-  { id: 22116, name: "Kenkere House", area: "Lavelle Road" },
-  { id: 36372, name: "The Studio - By Copper & Cloves", area: "Indiranagar" },
-  { id: 287883, name: "Plash Pilates", area: "Sadashivnagar" },
-] as const;
-
-function BengaluruSchedulePreview({
-  locationId,
-  onLocationChange,
-}: {
-  locationId: number;
-  onLocationChange: (locationId: number) => void;
-}) {
-  function scheduleDocumentFor(centerId: number) {
-    const locationIds = centerId === 287883 ? "[287883,36372]" : `[${centerId}]`;
-    const tagIds = centerId === 287883 ? "[383332]" : "[]";
-    // The closing script tag is written as / so this source file never
-    // contains a literal </script> that could cut the bundle short.
-    return `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      html, body { margin: 0; background: transparent; color-scheme: light; }
-      #ribbon-schedule { min-height: 0; }
-    </style>
-  </head>
-  <body>
-    <div id="ribbon-schedule"></div>
-    <script
-      async
-      type="module"
-      host_id="33905"
-      teacher_ids="[]"
-      location_ids="${locationIds}"
-      tag_ids="${tagIds}"
-      hide_tags="true"
-      default_filter="show-all"
-      locale="en"
-      lock_timezone="Asia/Kolkata"
-      src="https://momence.com/plugin/host-schedule/host-schedule.js"
-    ></script>
-  </body>
-</html>`;
-  }
-
-  return (
-    <section
-      id="bengaluru-schedule"
-      className="border-y border-border bg-background py-12 lg:py-16"
-    >
-      <div className="mx-auto max-w-7xl px-5 sm:px-6">
-        <div className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary-deep">
-            Live Schedule
-          </p>
-          <h2 className="mt-3 font-display text-4xl tracking-tight md:text-5xl">
-            Find your next class.
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Preview live availability by center. You’ll return here after creating your member
-            profile to see rates and complete checkout.
-          </p>
-        </div>
-
-        <div
-          className="mt-8 grid gap-2.5 sm:grid-cols-3"
-          role="tablist"
-          aria-label="Schedule center"
-        >
-          {BENGALURU_SCHEDULE_CENTERS.map((center) => {
-            const selected = center.id === locationId;
-            return (
-              <button
-                key={center.id}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => onLocationChange(center.id)}
-                className={`rounded-xl border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                  selected
-                    ? "border-primary-deep bg-primary/12 shadow-sm"
-                    : "border-border bg-card hover:border-primary/70"
-                }`}
-              >
-                <span className="block text-sm font-bold text-foreground">{center.name}</span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">{center.area}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div id="bengaluru-schedule-content" className="mt-5 scroll-mt-4">
-          {BENGALURU_SCHEDULE_CENTERS.map((center) => {
-            const selected = center.id === locationId;
-            return (
-              <iframe
-                key={center.id}
-                title={`${center.name} class schedule`}
-                srcDoc={scheduleDocumentFor(center.id)}
-                hidden={!selected}
-                aria-hidden={!selected}
-                className="h-[900px] w-full border-0 bg-transparent md:h-[1050px]"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-              />
-            );
-          })}
-        </div>
       </div>
     </section>
   );
@@ -1548,7 +1406,6 @@ function SignupCard({
   onStudioSelectedChange,
   ctaLabel,
   studioVariant,
-  onViewSchedule,
   isKidsRoute = false,
   routeEvent,
   routeEventDetail,
@@ -1565,7 +1422,6 @@ function SignupCard({
   onStudioSelectedChange: (selected: boolean) => void;
   ctaLabel: string;
   studioVariant: StudioVariant;
-  onViewSchedule: (locationId: number) => void;
   isKidsRoute?: boolean;
   routeEvent?: RouteEvent;
   /** Pre-formatted by the page so the card and the hero can never disagree. */
@@ -1824,16 +1680,6 @@ function SignupCard({
                   </option>
                 ))}
               </select>
-            )}
-            {isBengaluru && form.homeLocationId > 0 && (
-              <button
-                type="button"
-                onClick={() => onViewSchedule(form.homeLocationId)}
-                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary-deep underline decoration-primary/40 underline-offset-4 transition hover:text-foreground"
-              >
-                View selected center schedule
-                <span aria-hidden="true">↗</span>
-              </button>
             )}
           </div>
 
