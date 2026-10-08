@@ -78,7 +78,9 @@ export const Route = createFileRoute("/schedule/$studio")({
   },
   head: ({ params }) => {
     const studio = studioForScheduleSlug(params.studio);
-    const studioName = studio?.location.name.split(",")[0] ?? "Studio";
+    // Search titles never mention Pilates, so fall back to the area for partner studios.
+    const nameParts = studio?.location.name.split(",").map((part) => part.trim()) ?? [];
+    const studioName = nameParts.find((part) => !/pilates/i.test(part)) ?? "Studio";
     const title = `${studioName} Class Schedule - Physique 57 India`;
     return {
       meta: [
