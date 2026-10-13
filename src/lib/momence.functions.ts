@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { META_CURRENCY, META_PLACEHOLDER_VALUE } from "./analytics";
+import { META_CLICK_ID_MAX_LENGTH, META_CURRENCY, META_PLACEHOLDER_VALUE } from "./analytics";
 import { metaGeoForLocationId } from "./momence-locations";
 import { sendMetaCapiEvent } from "./meta-capi";
 import { metaRequestContext, type MetaRequestContext } from "./meta-request.helpers";
@@ -72,12 +72,12 @@ const SignupInput = z.object({
   utmTerm: z.string().max(200).optional(),
   utmContent: z.string().max(200).optional(),
   gclid: z.string().max(200).optional(),
-  fbclid: z.string().max(200).optional(),
+  fbclid: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
   fbp: z.string().max(100).optional(),
-  fbc: z.string().max(200).optional(),
+  fbc: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   leadEventId: z.string().max(100).optional(),
 });
 
@@ -103,13 +103,13 @@ const PartialLeadInput = z.object({
   utmTerm: z.string().max(200).optional(),
   utmContent: z.string().max(200).optional(),
   gclid: z.string().max(200).optional(),
-  fbclid: z.string().max(200).optional(),
+  fbclid: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
   classType: z.string().max(100).optional(),
   fbp: z.string().max(100).optional(),
-  fbc: z.string().max(200).optional(),
+  fbc: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   metaEventId: z.string().max(100).optional(),
 });
 
@@ -134,7 +134,7 @@ const LeadAndOpenBarreInput = z.object({
   utmTerm: z.string().max(200).optional(),
   utmContent: z.string().max(200).optional(),
   gclid: z.string().max(200).optional(),
-  fbclid: z.string().max(200).optional(),
+  fbclid: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   abVariant: z.string().max(20).optional(),
@@ -450,64 +450,75 @@ async function sendLeadToMomence(
   }
 }
 
-async function resolveLeadWebhookOutcome(
-  payload: LeadCapturePayload,
-  sendToMomence: boolean,
-): Promise<SubmissionWebhookOutcome> {
-  if (!sendToMomence) {
-    return { ok: false, error: "Lead webhook not sent for this signup", skipped: true };
-  }
-
-  if (payload.stage === "partial") {
-    await syncRespondIoQuietly(payload);
-    return { ok: false, error: "Partial leads are not sent to Momence", skipped: true };
-  }
-
-  const { recentDuplicateSubmission } = await import("./submission-store.server");
-  const duplicate = await recentDuplicateSubmission(payload);
-  if (duplicate) {
-    console.warn("[debug:signup] duplicate submission - lead webhook not resent", {
-      email: payload.email,
-      previouslyStoredAt: duplicate.createdAt,
-    });
-    return {
-      ok: false,
-      error: `Duplicate of a submission stored at ${duplicate.createdAt} - lead webhook not resent`,
-      skipped: true,
-    };
-  }
-
-  return await sendLeadToMomence(payload);
-}
-
 /**
- * Sends the lead to Momence, then keeps our own copy of the submission.
+ * Stores the submission, then decides whether it goes on to Momence.
  *
- * The record is written whatever the webhook did, including when it was skipped for a
- * missing token or by `sendToMomence: false` on the /skip-lead route, because a lead
+ * The record is written whatever happens next, including when the webhook is skipped for
+ * a missing token or by `sendToMomence: false` on the /skip-lead route, because a lead
  * Momence never received is exactly the one worth having. The record never changes what
  * this returns - the caller's signup must not fail over an audit row.
  *
  * Two things are deliberately kept out of Momence, because both were filing the same
  * person as several leads:
  * - partial captures, which arrived alongside the completed lead for anyone who finished;
- * - a repeat of a submission Momence already has, from someone who refilled the form.
+ * - a repeat of a submission sent shortly before, from someone who sent the form twice or
+ *   refilled it after a reload.
  * Both are still stored here, and a partial still reaches respond.io - chasing an
  * abandoned form is the entire reason for capturing it.
+ *
+ * The row is stored before the repeat check, not after the webhook: two sends arriving
+ * together then each see the other, and only the first gets through. `repeat` tells the
+ * caller to hold back the Meta Lead events for the same reason.
  */
 export async function captureLead(
   payload: LeadCapturePayload,
   { sendToMomence = true }: { sendToMomence?: boolean } = {},
-): Promise<{ ok: boolean; error?: string | null; skipped?: boolean }> {
-  const outcome: SubmissionWebhookOutcome = await resolveLeadWebhookOutcome(payload, sendToMomence);
+): Promise<{ ok: boolean; error?: string | null; skipped?: boolean; repeat?: boolean }> {
+  const { recordSubmission, recordSubmissionOutcome, earlierDuplicateSubmission } =
+    await import("./submission-store.server");
 
-  const { recordSubmission } = await import("./submission-store.server");
-  const stored = await recordSubmission(payload, outcome);
+  if (payload.stage === "partial") {
+    await syncRespondIoQuietly(payload);
+    const outcome: SubmissionWebhookOutcome = {
+      ok: false,
+      error: "Partial leads are not sent to Momence",
+      skipped: true,
+    };
+    const stored = await recordSubmission(payload, outcome);
+    if (!stored.stored) {
+      console.warn("[debug:signup] submission not recorded", { error: stored.error });
+    }
+    return outcome;
+  }
+
+  // Stored with no verdict yet; filled in below once we know what happened.
+  const stored = await recordSubmission(payload, { ok: false, skipped: true });
   if (!stored.stored) {
     console.warn("[debug:signup] submission not recorded", { error: stored.error });
   }
 
-  return outcome;
+  const duplicate = stored.row ? await earlierDuplicateSubmission(payload, stored.row) : null;
+
+  let outcome: SubmissionWebhookOutcome;
+  if (duplicate) {
+    console.warn("[debug:signup] duplicate submission - lead webhook and Meta not resent", {
+      email: payload.email,
+      previouslyStoredAt: duplicate.createdAt,
+    });
+    outcome = {
+      ok: false,
+      error: `Duplicate of a submission stored at ${duplicate.createdAt} - lead webhook not resent`,
+      skipped: true,
+    };
+  } else if (!sendToMomence) {
+    outcome = { ok: false, error: "Lead webhook not sent for this signup", skipped: true };
+  } else {
+    outcome = await sendLeadToMomence(payload);
+  }
+
+  if (stored.row) await recordSubmissionOutcome(stored.row, outcome);
+
+  return { ...outcome, repeat: Boolean(duplicate) };
 }
 
 async function signMemberWaivers({
@@ -812,6 +823,7 @@ export const createLeadAndAssignOpenBarre = createServerFn({ method: "POST" })
       openBarreAssigned: true,
       leadCaptured: lead.ok,
       leadError: lead.error ?? null,
+      repeat: lead.repeat === true,
     };
   });
 
@@ -944,6 +956,8 @@ export type RouteEnrollResult = {
   signedCount: number;
   leadCaptured: boolean;
   leadError: string | null;
+  /** See SignupAndEnrollResult.repeat. */
+  repeat: boolean;
 };
 
 export const signupEnrollAndBookRoute = createServerFn({ method: "POST" })
@@ -1002,6 +1016,7 @@ export const signupEnrollAndBookRoute = createServerFn({ method: "POST" })
       signedCount: signup.signedCount,
       leadCaptured: signup.leadCaptured,
       leadError: signup.leadError,
+      repeat: signup.repeat,
     };
   });
 
@@ -1046,11 +1061,11 @@ const KidsRegistrationInput = z.object({
   utmTerm: z.string().max(200).optional(),
   utmContent: z.string().max(200).optional(),
   gclid: z.string().max(200).optional(),
-  fbclid: z.string().max(200).optional(),
+  fbclid: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   referrer: z.string().max(500).optional(),
   landingPage: z.string().max(500).optional(),
   fbp: z.string().max(100).optional(),
-  fbc: z.string().max(200).optional(),
+  fbc: z.string().max(META_CLICK_ID_MAX_LENGTH).optional(),
   leadEventId: z.string().max(100).optional(),
 });
 

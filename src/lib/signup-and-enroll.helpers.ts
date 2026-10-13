@@ -94,6 +94,11 @@ export type SignupAndEnrollResult = {
   availableWaivers: number;
   leadCaptured: boolean;
   leadError: string | null;
+  /**
+   * True when this send repeats one stored shortly before for the same person. The lead
+   * was held back from Momence, and the caller must hold back the Meta events too.
+   */
+  repeat: boolean;
 };
 
 export type SignupAndEnrollDependencies = {
@@ -112,7 +117,7 @@ export type SignupAndEnrollDependencies = {
   captureLead: (
     payload: LeadCapturePayload,
     options: { sendToMomence: boolean },
-  ) => Promise<{ ok: boolean; error?: string | null; skipped?: boolean }>;
+  ) => Promise<{ ok: boolean; error?: string | null; skipped?: boolean; repeat?: boolean }>;
   resolveCenterName: (homeLocationId: number) => string;
 };
 
@@ -229,5 +234,6 @@ export async function runSignupAndEnroll(
     availableWaivers,
     leadCaptured,
     leadError,
+    repeat: lead.repeat === true,
   };
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { readRawFbclid, validateFbc } from "./analytics.ts";
+import { META_CLICK_ID_MAX_LENGTH, readRawFbclid, validateFbc } from "./analytics.ts";
 import { parseAttributionFromSearch } from "./attribution.helpers.ts";
 
 describe("Meta fbc handling", () => {
@@ -37,5 +37,14 @@ describe("Meta fbc handling", () => {
     assert.equal(validateFbc("not-an-fbc"), false);
     assert.equal(validateFbc("fb.1.abc.xyz"), false);
     assert.equal(validateFbc("fb.1.1717171717171."), false);
+  });
+
+  it("drops an fbclid or fbc too long for the signup schemas", () => {
+    const fbclid = "a".repeat(META_CLICK_ID_MAX_LENGTH + 1);
+    assert.equal(readRawFbclid(`?fbclid=${fbclid}`), undefined);
+    assert.equal(validateFbc(`fb.1.1717171717171.${fbclid}`, fbclid), false);
+    const longButOk = "a".repeat(400);
+    assert.equal(readRawFbclid(`?fbclid=${longButOk}`), longButOk);
+    assert.equal(validateFbc(`fb.1.1717171717171.${longButOk}`, longButOk), true);
   });
 });

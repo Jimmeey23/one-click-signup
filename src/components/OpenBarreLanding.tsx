@@ -282,6 +282,12 @@ export function OpenBarreLanding({
       ? window.crypto.randomUUID()
       : `reg_${Date.now()}_${Math.random().toString(36).slice(2)}`,
   );
+  // Set once this page has sent Lead to Meta. A retry here after a failed Open Barre
+  // activation comes back as a repeat, but its CompleteRegistration has not fired yet.
+  const leadSentRef = useRef(false);
+  // Set once this page has queued CompleteRegistration, so going Back and sending the form
+  // again can never queue a second one.
+  const registrationStoredRef = useRef(false);
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -625,39 +631,46 @@ export function OpenBarreLanding({
             enrolled: routeResult.membershipGranted || routeResult.paymentRequired,
             enrollError: routeResult.bookingError,
             leadError: routeResult.leadError,
+            repeat: routeResult.repeat,
           }))
         : await signup({ data: signupPayload });
       console.debug("[debug:signup] signup result", result);
+      // A repeat of a send stored shortly before (sent twice, or refilled after a reload)
+      // already reached Meta the first time, so it sends nothing again.
+      //
       // Lead fires here - pixel and Conversions API side by side, one shared event_id,
       // before the enrollment check so a failed Open Barre activation can never send one
       // without the other. Advanced matching is refreshed first so the pixel event
       // carries external_id (the member id) as a dedup key alongside fbp/event_id.
-      setMetaAdvancedMatching({
-        email: form.email.trim(),
-        phone: `${form.countryCode}${form.phoneNumber}`,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        externalId: String(result.memberId),
-        countryIso: form.countryIso,
-        ...metaGeoForLocationId(form.homeLocationId),
-      });
-      trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
-      sendLeadCapiFn({
-        data: {
-          eventId: leadEventIdRef.current,
-          memberId: result.memberId,
+      if (!result.repeat) {
+        setMetaAdvancedMatching({
           email: form.email.trim(),
           phone: `${form.countryCode}${form.phoneNumber}`,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          classType: form.classType,
+          externalId: String(result.memberId),
           countryIso: form.countryIso,
-          locationId: form.homeLocationId,
-          landingPage: trimToMaxLength(window.location.href),
-          fbp: metaCookies.fbp,
-          fbc: metaCookies.fbc,
-        },
-      }).catch((e3) => console.debug("[debug:signup] Lead CAPI failed", e3));
+          ...metaGeoForLocationId(form.homeLocationId),
+        });
+        trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
+        sendLeadCapiFn({
+          data: {
+            eventId: leadEventIdRef.current,
+            memberId: result.memberId,
+            email: form.email.trim(),
+            phone: `${form.countryCode}${form.phoneNumber}`,
+            firstName: form.firstName.trim(),
+            lastName: form.lastName.trim(),
+            classType: form.classType,
+            countryIso: form.countryIso,
+            locationId: form.homeLocationId,
+            landingPage: trimToMaxLength(window.location.href),
+            fbp: metaCookies.fbp,
+            fbc: metaCookies.fbc,
+          },
+        }).catch((e3) => console.debug("[debug:signup] Lead CAPI failed", e3));
+        leadSentRef.current = true;
+      }
       if (result.leadError) {
         console.warn("[debug:signup] lead capture failed silently:", result.leadError);
       }
@@ -676,21 +689,26 @@ export function OpenBarreLanding({
         classType: form.classType,
       });
       // CompleteRegistration fires once the member actually books a class, not here -
-      // see storeRegistrationMeta / classes.$memberId.tsx.
-      storeRegistrationMeta({
-        eventId: registrationEventIdRef.current,
-        memberId: result.memberId,
-        email: form.email.trim(),
-        phone: `${form.countryCode}${form.phoneNumber}`,
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        classType: form.classType,
-        variant,
-        countryIso: form.countryIso,
-        fbp: metaCookies.fbp,
-        fbc: metaCookies.fbc,
-        landingPage: window.location.href,
-      });
+      // see storeRegistrationMeta / classes.$memberId.tsx. Not for a repeat either, unless
+      // it is this page retrying after a failed Open Barre activation: that one's Lead went
+      // out on the first attempt and its CompleteRegistration has not.
+      if (leadSentRef.current && !registrationStoredRef.current) {
+        registrationStoredRef.current = true;
+        storeRegistrationMeta({
+          eventId: registrationEventIdRef.current,
+          memberId: result.memberId,
+          email: form.email.trim(),
+          phone: `${form.countryCode}${form.phoneNumber}`,
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          classType: form.classType,
+          variant,
+          countryIso: form.countryIso,
+          fbp: metaCookies.fbp,
+          fbc: metaCookies.fbc,
+          landingPage: window.location.href,
+        });
+      }
       window.location.assign(
         `/classes/${encodeURIComponent(String(result.memberId))}?${scheduleSearch.toString()}`,
       );

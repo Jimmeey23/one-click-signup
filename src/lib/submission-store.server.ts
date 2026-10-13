@@ -9,6 +9,7 @@ import {
   buildSubmissionRow,
   partialPruneFilter,
   tableForStage,
+  submissionOutcomeColumns,
   COMPLETED_SUBMISSIONS_TABLE,
   PARTIAL_SUBMISSIONS_TABLE,
   type SubmissionWebhookOutcome,
@@ -21,15 +22,18 @@ function submissionStoreConfig() {
   return { url: url.replace(/\/+$/, ""), key };
 }
 
+/** The stored row, so its outcome can be filled in once the lead webhook has run. */
+export type StoredSubmissionRef = { id: string; createdAt: string };
+
 /**
  * Stores one submission. Never throws: a submission record is an audit trail, and losing
  * it must not cost the member their signup. Returns whether the row was written so the
- * caller can log it.
+ * caller can log it, and the row itself when it was.
  */
 export async function recordSubmission(
   payload: LeadCapturePayload,
   outcome: SubmissionWebhookOutcome,
-): Promise<{ stored: boolean; error?: string }> {
+): Promise<{ stored: boolean; error?: string; row?: StoredSubmissionRef }> {
   const config = submissionStoreConfig();
   if (!config) {
     console.warn(
@@ -40,14 +44,13 @@ export async function recordSubmission(
 
   const table = tableForStage(payload.stage);
   try {
-    const res = await fetch(`${config.url}/rest/v1/${table}`, {
+    const res = await fetch(`${config.url}/rest/v1/${table}?select=id,created_at`, {
       method: "POST",
       headers: {
         apikey: config.key,
         Authorization: `Bearer ${config.key}`,
         "Content-Type": "application/json",
-        // Keep the response empty - we never need the row back.
-        Prefer: "return=minimal",
+        Prefer: "return=representation",
       },
       body: JSON.stringify(buildSubmissionRow(payload, outcome)),
     });
@@ -58,12 +61,21 @@ export async function recordSubmission(
       return { stored: false, error: `Submission record ${res.status}` };
     }
 
+    const rows = (await res.json().catch(() => [])) as Array<{ id?: string; created_at?: string }>;
+    const inserted = rows?.[0];
+
     // They finished, so whatever they left in the partial table is no longer an abandoned
     // signup. Dropping it keeps partial_submissions a list of people to chase and nothing
     // else. Their details are all in the completed row, which was just written.
     if (table === COMPLETED_SUBMISSIONS_TABLE) await prunePartialSubmissions(config, payload);
 
-    return { stored: true };
+    return {
+      stored: true,
+      row:
+        inserted?.id && inserted.created_at
+          ? { id: inserted.id, createdAt: inserted.created_at }
+          : undefined,
+    };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Submission record failed";
     console.error("Submission record failed:", message);
@@ -71,21 +83,59 @@ export async function recordSubmission(
   }
 }
 
+/** Fills in the lead webhook's verdict on a row stored before the webhook ran. */
+export async function recordSubmissionOutcome(
+  row: StoredSubmissionRef,
+  outcome: SubmissionWebhookOutcome,
+): Promise<void> {
+  const config = submissionStoreConfig();
+  if (!config) return;
+  try {
+    const query = new URLSearchParams({ id: `eq.${row.id}` });
+    const res = await fetch(`${config.url}/rest/v1/${COMPLETED_SUBMISSIONS_TABLE}?${query}`, {
+      method: "PATCH",
+      headers: {
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(submissionOutcomeColumns(outcome)),
+    });
+    if (!res.ok) {
+      console.warn(
+        "Submission outcome update failed:",
+        res.status,
+        await res.text().catch(() => ""),
+      );
+    }
+  } catch (e) {
+    console.warn(
+      "Submission outcome update failed:",
+      e instanceof Error ? e.message : "unknown error",
+    );
+  }
+}
+
 /**
  * How far back a stored submission still counts as the same one. Someone refilling the
- * form after a page reload was reaching Momence as a second, third and fourth lead; a
- * genuine second signup a day later is still let through.
+ * form after a page reload, or sending it twice, was reaching Momence and Meta as a
+ * second, third and fourth lead; a genuine second signup a day later is still let through.
  */
 export const DUPLICATE_SUBMISSION_WINDOW_MS = 60 * 60 * 1000;
 
 /**
- * The completed submission we already stored for this person inside the window, if there
- * is one. Fails open: an unreadable store must never block a real lead, so any error here
- * is logged and treated as "not a duplicate".
+ * The earlier completed submission, inside the window, that makes `row` a repeat - if
+ * there is one. Called after `row` is stored, so two sends racing each other both see one
+ * another and only the first goes on to Momence and Meta. A row whose webhook explicitly
+ * failed does not count: Momence never got that one, so the retry is allowed through.
+ *
+ * Fails open: an unreadable store must never block a real lead, so any error here is
+ * logged and treated as "not a duplicate".
  */
-export async function recentDuplicateSubmission(
+export async function earlierDuplicateSubmission(
   payload: LeadCapturePayload,
-  nowMs: number = Date.now(),
+  row: StoredSubmissionRef,
 ): Promise<{ createdAt: string } | null> {
   const config = submissionStoreConfig();
   if (!config) return null;
@@ -93,12 +143,18 @@ export async function recentDuplicateSubmission(
   const filter = partialPruneFilter(payload);
   if (!filter) return null;
 
+  const createdAtMs = Date.parse(row.createdAt);
+  if (Number.isNaN(createdAtMs)) return null;
+
   const query = new URLSearchParams({
-    select: "created_at",
+    select: "id,created_at,lead_webhook_ok",
     or: filter,
-    created_at: `gte.${new Date(nowMs - DUPLICATE_SUBMISSION_WINDOW_MS).toISOString()}`,
-    order: "created_at.desc",
-    limit: "1",
+    and: `(created_at.gte.${new Date(createdAtMs - DUPLICATE_SUBMISSION_WINDOW_MS).toISOString()},created_at.lte.${row.createdAt})`,
+    // A parent registering a second child is a new lead, not a repeat of the first; and a
+    // Juniors registration never makes the parent's own adult signup a repeat.
+    child_name: payload.childName?.trim() ? `eq.${payload.childName.trim()}` : "is.null",
+    order: "created_at.asc,id.asc",
+    limit: "50",
   });
 
   try {
@@ -117,9 +173,19 @@ export async function recentDuplicateSubmission(
       );
       return null;
     }
-    const rows = (await res.json()) as Array<{ created_at?: string }>;
-    const createdAt = rows?.[0]?.created_at;
-    return createdAt ? { createdAt } : null;
+    const rows = (await res.json()) as Array<{
+      id?: string;
+      created_at?: string;
+      lead_webhook_ok?: boolean | null;
+    }>;
+    const earlier = rows.find((candidate) => {
+      if (!candidate.id || !candidate.created_at || candidate.id === row.id) return false;
+      if (candidate.lead_webhook_ok === false) return false;
+      const candidateMs = Date.parse(candidate.created_at);
+      // Same timestamp: the lower id wins, so exactly one of a tied pair goes through.
+      return candidateMs < createdAtMs || (candidateMs === createdAtMs && candidate.id < row.id);
+    });
+    return earlier?.created_at ? { createdAt: earlier.created_at } : null;
   } catch (e) {
     console.warn(
       "Duplicate submission check failed:",

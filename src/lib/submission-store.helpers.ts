@@ -72,6 +72,15 @@ export function tableForStage(stage: LeadCapturePayload["stage"]): string {
   return stage === "partial" ? PARTIAL_SUBMISSIONS_TABLE : COMPLETED_SUBMISSIONS_TABLE;
 }
 
+export function submissionOutcomeColumns(
+  outcome: SubmissionWebhookOutcome,
+): Pick<SubmissionRow, "lead_webhook_ok" | "lead_webhook_error"> {
+  return {
+    lead_webhook_ok: outcome.skipped ? null : outcome.ok,
+    lead_webhook_error: orNull(outcome.error),
+  };
+}
+
 export function buildSubmissionRow(
   payload: LeadCapturePayload,
   outcome: SubmissionWebhookOutcome,
@@ -107,8 +116,7 @@ export function buildSubmissionRow(
     landing_page: orNull(payload.landingPage),
     meta_event_id: orNull(payload.metaEventId),
     member_id: payload.memberId ?? null,
-    lead_webhook_ok: outcome.skipped ? null : outcome.ok,
-    lead_webhook_error: orNull(outcome.error),
+    ...submissionOutcomeColumns(outcome),
     raw: { ...payload } as Record<string, unknown>,
   };
 }

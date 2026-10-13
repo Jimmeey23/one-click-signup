@@ -69,6 +69,10 @@ export function setMetaAdvancedMatching(user: {
   win.fbq("init", pixelId, matchData);
 }
 
+// Server-side cap on fbclid / fbc. Real ones run well under this; anything longer is
+// dropped on the client so it can never fail schema validation and sink the signup.
+export const META_CLICK_ID_MAX_LENGTH = 1000;
+
 // Meta requires the fbclid to reach fbc byte-for-byte as it appeared in the URL.
 // URLSearchParams.get() percent-decodes, so an fbclid containing %xx would be altered.
 // Pull the raw substring out of the query string instead.
@@ -80,7 +84,8 @@ export function readRawFbclid(search: string): string | undefined {
     if (eq === -1) continue;
     if (pair.slice(0, eq) !== "fbclid") continue;
     const value = pair.slice(eq + 1);
-    return value || undefined;
+    // Trimming would alter it, so an oversized one is dropped rather than sent.
+    return value && value.length <= META_CLICK_ID_MAX_LENGTH ? value : undefined;
   }
   return undefined;
 }
@@ -91,7 +96,7 @@ const FBC_PATTERN = /^fb\.\d+\.\d+\..+$/;
 // Payload check before the value goes to Meta: right shape, and the fbclid tail still
 // matches the click id we were given.
 export function validateFbc(fbc: string | undefined, fbclid?: string): boolean {
-  if (!fbc) return false;
+  if (!fbc || fbc.length > META_CLICK_ID_MAX_LENGTH) return false;
   if (!FBC_PATTERN.test(fbc)) return false;
   if (!fbclid) return true;
   return fbc.slice(fbc.indexOf(".", fbc.indexOf(".", 3) + 1) + 1) === fbclid;

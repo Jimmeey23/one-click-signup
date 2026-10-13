@@ -82,6 +82,7 @@ describe("signup and enroll helper", () => {
       availableWaivers: 2,
       leadCaptured: false,
       leadError: null,
+      repeat: false,
     });
   });
 
@@ -175,5 +176,22 @@ describe("signup and enroll helper", () => {
     );
 
     assert.equal(capturedPayload?.classType, "barre-57");
+  });
+
+  it("reports a repeat send so the caller can hold back the Meta events", async () => {
+    const dependencies = createDependencies([]);
+    dependencies.captureLead = async () => ({
+      ok: false,
+      error: "Duplicate of a submission stored at 2026-09-19T14:47:24Z - lead webhook not resent",
+      skipped: true,
+      repeat: true,
+    });
+
+    const result = await runSignupAndEnroll(completeInput, dependencies, {
+      sendLeadToMomence: true,
+    });
+
+    assert.equal(result.repeat, true);
+    assert.equal(result.leadError, null);
   });
 });
