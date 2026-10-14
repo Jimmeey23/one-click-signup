@@ -41,7 +41,7 @@ for (const gtm of ["GTM-EXAMPLE\n", undefined]) {
   );
   const listeners = new Map();
   const pending = [];
-  const loadListeners = [];
+  const eventListeners = new Map();
   const downloads = [];
   const css = {
     media: "print",
@@ -83,13 +83,23 @@ for (const gtm of ["GTM-EXAMPLE\n", undefined]) {
     },
   };
   context.window = context;
-  context.addEventListener = (name, callback) => loadListeners.push(callback);
+  context.addEventListener = (name, callback) => {
+    const callbacks = eventListeners.get(name) || [];
+    callbacks.push(callback);
+    eventListeners.set(name, callbacks);
+  };
+  context.removeEventListener = (name, callback) => {
+    eventListeners.set(
+      name,
+      (eventListeners.get(name) || []).filter((item) => item !== callback),
+    );
+  };
   context.requestIdleCallback = (callback) => pending.push(callback);
   vm.createContext(context);
   for (const script of scripts) vm.runInContext(script.children, context);
   assert.equal(downloads.length, 0, "No network downloads before load/idle");
   assert.equal(context.fbq.queue.length, 2, "Meta init and pageview queued");
-  assert.equal(context.snaptr.queue.length, 2, "Snap init and pageview queued");
+  assert.equal(context.snaptr, undefined, "Unused Snapchat tracker is absent");
   context.gtag("event", "signup_start", { test: true });
   assert.equal(context.dataLayer.at(-1)[0], "event", "Funnel event retained before Google loads");
   const configs = Array.from(context.dataLayer).filter((entry) => entry[0] === "config");
@@ -105,11 +115,23 @@ for (const gtm of ["GTM-EXAMPLE\n", undefined]) {
   );
   listeners.get("css:load")();
   assert.equal(css.media, "all", "Full stylesheet activated after load");
-  for (const callback of loadListeners) callback();
+  for (const callback of eventListeners.get("load")) callback();
   while (pending.length) pending.shift()();
-  assert.equal(downloads.length, 4, "All configured providers loaded");
+  assert.equal(downloads.length, 2, "Advertising providers load; recorder waits for engagement");
+  const startRecording = eventListeners.get("pointerdown")[0];
+  context.clarity("event", "signup_focus");
+  assert.equal(context.clarity.q.length, 1, "Recording events queue before engagement");
+  startRecording();
+  startRecording();
+  while (pending.length) pending.shift()();
+  assert.equal(downloads.length, 3, "Recorder loads exactly once after interaction");
+  assert.equal(eventListeners.get("scroll").length, 0, "Other interaction listeners are removed");
   assert.equal(downloads.filter((url) => url.includes("gtm.js")).length, gtm ? 1 : 0);
   assert.equal(downloads.filter((url) => url.includes("gtag/js")).length, gtm ? 0 : 1);
+  assert.ok(
+    downloads.every((url) => !url.includes("snapchat") && !url.includes("sc-static")),
+    "No Snapchat downloads",
+  );
   assert.ok(
     downloads.every((url) => !url.includes("\n")),
     "Tracker IDs are trimmed",

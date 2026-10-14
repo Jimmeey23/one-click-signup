@@ -77,33 +77,7 @@ import bengaluruInstructorCollage from "@/assets/images/bengaluru-instructors-ca
 
 const logoUrl = "/physique57-logo-small.webp";
 
-const HERO_QUOTES = [
-  "Meet the workout your body will thank you for.",
-  "The class everyone recommends. The results everyone notices.",
-  "Where strength meets elegance.",
-  "The workout that changes more than your body.",
-  "Fall in love with movement again.",
-  "Strong never looked this graceful.",
-  "Find your strongest self.",
-  "The workout worth making time for.",
-  "Feel the burn. Love the results.",
-  "More than a workout. A transformation.",
-  "The barre everyone comes back to.",
-  "Confidence starts here.",
-  "Move beautifully. Feel incredibly strong.",
-  "Because ordinary workouts aren't your style.",
-  "Your strongest hour starts now.",
-  "Results you can feel. Confidence you can see.",
-  "The workout your future self will thank you for.",
-  "Elevate your fitness. Redefine your limits.",
-  "Train smarter. Stand taller. Shine brighter.",
-  "Every pulse. Every shake. Every victory.",
-  "Luxury fitness. Extraordinary results.",
-  "Discover what your body is capable of.",
-  "Join the movement everyone's obsessed with.",
-  "Where every class feels like your best one yet.",
-  "The workout you'll never want to skip.",
-];
+const HERO_HEADLINE = "Meet the workout your body will thank you for.";
 
 const ATTRIBUTION_STORAGE_KEY = "p57_attribution";
 
@@ -266,7 +240,7 @@ export function OpenBarreLanding({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waiverFailed, setWaiverFailed] = useState(false);
-  const heroQuote = HERO_QUOTES[0];
+  const heroQuote = HERO_HEADLINE;
   // Match the server's first render before reading browser-only A/B storage.
   // Changing the CTA during hydration causes React error #418 for variant B.
   const [variant, setVariant] = useState<"a" | "b">("a");

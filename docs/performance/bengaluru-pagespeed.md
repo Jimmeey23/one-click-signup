@@ -28,3 +28,9 @@ Remaining boundaries: external tracker cache lifetimes, legacy vendor code and t
 - Deferred signature-pad code until near the viewport. Paused gallery/review timers in hidden tabs, outside the viewport and when reduced motion is requested.
 - Added offscreen rendering containment and valid loading-state semantics.
 - Verification includes TypeScript, production build, tracker queue/ownership/stylesheet tests, adjacent page rendering and webhook method protection. The temporary local benchmark is not a substitute for the production PageSpeed report.
+
+The first corrected build was deployed successfully as `adfde38` through the existing Git integration. Live HTML confirmed the new logo, critical CSS, local fonts and corrected inline scripts. A complete production Lighthouse 13.5 run measured mobile performance 80, accessibility 100 and SEO 100, so mobile had not yet reached the 90 target.
+
+The next refinement preloads a 5.4 KB subset of the hero font to reduce its load cost. Regenerate it with `python3 scripts/subset-hero-font.py` if `HERO_HEADLINE` changes (requires fontTools); other glyphs use the original font fallback. Clarity now starts on first interaction, keeping advertising pageviews and conversion queues unchanged. Passive visits no longer create Clarity recordings; set `VITE_CLARITY_LOAD_MODE=load` to restore that behavior.
+
+The user confirmed Snapchat advertising is unused; its pixel was removed. Google and Meta remain configured.

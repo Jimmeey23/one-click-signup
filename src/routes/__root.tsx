@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -72,7 +73,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: ({ matches }) => {
     const landing = matches.some((match) => ["/", "/bengaluru"].includes(match.routeId as string));
     return {
-      styles: landing ? [{ id: "p57-critical-css", children: criticalCss }] : [],
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -107,7 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         },
         {
           rel: "preload",
-          href: "/fonts/instrument-serif.woff2",
+          href: landing ? "/fonts/hero-serif.woff2" : "/fonts/instrument-serif.woff2",
           as: "font",
           type: "font/woff2",
           crossOrigin: "anonymous",
@@ -125,7 +125,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         id: "tracker-scheduler",
-        children: `window.p57LoadTracker=function(load){function schedule(){setTimeout(function(){if(window.requestIdleCallback){requestIdleCallback(load,{timeout:2000});}else{load();}},1500);}if(document.readyState==='complete'){schedule();}else{window.addEventListener('load',schedule,{once:true});}};`,
+        children: `window.p57LoadTracker=function(load,mode){function schedule(){setTimeout(function(){if(window.requestIdleCallback){requestIdleCallback(load,{timeout:2000});}else{load();}},1500);}if(mode==='interaction'){var started=false;var events=['pointerdown','keydown','scroll'];function start(){if(started)return;started=true;events.forEach(function(event){window.removeEventListener(event,start);});if(window.requestIdleCallback){requestIdleCallback(load,{timeout:1000});}else{setTimeout(load,0);}}events.forEach(function(event){window.addEventListener(event,start,{once:true,passive:true});});}else if(document.readyState==='complete'){schedule();}else{window.addEventListener('load',schedule,{once:true});}};`,
       },
     ];
 
@@ -166,19 +166,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       });
     }
 
-    const snapPixelId = import.meta.env.VITE_SNAP_PIXEL_ID?.trim();
-    if (snapPixelId) {
-      scripts.push({
-        id: "snap-pixel-init",
-        children: `(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];window.p57LoadTracker(function(){var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})})(window,document,'https://sc-static.net/scevent.min.js');snaptr('init','${snapPixelId}');snaptr('track','PAGE_VIEW');`,
-      });
-    }
-
     const clarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID?.trim();
     if (clarityProjectId) {
       scripts.push({
         id: "ms-clarity-init",
-        children: `window.p57LoadTracker(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${clarityProjectId}");});`,
+        // Record engaged sessions without running the recorder during first paint.
+        // Set VITE_CLARITY_LOAD_MODE=load to retain passive-visit recordings.
+        children: `window.clarity=window.clarity||function(){(window.clarity.q=window.clarity.q||[]).push(arguments);};window.p57LoadTracker(function(){var s=document.createElement('script');s.async=true;s.src=${JSON.stringify(`https://www.clarity.ms/tag/${clarityProjectId}`)};document.head.appendChild(s);},${JSON.stringify(import.meta.env.VITE_CLARITY_LOAD_MODE === "load" ? "load" : "interaction")});`,
       });
     }
 
@@ -191,9 +185,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const landing = pathname === "/" || pathname === "/bengaluru";
   return (
     <html lang="en">
       <head>
+        {/* Keep critical CSS out of serialized route assets to avoid sending it twice. */}
+        {landing ? <style id="p57-critical-css">{criticalCss}</style> : null}
         <HeadContent />
         <noscript>
           <link rel="stylesheet" href={appCss} />
