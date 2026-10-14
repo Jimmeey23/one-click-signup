@@ -2,8 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { Footer } from "@/components/Footer";
 
-import group from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
-import trainer from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.jpg";
+import group from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.webp";
+import trainer from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.webp";
 
 const logoUrl = "/physique57-logo.png";
 

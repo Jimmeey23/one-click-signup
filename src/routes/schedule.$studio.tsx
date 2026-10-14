@@ -37,7 +37,7 @@ import {
   type TimeOfDay,
   type WeekdayKey,
 } from "@/lib/studio-schedule.helpers";
-import fallbackTrainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
+import fallbackTrainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.webp";
 
 // Every filter is a loose string so a hand-typed link never errors - the helpers drop
 // anything they don't recognise.

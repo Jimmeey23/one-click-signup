@@ -70,8 +70,8 @@ import { whatsappPhoneForLocationId } from "@/lib/whatsapp-contact.helpers";
 import { trainerImageForName } from "@/lib/trainer-thumbnails";
 import { RespondIoWidget } from "@/components/RespondIoWidget";
 import { Footer } from "@/components/Footer";
-import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.jpg";
-import profileHeroPortrait from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
+import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.webp";
+import profileHeroPortrait from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.webp";
 
 const searchSchema = z.object({
   locationId: z.coerce.number().int().positive().default(LOCATIONS[0].id),

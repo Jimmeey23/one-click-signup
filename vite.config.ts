@@ -23,7 +23,9 @@ export default defineConfig(({ command }) => ({
           nitro({
             preset: "vercel",
             routeRules: {
-              "/fonts/**": { headers: { "cache-control": "public, max-age=604800" } },
+              "/fonts/**": { headers: { "cache-control": "public, max-age=2592000" } },
+              // Stable filenames: rename a file when its content changes.
+              "/p57-assets/**": { headers: { "cache-control": "public, max-age=2592000" } },
               "/physique57-logo-small.webp": {
                 headers: { "cache-control": "public, max-age=604800" },
               },

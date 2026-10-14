@@ -1,13 +1,13 @@
-import barreImage from "@/assets/DSC_2963.jpg";
-import fitImage from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
-import strengthImage from "@/assets/2094 _ Physique57 _ Trainer Shots _ _04A1305.jpg";
-import backBodyBlazeImage from "@/assets/2123 _ Physique57 _ Trainer Shots _ _56A1916.jpg";
-import matImage from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.jpg";
-import cardioImage from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.jpg";
-import hiitImage from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.jpg";
-import cardioBarrePlusImage from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04A1551.jpg";
-import recoveryImage from "@/assets/2080 _ Physique57 _ Trainer Shots _ _56A2464.jpg";
-import cycleImage from "@/assets/2007 _ Physique57 _ Trainer Shots _ _56A2318.jpg";
+import barreImage from "@/assets/DSC_2963.webp";
+import fitImage from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.webp";
+import strengthImage from "@/assets/2094 _ Physique57 _ Trainer Shots _ _04A1305.webp";
+import backBodyBlazeImage from "@/assets/2123 _ Physique57 _ Trainer Shots _ _56A1916.webp";
+import matImage from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.webp";
+import cardioImage from "@/assets/2068 _ Physique57 _ Trainer Shots _ _04A1243.webp";
+import hiitImage from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.webp";
+import cardioBarrePlusImage from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04A1551.webp";
+import recoveryImage from "@/assets/2080 _ Physique57 _ Trainer Shots _ _56A2464.webp";
+import cycleImage from "@/assets/2007 _ Physique57 _ Trainer Shots _ _56A2318.webp";
 import {
   CLASS_FORMAT_KEYS,
   classFormatKeyForSessionName,
