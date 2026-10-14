@@ -125,7 +125,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         id: "tracker-scheduler",
-        children: `window.p57LoadTracker=function(load,mode){function schedule(){setTimeout(function(){if(window.requestIdleCallback){requestIdleCallback(load,{timeout:2000});}else{load();}},1500);}if(mode==='interaction'){var started=false;var events=['pointerdown','keydown','scroll'];function start(){if(started)return;started=true;events.forEach(function(event){window.removeEventListener(event,start);});if(window.requestIdleCallback){requestIdleCallback(load,{timeout:1000});}else{setTimeout(load,0);}}events.forEach(function(event){window.addEventListener(event,start,{once:true,passive:true});});}else if(document.readyState==='complete'){schedule();}else{window.addEventListener('load',schedule,{once:true});}};`,
+        children: `window.p57LoadTracker=function(load,mode){function schedule(){setTimeout(function(){if(window.requestIdleCallback){requestIdleCallback(load,{timeout:2000});}else{load();}},4500);}if(mode==='interaction'){var started=false;var events=['pointerdown','keydown','scroll'];function start(){if(started)return;started=true;events.forEach(function(event){window.removeEventListener(event,start);});if(window.requestIdleCallback){requestIdleCallback(load,{timeout:1000});}else{setTimeout(load,0);}}events.forEach(function(event){window.addEventListener(event,start,{once:true,passive:true});});}else if(document.readyState==='complete'){schedule();}else{window.addEventListener('load',schedule,{once:true});}};`,
       },
     ];
 
