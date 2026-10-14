@@ -4,9 +4,11 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
+import { criticalCssPlugin } from "./scripts/critical-css.mjs";
 
 export default defineConfig(({ command }) => ({
   plugins: [
+    criticalCssPlugin(),
     tailwindcss(),
     tsconfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({

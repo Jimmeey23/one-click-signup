@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useId, useRef, useState, lazy, Suspense } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Check,
@@ -55,7 +55,10 @@ import { eventDetailLine, type RouteEvent } from "@/lib/route-event";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
-import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
+import type { SignaturePadHandle } from "@/components/SignaturePad";
+const SignaturePad = lazy(() =>
+  import("@/components/SignaturePad").then((module) => ({ default: module.SignaturePad })),
+);
 
 import heroBike from "@/assets/108 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1227.webp";
 import intenseFace from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.webp";
@@ -64,6 +67,7 @@ import kettlebellPink from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Koth
 import trainerArm from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.webp";
 import trainerLunge from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.webp";
 import groupBarre from "@/assets/landing-group-barre.webp";
+import groupBarreMobile from "@/assets/landing-group-barre-mobile.webp";
 import sculptSide from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.webp";
 import cycleShot from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.webp";
 import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.webp";
@@ -262,7 +266,7 @@ export function OpenBarreLanding({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waiverFailed, setWaiverFailed] = useState(false);
-  const [heroQuote, setHeroQuote] = useState(HERO_QUOTES[0]);
+  const heroQuote = HERO_QUOTES[0];
   // Match the server's first render before reading browser-only A/B storage.
   // Changing the CTA during hydration causes React error #418 for variant B.
   const [variant, setVariant] = useState<"a" | "b">("a");
@@ -311,12 +315,6 @@ export function OpenBarreLanding({
   useEffect(() => {
     setVariant(getVariant());
   }, []);
-
-  useEffect(() => {
-    setHeroQuote(
-      variantCopy.headline || HERO_QUOTES[Math.floor(Math.random() * HERO_QUOTES.length)],
-    );
-  }, [variantCopy.headline]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -745,14 +743,20 @@ export function OpenBarreLanding({
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="landing-page min-h-screen bg-background text-foreground">
       <Header studioVariant={studioVariant} />
 
       <section className="hero-shell relative overflow-hidden">
-        <div
-          className="hero-image absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImageUrl || groupBarre})` }}
-          aria-hidden
+        <img
+          className="hero-image absolute inset-0 h-full w-full object-cover object-center"
+          src={heroImageUrl || groupBarre}
+          srcSet={heroImageUrl ? undefined : `${groupBarreMobile} 768w, ${groupBarre} 1800w`}
+          sizes="100vw"
+          alt=""
+          width={1800}
+          height={1016}
+          fetchPriority="low"
+          decoding="async"
         />
         <div
           className="hero-glow absolute -left-32 top-1/3 h-80 w-80 rounded-full bg-primary/20 blur-3xl"
@@ -1822,7 +1826,7 @@ function SignupCard({
             aria-label="Full legal name"
           />
           <div onPointerUp={() => onSignChange(!(sigRef.current?.isEmpty() ?? true))}>
-            <SignaturePad ref={sigRef} label=" signature *" />
+            <DeferredSignaturePad sigRef={sigRef} />
           </div>
           <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-border bg-background p-3 transition hover:border-primary/50">
             <input
@@ -1939,5 +1943,55 @@ function LazyBackground({ src, style, ...props }: React.ComponentProps<"div"> & 
       ref={ref}
       style={{ ...style, backgroundImage: ready ? `url(${src})` : undefined }}
     />
+  );
+}
+
+function DeferredSignaturePad({
+  sigRef,
+}: {
+  sigRef: React.MutableRefObject<SignaturePadHandle | null>;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const placeholder = (
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+        Signature *
+      </p>
+      <div
+        className="h-32 rounded-md border border-input bg-background"
+        role="status"
+        aria-label="Signature pad loading"
+      />
+      <p className="mt-1 text-[10px] text-muted-foreground">
+        Sign above with your finger, trackpad, stylus, or mouse.
+      </p>
+    </div>
+  );
+  return (
+    <div ref={ref}>
+      {ready ? (
+        <Suspense fallback={placeholder}>
+          <SignaturePad ref={sigRef} label="Signature *" />
+        </Suspense>
+      ) : (
+        placeholder
+      )}
+    </div>
   );
 }

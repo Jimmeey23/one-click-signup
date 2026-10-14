@@ -26,7 +26,7 @@ export function getVariant(): Variant {
 
 export const VARIANT_COPY: Record<Variant, { headline: string; ctaLabel: string }> = {
   a: {
-    headline: "", // falls back to the rotating HERO_QUOTES pool
+    headline: "", // uses the stable server-rendered landing headline
     ctaLabel: "Activate Your Trial",
   },
   b: {

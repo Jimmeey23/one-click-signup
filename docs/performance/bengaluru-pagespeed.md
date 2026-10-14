@@ -18,3 +18,13 @@ Implemented:
 Validation: production build, TypeScript, diff whitespace check, rendered HTML checks, inline script parsing and tracker queue initialization. Local Lighthouse uses mobile throttling against production output with a temporary compressed HTTP adapter. It is not a production PageSpeed retest; timings and Lighthouse versions differ.
 
 Remaining boundaries: external tracker cache lifetimes, legacy vendor code and third-party cookies are controlled by vendors. Essential application CSS remains render blocking, and framework/vendor JavaScript still has unused code. Further removal requires targeted CSS extraction and decisions about retained analytics providers. Changes have not been deployed, and production scores have not been verified.
+
+## Mobile and desktop follow-up
+
+- Production remained on the older assets because Vercel blocked `@tanstack/react-start@1.168.18` for CVE-2026-102989. Updated Start to the patched 1.168.60 and its compatible Router version; no vulnerability override is used.
+- Added generated critical CSS for the landing hero/form, including desktop breakpoint rules; the full stylesheet loads asynchronously with a no-JavaScript fallback. Generation derives classes from source so future UI changes do not need a manually maintained class list.
+- Consolidated Google library loading under GTM, kept GA configuration and standalone fallback, and retained queued funnel events. GTM owns Ads configuration.
+- Made the server-rendered headline stable, prioritized text/fonts ahead of the decorative hero photo, added a smaller mobile hero source and prevented late font swapping on slow connections.
+- Deferred signature-pad code until near the viewport. Paused gallery/review timers in hidden tabs, outside the viewport and when reduced motion is requested.
+- Added offscreen rendering containment and valid loading-state semantics.
+- Verification includes TypeScript, production build, tracker queue/ownership/stylesheet tests, adjacent page rendering and webhook method protection. The temporary local benchmark is not a substitute for the production PageSpeed report.

@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import criticalCss from "virtual:p57-critical-css";
 
 function NotFoundComponent() {
   return (
@@ -33,7 +34,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   return (
@@ -68,52 +69,60 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Physique 57 India - Barre Sign up" },
-      {
-        name: "description",
-        content: "Discover Physique 57 India studios, signature classes, and booking options.",
-      },
-      { property: "og:title", content: "Physique 57 India - Barre Sign up" },
-      {
-        property: "og:description",
-        content: "Discover Physique 57 India studios, signature classes, and booking options.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Physique 57 India - Barre Sign up" },
-      {
-        name: "twitter:description",
-        content: "Discover Physique 57 India studios, signature classes, and booking options.",
-      },
-      { property: "og:image", content: "/Physique57-800x600-1.jpg" },
-      { name: "twitter:image", content: "/Physique57-800x600-1.jpg" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      {
-        rel: "preload",
-        href: "/fonts/inter.woff2",
-        as: "font",
-        type: "font/woff2",
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "preload",
-        href: "/fonts/instrument-serif.woff2",
-        as: "font",
-        type: "font/woff2",
-        crossOrigin: "anonymous",
-      },
-    ],
-  }),
+  head: ({ matches }) => {
+    const landing = matches.some((match) => ["/", "/bengaluru"].includes(match.routeId as string));
+    return {
+      styles: landing ? [{ id: "p57-critical-css", children: criticalCss }] : [],
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "Physique 57 India - Barre Sign up" },
+        {
+          name: "description",
+          content: "Discover Physique 57 India studios, signature classes, and booking options.",
+        },
+        { property: "og:title", content: "Physique 57 India - Barre Sign up" },
+        {
+          property: "og:description",
+          content: "Discover Physique 57 India studios, signature classes, and booking options.",
+        },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "Physique 57 India - Barre Sign up" },
+        {
+          name: "twitter:description",
+          content: "Discover Physique 57 India studios, signature classes, and booking options.",
+        },
+        { property: "og:image", content: "/Physique57-800x600-1.jpg" },
+        { name: "twitter:image", content: "/Physique57-800x600-1.jpg" },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss, media: landing ? "print" : "all", id: "p57-full-css" },
+        {
+          rel: "preload",
+          href: "/fonts/inter.woff2",
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          href: "/fonts/instrument-serif.woff2",
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+      ],
+    };
+  },
   scripts: () => {
     // The respond.io click-to-chat widget is intentionally absent here - it is
     // mounted per-route via <RespondIoWidget /> so it only shows post-signup.
     const scripts: Array<React.JSX.IntrinsicElements["script"]> = [
+      {
+        id: "stylesheet-loader",
+        children: `var p57Css=document.getElementById('p57-full-css');if(p57Css&&p57Css.media==='print'){function p57ApplyCss(){p57Css.media='all';}if(p57Css.sheet){p57ApplyCss();}else{p57Css.addEventListener('load',p57ApplyCss,{once:true});p57Css.addEventListener('error',p57ApplyCss,{once:true});}}`,
+      },
       {
         id: "tracker-scheduler",
         children: `window.p57LoadTracker=function(load){function schedule(){setTimeout(function(){if(window.requestIdleCallback){requestIdleCallback(load,{timeout:2000});}else{load();}},1500);}if(document.readyState==='complete'){schedule();}else{window.addEventListener('load',schedule,{once:true});}};`,
@@ -131,11 +140,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim();
     const googleAdsId = import.meta.env.VITE_GOOGLE_ADS_ID?.trim();
     if (gaId || googleAdsId) {
-      scripts.push({
-        id: "gtag-loader",
-        children: `window.p57LoadTracker(function(){var s=document.createElement("script");s.async=true;s.src=${JSON.stringify(`https://www.googletagmanager.com/gtag/js?id=${gaId || googleAdsId}`)};document.head.appendChild(s);});`,
-      });
-      const gtagConfigCalls = [gaId, googleAdsId]
+      // GTM already supplies the Google tag and its linked destinations. Loading
+      // gtag.js and configuring Ads here as well duplicates that work.
+      // Keep GA configuration: this container owns Ads, not the GA destination.
+      if (!gtmId)
+        scripts.push({
+          id: "gtag-loader",
+          children: `window.p57LoadTracker(function(){var s=document.createElement("script");s.async=true;s.src=${JSON.stringify(`https://www.googletagmanager.com/gtag/js?id=${gaId || googleAdsId}`)};document.head.appendChild(s);});`,
+        });
+      const gtagConfigCalls = (gtmId ? [gaId] : [gaId, googleAdsId])
         .filter(Boolean)
         .map((id) => `gtag('config','${id}');`)
         .join("");
@@ -182,12 +195,15 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <noscript>
+          <link rel="stylesheet" href={appCss} />
+        </noscript>
       </head>
       <body>
         {import.meta.env.VITE_GTM_ID ? (
           <noscript>
             <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${import.meta.env.VITE_GTM_ID}`}
+              src={`https://www.googletagmanager.com/ns.html?id=${import.meta.env.VITE_GTM_ID?.trim()}`}
               height="0"
               width="0"
               style={{ display: "none", visibility: "hidden" }}

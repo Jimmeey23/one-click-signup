@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useVisibleInterval } from "@/hooks/use-visible-interval";
 import { Quote, Star } from "lucide-react";
 
 type Review = {
@@ -110,11 +111,7 @@ export function ReviewsCarousel({
     return () => controller.abort();
   }, [studioVariant]);
 
-  useEffect(() => {
-    if (reviews.length === 0) return;
-    const t = setInterval(() => setStep((s) => s + 1), 4500);
-    return () => clearInterval(t);
-  }, [reviews.length]);
+  useVisibleInterval(trackRef, () => setStep((value) => value + 1), 4500, reviews.length > 0);
 
   function handleTransitionEnd(event: React.TransitionEvent<HTMLDivElement>) {
     if (event.target !== trackRef.current || event.propertyName !== "transform") return;
@@ -131,7 +128,7 @@ export function ReviewsCarousel({
         Reviews are temporarily unavailable. Please try again shortly.
       </p>
     ) : (
-      <div className="grid gap-4 md:grid-cols-3" aria-label="Loading member reviews">
+      <div className="grid gap-4 md:grid-cols-3" role="status" aria-label="Loading member reviews">
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
@@ -236,6 +233,8 @@ export function ReviewsCarousel({
                   <img
                     src={r.profileImage}
                     alt=""
+                    width={36}
+                    height={36}
                     className={`h-9 w-9 shrink-0 rounded-full object-cover ${
                       isBengaluru ? "ring-2 ring-primary/15" : "ring-1 ring-border"
                     }`}

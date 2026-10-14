@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useVisibleInterval } from "@/hooks/use-visible-interval";
 
 export function FlippingGallery({
   slots,
@@ -8,22 +9,8 @@ export function FlippingGallery({
   intervalMs?: number;
 }) {
   const [tick, setTick] = useState(0);
-  const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!visible || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => setTick((value) => value + 1), intervalMs);
-    return () => clearInterval(timer);
-  }, [intervalMs, visible]);
+  useVisibleInterval(ref, () => setTick((value) => value + 1), intervalMs);
 
   return (
     <section
