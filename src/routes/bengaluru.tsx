@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OpenBarreLanding } from "@/components/OpenBarreLanding";
+import groupBarre from "@/assets/landing-group-barre.webp";
 import bengaluruInstructors from "@/assets/images/bengaluru-instructors-candid.webp";
 
 const title = "Physique 57 Bengaluru - Find your next class";
@@ -7,6 +8,7 @@ const description =
   "Explore Physique 57 Bengaluru studios, discover upcoming classes, and book the session that fits you.";
 
 const bengaluruHead = () => ({
+  links: [{ rel: "preload", as: "image", href: groupBarre, fetchPriority: "high" as const }],
   meta: [
     { title },
     { name: "description", content: description },

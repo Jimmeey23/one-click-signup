@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useId, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Check,
@@ -57,21 +57,21 @@ import { FlippingGallery } from "@/components/FlippingGallery";
 import { Footer } from "@/components/Footer";
 import { SignaturePad, type SignaturePadHandle } from "@/components/SignaturePad";
 
-import heroBike from "@/assets/108 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1227.jpg";
-import intenseFace from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.jpg";
-import lunge from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04A1551.jpg";
-import kettlebellPink from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A3173.jpg";
-import trainerArm from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.jpg";
-import trainerLunge from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.jpg";
+import heroBike from "@/assets/108 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A1227.webp";
+import intenseFace from "@/assets/3014 _ Physique57 _ Deliverable 3 _ _56A1625.webp";
+import lunge from "@/assets/120 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _04A1551.webp";
+import kettlebellPink from "@/assets/139 _ Physique57 _ Photoshoot _ Tanmay Kothari _ _56A3173.webp";
+import trainerArm from "@/assets/2100 _ Physique57 _ Trainer Shots _ _04A1735.webp";
+import trainerLunge from "@/assets/2066 _ Physique57 _ Trainer Shots _ _56A2552.webp";
 import groupBarre from "@/assets/landing-group-barre.webp";
-import sculptSide from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.jpg";
-import cycleShot from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.jpg";
-import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.jpg";
-import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.jpg";
-import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.jpg";
+import sculptSide from "@/assets/3012 _ Physique57 _ Deliverable 3 _ _56A1619.webp";
+import cycleShot from "@/assets/2115 _ Physique57 _ Trainer Shots _ _56A3035.webp";
+import trainer2 from "@/assets/2060 _ Physique57 _ Trainer Shots _ _56A1865.webp";
+import trainer3 from "@/assets/2062 _ Physique57 _ Trainer Shots _ _56A2470.webp";
+import trainer4 from "@/assets/2133 _ Physique57 _ Trainer Shots _ _56A2005.webp";
 import bengaluruInstructorCollage from "@/assets/images/bengaluru-instructors-candid.webp";
 
-const logoUrl = "/physique57-logo-dark.png?v=79daf7";
+const logoUrl = "/physique57-logo-small.webp";
 
 const HERO_QUOTES = [
   "Meet the workout your body will thank you for.",
@@ -1046,7 +1046,13 @@ function Header({ studioVariant }: { studioVariant: StudioVariant }) {
     <header className="absolute top-0 inset-x-0 z-20 border-b border-white/10 bg-black/10 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-5 sm:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logoUrl} alt="Physique 57" className="brand-logo h-10 w-auto" />
+          <img
+            width={108}
+            height={80}
+            src={logoUrl}
+            alt="Physique 57"
+            className="brand-logo h-10 w-auto"
+          />
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-[0.2em] text-white/70 font-bold">
           <Link to="/about" className="hover:text-primary transition">
@@ -1342,54 +1348,60 @@ function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
               <p className="text-sm text-muted-foreground mt-1">{studio.neighborhood}</p>
 
               <dl className="mt-6 space-y-4">
-                <div className="flex items-start gap-3">
-                  <MapPin
-                    className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                      Location
-                    </dt>
-                    <dd className="text-sm">{studio.location}</dd>
-                  </div>
+                <div className="relative pl-7">
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    <span className="absolute left-0 top-0" aria-hidden="true">
+                      <MapPin
+                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    Location
+                  </dt>
+                  <dd className="text-sm">{studio.location}</dd>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
-                  <div>
-                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                      Phone
-                    </dt>
-                    <dd className="text-sm">
-                      <a
-                        href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
-                        className="hover:text-primary-deep transition"
-                      >
-                        {studio.phone}
-                      </a>
-                    </dd>
-                  </div>
+                <div className="relative pl-7">
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    <span className="absolute left-0 top-0" aria-hidden="true">
+                      <Phone
+                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    Phone
+                  </dt>
+                  <dd className="text-sm">
+                    <a
+                      href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
+                      className="hover:text-primary-deep transition"
+                    >
+                      {studio.phone}
+                    </a>
+                  </dd>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep" aria-hidden="true" />
-                  <div>
-                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                      Hours
-                    </dt>
-                    <dd className="text-sm">{studio.hours}</dd>
-                  </div>
+                <div className="relative pl-7">
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    <span className="absolute left-0 top-0" aria-hidden="true">
+                      <Clock
+                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    Hours
+                  </dt>
+                  <dd className="text-sm">{studio.hours}</dd>
                 </div>
-                <div className="flex items-start gap-3">
-                  <FileText
-                    className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
-                    aria-hidden="true"
-                  />
-                  <div>
-                    <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                      Address
-                    </dt>
-                    <dd className="text-sm">{studio.address}</dd>
-                  </div>
+                <div className="relative pl-7">
+                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    <span className="absolute left-0 top-0" aria-hidden="true">
+                      <FileText
+                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    Address
+                  </dt>
+                  <dd className="text-sm">{studio.address}</dd>
                 </div>
               </dl>
 
@@ -1574,6 +1586,7 @@ function SignupCard({
               <input
                 type="tel"
                 inputMode="numeric"
+                aria-label="Phone number"
                 name="tel-national"
                 autoComplete="tel-national"
                 required
@@ -1862,13 +1875,18 @@ function Field({
   name?: string;
   autoComplete?: string;
 }) {
+  const id = useId();
   return (
     <div>
-      <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+      <label
+        htmlFor={id}
+        className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5"
+      >
         {label}
         {required ? " *" : ""}
       </label>
       <input
+        id={id}
         type={type}
         required={required}
         name={name}

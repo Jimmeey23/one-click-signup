@@ -94,33 +94,46 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:ital@0;1&display=swap",
+        rel: "preload",
+        href: "/fonts/inter.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/instrument-serif.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
     ],
   }),
   scripts: () => {
     // The respond.io click-to-chat widget is intentionally absent here - it is
     // mounted per-route via <RespondIoWidget /> so it only shows post-signup.
-    const scripts: Array<React.JSX.IntrinsicElements["script"]> = [];
+    const scripts: Array<React.JSX.IntrinsicElements["script"]> = [
+      {
+        id: "tracker-scheduler",
+        children: `window.p57LoadTracker=function(load){function schedule(){setTimeout(function(){if(window.requestIdleCallback){requestIdleCallback(load,{timeout:2000});}else{load();}},1500);}if(document.readyState==='complete'){schedule();}else{window.addEventListener('load',schedule,{once:true});}};`,
+      },
+    ];
 
-    const gtmId = import.meta.env.VITE_GTM_ID;
+    const gtmId = import.meta.env.VITE_GTM_ID?.trim();
     if (gtmId) {
       scripts.push({
         id: "gtm-init",
-        children: `window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});(function(w,d,s,l,i){var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`,
+        children: `window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});window.p57LoadTracker(function(){(function(w,d,s,l,i){var f=d.getElementsByTagName(s)[0],j=d.createElement(s);j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');});`,
       });
     }
 
-    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
-    const googleAdsId = import.meta.env.VITE_GOOGLE_ADS_ID;
+    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim();
+    const googleAdsId = import.meta.env.VITE_GOOGLE_ADS_ID?.trim();
     if (gaId || googleAdsId) {
       scripts.push({
-        src: `https://www.googletagmanager.com/gtag/js?id=${gaId || googleAdsId}`,
-        async: true,
+        id: "gtag-loader",
+        children: `window.p57LoadTracker(function(){var s=document.createElement("script");s.async=true;s.src=${JSON.stringify(`https://www.googletagmanager.com/gtag/js?id=${gaId || googleAdsId}`)};document.head.appendChild(s);});`,
       });
       const gtagConfigCalls = [gaId, googleAdsId]
         .filter(Boolean)
@@ -132,27 +145,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       });
     }
 
-    const pixelId = import.meta.env.VITE_META_PIXEL_ID;
+    const pixelId = import.meta.env.VITE_META_PIXEL_ID?.trim();
     if (pixelId) {
       scripts.push({
         id: "meta-pixel-init",
-        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixelId}');fbq('track','PageView');`,
+        children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];window.p57LoadTracker(function(){t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s);})}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixelId}');fbq('track','PageView');`,
       });
     }
 
-    const snapPixelId = import.meta.env.VITE_SNAP_PIXEL_ID;
+    const snapPixelId = import.meta.env.VITE_SNAP_PIXEL_ID?.trim();
     if (snapPixelId) {
       scripts.push({
         id: "snap-pixel-init",
-        children: `(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u)})(window,document,'https://sc-static.net/scevent.min.js');snaptr('init','${snapPixelId}');snaptr('track','PAGE_VIEW');`,
+        children: `(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];window.p57LoadTracker(function(){var s='script';var r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})})(window,document,'https://sc-static.net/scevent.min.js');snaptr('init','${snapPixelId}');snaptr('track','PAGE_VIEW');`,
       });
     }
 
-    const clarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID;
+    const clarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID?.trim();
     if (clarityProjectId) {
       scripts.push({
         id: "ms-clarity-init",
-        children: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${clarityProjectId}");`,
+        children: `window.p57LoadTracker(function(){(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${clarityProjectId}");});`,
       });
     }
 

@@ -16,7 +16,19 @@ export default defineConfig(({ command }) => ({
         client: { files: ["**/server/**"], specifiers: ["server-only"] },
       },
     }),
-    ...(command === "build" ? [nitro({ preset: "vercel" })] : []),
+    ...(command === "build"
+      ? [
+          nitro({
+            preset: "vercel",
+            routeRules: {
+              "/fonts/**": { headers: { "cache-control": "public, max-age=604800" } },
+              "/physique57-logo-small.webp": {
+                headers: { "cache-control": "public, max-age=604800" },
+              },
+            },
+          }),
+        ]
+      : []),
     react(),
   ],
   css: { transformer: "lightningcss" },

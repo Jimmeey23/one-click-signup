@@ -63,10 +63,13 @@ export const SignaturePad = forwardRef<SignaturePadHandle, { label?: string }>(
         if (!wrap || !canvas) return;
 
         const ratio = window.devicePixelRatio || 1;
-        canvas.width = Math.max(1, Math.floor(wrap.clientWidth * ratio));
-        canvas.height = Math.max(1, Math.floor(wrap.clientHeight * ratio));
-        canvas.style.width = `${wrap.clientWidth}px`;
-        canvas.style.height = `${wrap.clientHeight}px`;
+        // Read layout once before writing canvas dimensions.
+        const width = wrap.clientWidth;
+        const height = wrap.clientHeight;
+        canvas.width = Math.max(1, Math.floor(width * ratio));
+        canvas.height = Math.max(1, Math.floor(height * ratio));
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
 
         const ctx = canvas.getContext("2d");
         ctx?.setTransform(ratio, 0, 0, ratio, 0, 0);

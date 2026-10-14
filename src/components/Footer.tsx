@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
-const logoUrl = "/physique57-logo-dark.png?v=79daf7";
+const logoUrl = "/physique57-logo-small.webp";
 
 export function Footer({
   studioVariant = "mumbai",
@@ -27,7 +27,14 @@ export function Footer({
         <div className="grid gap-9 border-b border-white/10 pb-9 md:grid-cols-[1.15fr_0.85fr_1fr] md:gap-10">
           <div className="max-w-sm">
             <div className="flex items-center justify-between gap-5">
-              <img src={logoUrl} alt="Physique 57" className="brand-logo h-9 w-auto" />
+              <img
+                width={108}
+                height={80}
+                loading="lazy"
+                src={logoUrl}
+                alt="Physique 57"
+                className="brand-logo h-9 w-auto"
+              />
               <div className="flex gap-2 md:hidden">
                 <Social href="https://www.instagram.com/physique57india/" label="Instagram">
                   <InstagramIcon />
@@ -117,7 +124,7 @@ export function Footer({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 pt-6 text-[11px] text-white/38 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 pt-6 text-[11px] text-white/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Physique 57 India · Licensed by Physique 57, Inc.</p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <FooterLink to="/terms" search={studioSearch}>

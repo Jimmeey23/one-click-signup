@@ -185,7 +185,7 @@ export function ReviewsCarousel({
                   aria-label={`${r.rating ?? 5} out of 5 stars`}
                 >
                   {isBengaluru && (
-                    <span className="text-[11px] font-bold tabular-nums text-[#9a7200]">
+                    <span className="text-[11px] font-bold tabular-nums text-[#805e00]">
                       {(r.rating ?? 5).toFixed(1)}
                     </span>
                   )}
