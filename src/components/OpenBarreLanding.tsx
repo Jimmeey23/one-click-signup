@@ -1008,12 +1008,12 @@ function BengaluruInstructors() {
               className="group min-w-0 overflow-hidden rounded-[1.35rem] border border-white/10 bg-white/[0.055] shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
             >
               <div className="relative aspect-square overflow-hidden bg-white">
-                <div
+                <LazyBackground
+                  src={bengaluruInstructorCollage}
                   role="img"
                   aria-label={`${instructor.name}, Physique 57 Bengaluru ${instructor.role.toLowerCase()}`}
                   className="absolute inset-0 bg-no-repeat transition-transform duration-700 ease-out group-hover:scale-[1.035]"
                   style={{
-                    backgroundImage: `url(${bengaluruInstructorCollage})`,
                     backgroundSize: instructor.backgroundSize,
                     backgroundPosition: instructor.backgroundPosition,
                   }}
@@ -1119,9 +1119,9 @@ function Feature({
 }) {
   return (
     <article className="feature-card group bg-card border border-border/80 rounded-[1.5rem] overflow-hidden shadow-[var(--shadow-card)] flex flex-col">
-      <div
+      <LazyBackground
+        src={img}
         className="aspect-[4/3] bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
-        style={{ backgroundImage: `url(${img})` }}
         aria-hidden
       />
       <div className="p-6 md:p-7">
@@ -1911,5 +1911,33 @@ function ConsentLine({ children }: { children: React.ReactNode }) {
       <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary-deep" aria-hidden="true" />
       <span>{children}</span>
     </p>
+  );
+}
+
+// Preserve collage cropping while keeping below-the-fold photos out of the initial request waterfall.
+function LazyBackground({ src, style, ...props }: React.ComponentProps<"div"> & { src: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div
+      {...props}
+      ref={ref}
+      style={{ ...style, backgroundImage: ready ? `url(${src})` : undefined }}
+    />
   );
 }
