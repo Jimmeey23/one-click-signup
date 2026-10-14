@@ -34,3 +34,10 @@ The first corrected build was deployed successfully as `adfde38` through the exi
 The next refinement preloads a 5.4 KB subset of the hero font to reduce its load cost. Regenerate it with `python3 scripts/subset-hero-font.py` if `HERO_HEADLINE` changes (requires fontTools); other glyphs use the original font fallback. Clarity now starts on first interaction, keeping advertising pageviews and conversion queues unchanged. Passive visits no longer create Clarity recordings; set `VITE_CLARITY_LOAD_MODE=load` to restore that behavior.
 
 The user confirmed Snapchat advertising is unused; its pixel was removed. Google and Meta remain configured.
+
+## Tracker timing and image weight (2026-10-14)
+
+- Real PageSpeed mobile run scored 88 (FCP 2.25 s, SI 4.4 s, LCP 3.3 s, TBT 46 ms). About 2.5 MiB of tracker JavaScript (Meta, two `gtag.js` loads, GTM) competed with first paint.
+- GTM, the standalone gtag fallback and the Meta pixel now load on first interaction, or after 12 s if the visitor never interacts. Event queues still fill immediately. A visitor who leaves within 12 s without touching the page fires no GTM or Meta pageview.
+- Open item (GTM container, not code): `gtag.js` loads twice, once for GA4 and once for Google Ads. Merge both IDs into one Google tag with multiple destinations to save about 160 KB.
+- Trainer, class and thumbnail images are resized WebP; `/p57-assets/**` and fonts carry 30-day cache headers.

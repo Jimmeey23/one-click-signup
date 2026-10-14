@@ -41,6 +41,7 @@ for (const gtm of ["GTM-EXAMPLE\n", undefined]) {
   );
   const listeners = new Map();
   const pending = [];
+  const fallbackTimers = [];
   const eventListeners = new Map();
   const downloads = [];
   const css = {
@@ -78,8 +79,8 @@ for (const gtm of ["GTM-EXAMPLE\n", undefined]) {
   const context = {
     document,
     Date,
-    setTimeout(callback) {
-      pending.push(callback);
+    setTimeout(callback, delay) {
+      (delay >= 12000 ? fallbackTimers : pending).push(callback);
     },
   };
   context.window = context;
@@ -115,16 +116,19 @@ for (const gtm of ["GTM-EXAMPLE\n", undefined]) {
   );
   listeners.get("css:load")();
   assert.equal(css.media, "all", "Full stylesheet activated after load");
-  for (const callback of eventListeners.get("load")) callback();
+  for (const callback of eventListeners.get("load") || []) callback();
   while (pending.length) pending.shift()();
-  assert.equal(downloads.length, 2, "Advertising providers load; recorder waits for engagement");
-  const startRecording = eventListeners.get("pointerdown")[0];
+  assert.equal(downloads.length, 0, "Trackers wait for interaction or the fallback timer");
   context.clarity("event", "signup_focus");
   assert.equal(context.clarity.q.length, 1, "Recording events queue before engagement");
-  startRecording();
-  startRecording();
+  const starters = eventListeners.get("pointerdown");
+  assert.ok(starters.length >= 3, "GTM, Meta and recorder all wait for interaction");
+  for (const start of [...starters, ...starters]) start();
   while (pending.length) pending.shift()();
-  assert.equal(downloads.length, 3, "Recorder loads exactly once after interaction");
+  assert.equal(downloads.length, 3, "Each tracker loads exactly once after interaction");
+  for (const callback of fallbackTimers) callback();
+  while (pending.length) pending.shift()();
+  assert.equal(downloads.length, 3, "Fallback timers do not load trackers twice");
   assert.equal(eventListeners.get("scroll").length, 0, "Other interaction listeners are removed");
   assert.equal(downloads.filter((url) => url.includes("gtm.js")).length, gtm ? 1 : 0);
   assert.equal(downloads.filter((url) => url.includes("gtag/js")).length, gtm ? 0 : 1);
