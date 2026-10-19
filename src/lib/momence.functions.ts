@@ -6,7 +6,6 @@ import { metaGeoForLocationId } from "./momence-locations";
 import { sendMetaCapiEvent } from "./meta-capi";
 import { metaRequestContext, type MetaRequestContext } from "./meta-request.helpers";
 import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
-import { classTypeValueForClassFormatKey, type ClassFormatKey } from "./class-format-matchers";
 import {
   BENGALURU_MOMENCE_HOST_ID,
   buildMembershipCheckoutRequest,
@@ -143,8 +142,8 @@ const LeadAndOpenBarreInput = z.object({
 
 type RespondAttempt = {
   path: string;
-  method?: "POST" | "PUT";
-  body: unknown;
+  method?: "GET" | "POST" | "PUT";
+  body?: unknown;
 };
 
 async function callRespondIo(
@@ -159,7 +158,7 @@ async function callRespondIo(
       Authorization: `Bearer ${apiKey}`,
       "X-API-KEY": apiKey,
     },
-    body: JSON.stringify(attempt.body),
+    body: attempt.body === undefined ? undefined : JSON.stringify(attempt.body),
   });
 
   const text = await response.text();
@@ -181,38 +180,123 @@ async function callRespondIo(
 const RESPONDIO_LIFECYCLE_STAGE = "New Enquiry";
 const RESPONDIO_TAG = "Website";
 
-export function buildRespondIoContactBody({
-  firstName,
-  lastName,
-  email,
-  phoneE164,
-  center,
-  classType,
-  whatsappConsent,
-}: {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneE164: string;
-  center: string;
-  classType?: string;
-  whatsappConsent?: boolean;
-}) {
-  const classTypeValue = classType
-    ? classTypeValueForClassFormatKey(classType as ClassFormatKey)
-    : "Barre";
+/** Values of respond.io's "Center" list field, keyed by Momence home location id. */
+const RESPONDIO_CENTER_BY_LOCATION_ID: Record<number, string> = {
+  9030: "Kemps Corner, Mumbai",
+  29821: "Bandra(W), Mumbai",
+  22116: "Lavelle Rd, B'luru",
+  36372: "Indiranagar, B'luru",
+  287883: "Sadashivnagar, B'luru",
+};
+
+/** Values of respond.io's "Class Type" list field. A list field rejects anything else. */
+const RESPONDIO_CLASS_TYPE_BY_FORMAT_KEY: Record<string, string> = {
+  "barre-57": "Barre",
+  "power-cycle": "powerCycle",
+  "strength-lab": "Strength Lab!",
+};
+
+export function respondIoEventId(payload: Pick<LeadCapturePayload, "stage" | "memberId" | "email">) {
+  return `${payload.stage ?? "completed"}_${payload.memberId ?? payload.email.trim().toLowerCase()}`;
+}
+
+/**
+ * Every form value respond.io has a custom field for, keyed by the field's slug. Empty values
+ * are left out so an update never blanks a field an earlier submission (or an agent) filled.
+ */
+export function buildRespondIoContactBody(payload: LeadCapturePayload) {
+  const isBengaluru = payload.abVariant === "bengaluru";
+  const classTypeKey = isBengaluru ? "barre-57" : (payload.classType ?? "barre-57");
+  const childAge = payload.childAge ? Number.parseInt(payload.childAge, 10) : NaN;
+  const memberId = payload.memberId ? String(payload.memberId) : undefined;
+
+  const fields: Record<string, string | number | undefined> = {
+    contact_email: payload.email,
+    trial_name: `${payload.firstName} ${payload.lastName}`.trim(),
+    trial_phone: payload.phoneE164,
+    trial_location: payload.center,
+    center: payload.homeLocationId
+      ? RESPONDIO_CENTER_BY_LOCATION_ID[payload.homeLocationId]
+      : undefined,
+    class_type: RESPONDIO_CLASS_TYPE_BY_FORMAT_KEY[classTypeKey],
+    member_id: memberId,
+    MemberId: memberId,
+    event_id: respondIoEventId(payload),
+    lead_source: payload.utmSource ?? "website",
+    source_id: payload.sourceId,
+    source_form: payload.sourceForm ?? (payload.stage === "partial" ? "partial-signup" : undefined),
+    landing_page: payload.landingPage,
+    utm_source: payload.utmSource,
+    utm_medium: payload.utmMedium,
+    utm_campaign: payload.utmCampaign,
+    child_name: payload.childName,
+    child_age: Number.isFinite(childAge) ? childAge : undefined,
+    batch_preference: payload.batch,
+    whatsapp_consent: payload.whatsappConsent ? "opted_in" : "not_opted_in",
+  };
 
   return {
-    firstName,
-    lastName,
-    email,
-    phone: phoneE164,
-    customFields: [
-      { name: "center", value: center },
-      { name: "classType", value: classTypeValue },
-      { name: "whatsappConsent", value: whatsappConsent ? "opted_in" : "not_opted_in" },
-    ],
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+    email: payload.email,
+    phone: payload.phoneE164,
+    custom_fields: Object.entries(fields)
+      .filter(([, value]) => value !== undefined && value !== "")
+      .map(([name, value]) => ({ name, value })),
   };
+}
+
+const RESPONDIO_DEFAULT_WHATSAPP_CHANNEL_ID = 527665;
+
+/**
+ * The welcome WhatsApp template for a submission: the Bengaluru copy for a Bengaluru studio
+ * or landing page, the Mumbai copy otherwise. The templates' buttons are fixed links, so the
+ * first name is the only parameter.
+ */
+export function buildRespondIoWelcomeTemplateMessage(
+  payload: Pick<LeadCapturePayload, "firstName" | "homeLocationId" | "abVariant">,
+  channelId: number,
+) {
+  const isBengaluru =
+    payload.abVariant === "bengaluru" ||
+    (payload.homeLocationId !== undefined && isBengaluruLocation(payload.homeLocationId));
+
+  return {
+    channelId,
+    message: {
+      type: "whatsapp_template",
+      template: {
+        name: isBengaluru ? "welcome_n1_bengaluru" : "welcome_n1_mumbai",
+        languageCode: "en",
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: payload.firstName.trim() || "there" }],
+          },
+        ],
+      },
+    },
+  };
+}
+
+/** The id of the first respond.io contact matching an identifier, or null when none does. */
+async function findRespondIoContactId(
+  baseUrl: string,
+  apiKey: string,
+  identifiers: string[],
+): Promise<number | null> {
+  for (const identifier of identifiers) {
+    const found = await callRespondIo(baseUrl, apiKey, {
+      path: `/contact/${identifier}`,
+      method: "GET",
+    });
+    const id = (found.data as { id?: unknown } | null)?.id;
+    if (found.ok && typeof id === "number") return id;
+    if (!found.ok && found.status !== 404) {
+      throw new Error(`Lookup ${identifier} failed: ${found.status} ${found.text}`);
+    }
+  }
+  return null;
 }
 
 async function syncRespondIoContactAndConversation(payload: LeadCapturePayload): Promise<void> {
@@ -229,28 +313,43 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
 
   // Identifier format per respond.io API v2: "phone:+<e164 digits>" (no URL-encoding needed,
   // phoneE164 is already restricted to '+' and digits by upstream validation).
-  const identifier = `phone:${payload.phoneE164}`;
+  const phoneIdentifier = `phone:${payload.phoneE164}`;
+
+  // Deduplicated against respond.io itself: someone already there by phone or email (an
+  // earlier partial, a resubmission, an existing member) is updated in place and is not sent
+  // the welcome template again.
+  let existingContactId: number | null;
+  try {
+    existingContactId = await findRespondIoContactId(baseUrl, apiKey, [
+      phoneIdentifier,
+      `email:${encodeURIComponent(payload.email.trim().toLowerCase())}`,
+    ]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+    console.error("Respond.io contact lookup failed - skipping sync", message);
+    return;
+  }
+  const isDuplicate = existingContactId !== null;
+  const identifier = isDuplicate ? `id:${existingContactId}` : phoneIdentifier;
 
   try {
-    const created = await callRespondIo(baseUrl, apiKey, {
-      path: `/contact/create_or_update/${identifier}`,
-      body: buildRespondIoContactBody({
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        email: payload.email,
-        phoneE164: payload.phoneE164,
-        center: payload.center,
-        classType: payload.abVariant === "bengaluru" ? "barre-57" : payload.classType,
-        whatsappConsent: payload.whatsappConsent,
-      }),
-    });
-    if (!created.ok) {
-      console.error("Respond.io contact creation failed", `${created.status} ${created.text}`);
+    const saved = isDuplicate
+      ? await callRespondIo(baseUrl, apiKey, {
+          path: `/contact/${identifier}`,
+          method: "PUT",
+          body: buildRespondIoContactBody(payload),
+        })
+      : await callRespondIo(baseUrl, apiKey, {
+          path: `/contact/create_or_update/${identifier}`,
+          body: buildRespondIoContactBody(payload),
+        });
+    if (!saved.ok) {
+      console.error("Respond.io contact save failed", `${saved.status} ${saved.text}`);
       return;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown Respond.io error";
-    console.error("Respond.io contact creation failed", message);
+    console.error("Respond.io contact save failed", message);
     return;
   }
 
@@ -271,6 +370,15 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
       body: { status: "open" },
     },
   ];
+  if (!isDuplicate) {
+    followUps.push({
+      path: `/contact/${identifier}/message`,
+      body: buildRespondIoWelcomeTemplateMessage(
+        payload,
+        Number(process.env.RESPONDIO_CHANNEL_ID?.trim()) || RESPONDIO_DEFAULT_WHATSAPP_CHANNEL_ID,
+      ),
+    });
+  }
 
   // A freshly created contact is indexed asynchronously on respond.io's side; calls made
   // immediately after creation can hit their queue and return 449 until indexing finishes.
@@ -371,7 +479,7 @@ async function sendLeadToMomence(
       // Deterministic on purpose. A clock reading here made every post unique, so a lead
       // Momence had already seen was filed again as a new one; the member id (or the email
       // when there is not one yet) identifies the same person on every retry.
-      event_id: `${payload.stage ?? "completed"}_${payload.memberId ?? payload.email.trim().toLowerCase()}`,
+      event_id: respondIoEventId(payload),
       utm_source: payload.utmSource ?? "website",
       utm_medium:
         payload.utmMedium ??
@@ -419,8 +527,6 @@ async function sendLeadToMomence(
       console.error("Lead capture failed:", res.status, t);
       return { ok: false, error: `Lead capture ${res.status}` };
     }
-
-    await syncRespondIoQuietly(payload);
 
     const additionalWebhookUrl = process.env.MOMENCE_LEADS_WEBHOOK_URL?.trim();
     if (additionalWebhookUrl) {
@@ -490,6 +596,9 @@ export async function captureLead(
     }
     return outcome;
   }
+
+  // Every submission reaches respond.io, whether or not Momence gets the lead.
+  await syncRespondIoQuietly(payload);
 
   // Stored with no verdict yet; filled in below once we know what happened.
   const stored = await recordSubmission(payload, { ok: false, skipped: true });
