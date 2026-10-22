@@ -196,7 +196,30 @@ const RESPONDIO_CLASS_TYPE_BY_FORMAT_KEY: Record<string, string> = {
   "strength-lab": "Strength Lab!",
 };
 
-export function respondIoEventId(payload: Pick<LeadCapturePayload, "stage" | "memberId" | "email">) {
+const RESPONDIO_TEXT_FIELD_MAX_LENGTH = 255;
+const CLICK_ID_PARAMS = ["fbclid", "gclid", "gbraid", "wbraid", "msclkid", "ttclid"];
+
+/**
+ * respond.io rejects the whole contact save when a field is over 255 characters, and ad
+ * click ids alone push most paid-traffic landing URLs past it. Click ids are dropped (they
+ * are kept in our own submission record), then whatever is still too long is clipped.
+ */
+function respondIoLandingPage(landingPage: string | undefined) {
+  if (!landingPage) return landingPage;
+  let value = landingPage;
+  try {
+    const url = new URL(landingPage);
+    CLICK_ID_PARAMS.forEach((param) => url.searchParams.delete(param));
+    value = url.toString();
+  } catch {
+    // Not a parseable URL - clip it as it is.
+  }
+  return value.slice(0, RESPONDIO_TEXT_FIELD_MAX_LENGTH);
+}
+
+export function respondIoEventId(
+  payload: Pick<LeadCapturePayload, "stage" | "memberId" | "email">,
+) {
   return `${payload.stage ?? "completed"}_${payload.memberId ?? payload.email.trim().toLowerCase()}`;
 }
 
@@ -225,7 +248,7 @@ export function buildRespondIoContactBody(payload: LeadCapturePayload) {
     lead_source: payload.utmSource ?? "website",
     source_id: payload.sourceId,
     source_form: payload.sourceForm ?? (payload.stage === "partial" ? "partial-signup" : undefined),
-    landing_page: payload.landingPage,
+    landing_page: respondIoLandingPage(payload.landingPage),
     utm_source: payload.utmSource,
     utm_medium: payload.utmMedium,
     utm_campaign: payload.utmCampaign,

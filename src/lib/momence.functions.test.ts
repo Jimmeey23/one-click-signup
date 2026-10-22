@@ -7,6 +7,36 @@ import {
 } from "./momence.functions.ts";
 
 describe("respond.io contact body", () => {
+  it("keeps landing_page within respond.io's 255-character limit", () => {
+    const body = buildRespondIoContactBody({
+      firstName: "Asha",
+      lastName: "Rao",
+      email: "asha@example.com",
+      phoneE164: "+919876543210",
+      center: "Plash Pilates",
+      waiverAccepted: true,
+      landingPage: `https://pm.physique57india.com/bengaluru?utm_source=fb&fbclid=${"x".repeat(300)}&utm_id=1`,
+    });
+    const fields = Object.fromEntries(body.custom_fields.map((f) => [f.name, f.value]));
+
+    assert.equal(
+      fields.landing_page,
+      "https://pm.physique57india.com/bengaluru?utm_source=fb&utm_id=1",
+    );
+
+    const huge = buildRespondIoContactBody({
+      firstName: "Asha",
+      lastName: "Rao",
+      email: "asha@example.com",
+      phoneE164: "+919876543210",
+      center: "Plash Pilates",
+      waiverAccepted: true,
+      landingPage: `https://pm.physique57india.com/?utm_content=${"y".repeat(400)}`,
+    });
+    const hugeFields = Object.fromEntries(huge.custom_fields.map((f) => [f.name, f.value]));
+    assert.ok(String(hugeFields.landing_page).length <= 255);
+  });
+
   it("fills every matching custom field by slug from the submission", () => {
     const body = buildRespondIoContactBody({
       firstName: "Asha",
