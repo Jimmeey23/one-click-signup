@@ -408,11 +408,15 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
   // immediately after creation can hit their queue and return 449 until indexing finishes.
   const RETRY_DELAYS_MS = [1500, 3000, 5000];
 
+  let welcomeSent = false;
   for (const attempt of followUps) {
     for (let retry = 0; ; retry++) {
       try {
         const response = await callRespondIo(baseUrl, apiKey, attempt);
-        if (response.ok) break;
+        if (response.ok) {
+          if (attempt.path.endsWith("/message")) welcomeSent = true;
+          break;
+        }
         if (response.status === 449 && retry < RETRY_DELAYS_MS.length) {
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[retry]));
           continue;
@@ -425,6 +429,44 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
         break;
       }
     }
+  }
+
+  if (welcomeSent) await triggerRespondIoWelcomeWorkflow(payload);
+}
+
+/**
+ * Starts the respond.io follow-up workflow once the welcome template is out. The workflow's
+ * Incoming Webhook trigger identifies the contact by the `email` field.
+ */
+async function triggerRespondIoWelcomeWorkflow(payload: LeadCapturePayload): Promise<void> {
+  const url = process.env.RESPONDIO_WELCOME_WORKFLOW_WEBHOOK_URL?.trim();
+  if (!url) {
+    console.warn("RESPONDIO_WELCOME_WORKFLOW_WEBHOOK_URL not set - skipping welcome workflow");
+    return;
+  }
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: payload.email.trim().toLowerCase(),
+        phone: payload.phoneE164,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        center: payload.center,
+        memberId: payload.memberId,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) {
+      console.error(
+        "Respond.io welcome workflow failed",
+        `${response.status} ${await response.text()}`,
+      );
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown Respond.io error";
+    console.error("Respond.io welcome workflow failed", message);
   }
 }
 
