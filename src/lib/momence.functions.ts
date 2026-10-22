@@ -339,8 +339,7 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
   const phoneIdentifier = `phone:${payload.phoneE164}`;
 
   // Deduplicated against respond.io itself: someone already there by phone or email (an
-  // earlier partial, a resubmission, an existing member) is updated in place and is not sent
-  // the welcome template again.
+  // earlier partial, a resubmission, an existing member) is updated in place.
   let existingContactId: number | null;
   try {
     existingContactId = await findRespondIoContactId(baseUrl, apiKey, [
@@ -393,7 +392,9 @@ async function syncRespondIoContactAndConversation(payload: LeadCapturePayload):
       body: { status: "open" },
     },
   ];
-  if (!isDuplicate) {
+  // Every completed signup gets the welcome template, existing contact or not. A partial
+  // never does: it fires before submit, so sending there too would message everyone twice.
+  if (payload.stage !== "partial") {
     followUps.push({
       path: `/contact/${identifier}/message`,
       body: buildRespondIoWelcomeTemplateMessage(
