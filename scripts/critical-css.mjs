@@ -32,6 +32,10 @@ export async function landingCriticalCss(root) {
     "Header",
     "Stat",
     "SignupCard",
+    "SignupProgress",
+    "FormPanel",
+    "StudioPicker",
+    "ClassFormatPicker",
     "Field",
     "ConsentLine",
     "DeferredSignaturePad",
@@ -63,15 +67,22 @@ export async function landingCriticalCss(root) {
   );
   candidates.add("min-h-screen");
   const full = await fs.readFile(path.join(root, "src/styles.css"), "utf8");
-  // The reset, theme, hero, form, logo and fonts are needed for the first viewport.
-  // Policy pages, galleries and other later sections keep their external styles.
-  const base = full.slice(0, full.indexOf(".feature-card"));
-  const form = full.slice(full.indexOf(".signup-card input"), full.indexOf("/* Marquee */"));
-  const logo = full.slice(
-    full.indexOf("@keyframes brand-logo-breathe"),
-    full.indexOf(".animate-marquee"),
-  );
-  const fonts = full.slice(full.indexOf("@font-face"));
+  // The reset, theme, shared primitives, hero, signup form, logo and fonts are needed for
+  // the first viewport. Later sections keep their external styles. The regions are marked
+  // in styles.css so a rule can be moved without silently dropping it from the critical
+  // bundle - a missing marker fails the build instead.
+  function region(open, close) {
+    const start = full.indexOf(open);
+    const end = close ? full.indexOf(close) : full.length;
+    if (start < 0 || end < 0 || end <= start) {
+      throw new Error(`Cannot find critical CSS region "${open}" in src/styles.css`);
+    }
+    return full.slice(start, end);
+  }
+  const base = region("", "/* critical:base:end */");
+  const form = region("/* critical:form:start */", "/* critical:form:end */");
+  const logo = region("/* critical:logo:start */", "/* critical:logo:end */");
+  const fonts = region("/* critical:fonts:start */");
   const input = (base + form + logo + fonts).replace('@source "../src";', "");
   const compiler = await compile(input, { base: path.join(root, "src"), onDependency() {} });
   return transform({

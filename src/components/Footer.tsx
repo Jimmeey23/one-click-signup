@@ -23,7 +23,7 @@ export function Footer({
         className="pointer-events-none absolute -right-24 -top-36 h-80 w-80 rounded-full bg-primary/10 blur-3xl"
         aria-hidden
       />
-      <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-6 lg:py-12">
+      <div className="p57-shell relative py-12 lg:py-14">
         <div className="grid gap-9 border-b border-white/10 pb-9 md:grid-cols-[1.15fr_0.85fr_1fr] md:gap-10">
           <div className="max-w-sm">
             <div className="flex items-center justify-between gap-5">
@@ -47,10 +47,7 @@ export function Footer({
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/55">
               The signature 57-minute method for strength, posture and lasting transformation.
             </p>
-            <a
-              href="#signup"
-              className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#0b1117] transition duration-200 hover:-translate-y-0.5 hover:bg-white"
-            >
+            <a href="#signup" className="p57-btn p57-btn--brand mt-5 h-10 min-h-10">
               Book your first class
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
@@ -166,11 +163,7 @@ function Social({
 }
 
 function FooterHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.28em] text-primary">
-      {children}
-    </p>
-  );
+  return <p className="p57-eyebrow p57-eyebrow--invert mb-4">{children}</p>;
 }
 
 function FooterLink({

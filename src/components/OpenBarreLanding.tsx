@@ -2,19 +2,25 @@ import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useId, useRef, useState, lazy, Suspense } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  ArrowRight,
+  ArrowUpRight,
   Check,
-  FileText,
-  TrendingUp,
+  ChevronDown,
+  CircleAlert,
+  Clock,
   Fingerprint,
-  Zap,
+  ListChecks,
+  Loader2,
+  Lock,
+  MapPin,
+  Navigation,
+  Phone,
   Star,
+  TrendingUp,
   Trophy,
   UserCheck,
-  ListChecks,
   Users,
-  MapPin,
-  Phone,
-  Clock,
+  Zap,
 } from "lucide-react";
 import {
   signupAndEnroll,
@@ -50,6 +56,7 @@ import {
   type ClassFormatKey,
 } from "@/lib/class-format-matchers";
 import { classFormatForKey, classTypeOptionsForLocation } from "@/lib/class-formats";
+import { cn } from "@/lib/utils";
 import { isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
 import { eventDetailLine, type RouteEvent } from "@/lib/route-event";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
@@ -150,7 +157,6 @@ type StudioConfig = {
   heroLocationLine: string;
   statLabel: string;
   signupCta: string;
-  landingNote: string;
 };
 
 const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
@@ -164,8 +170,6 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
     heroLocationLine: "Mumbai · Bengaluru",
     statLabel: "studios",
     signupCta: "Claim Your Trial Class",
-    landingNote:
-      "Please review and sign before activating Open Barre. This consent is recorded with your Momence member profile.",
   },
   bengaluru: {
     title: "Physique 57 Bengaluru - Find your next class",
@@ -177,8 +181,6 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
     heroLocationLine: "Bengaluru",
     statLabel: "formats",
     signupCta: "Book Your Trial Class",
-    landingNote:
-      "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile.",
   },
 };
 
@@ -202,15 +204,6 @@ type OpenBarreLandingProps = {
    */
   routeEvent?: RouteEvent;
 };
-
-const KIDS_HERO_QUOTES = [
-  "A joyful first class for young movers.",
-  "Confident kids start with great movement.",
-  "Built for growing bodies, guided by expert coaches.",
-];
-
-const KIDS_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1600&q=80";
 
 export function OpenBarreLanding({
   captureLead = true,
@@ -387,7 +380,7 @@ export function OpenBarreLanding({
     if (!allowed.includes(form.classType)) {
       setForm((prev) => ({ ...prev, classType: allowed[0] }));
     }
-  }, [form.homeLocationId]);
+  }, [form.classType, form.homeLocationId]);
 
   // Re-run on every change rather than once: firing only on the first keystroke sent the
   // pixel a match payload of just a partial first name, and never updated it once the
@@ -515,7 +508,7 @@ export function OpenBarreLanding({
       LOCATIONS.some((l) => l.id === form.homeLocationId) &&
       form.waiverAccepted &&
       form.signatureName.trim().length >= 2,
-    [form],
+    [form, LOCATIONS],
   );
 
   async function onSubmit(e: React.FormEvent) {
@@ -699,16 +692,21 @@ export function OpenBarreLanding({
 
   if (waiverFailed) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <div className="flex min-h-screen flex-col bg-background text-foreground">
         <Header studioVariant={studioVariant} />
-        <div className="flex-1 flex items-center justify-center px-6 py-24">
-          <div className="max-w-md text-center space-y-4">
-            <h1 className="font-display text-3xl md:text-4xl tracking-tight">
-              Thank you for your interest!
-            </h1>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              A member from our team will reach out to you shortly.
+        <div className="flex flex-1 items-center justify-center px-6 py-24">
+          <div className="max-w-md text-center">
+            <span className="p57-icon-tile mx-auto">
+              <Check className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h1 className="p57-title mt-6">Thank you for your interest.</h1>
+            <p className="p57-lede mx-auto mt-4 text-center">
+              A member of our team will reach out to you shortly to complete your registration.
             </p>
+            <a href="tel:+919769665757" className="p57-btn p57-btn--dark mt-8">
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              Call the studio
+            </a>
           </div>
         </div>
         <Footer studioVariant={studioVariant} />
@@ -716,11 +714,16 @@ export function OpenBarreLanding({
     );
   }
 
+  const isPaidRoute = Boolean(routeEvent?.paid);
+  const heroFacts = isPaidRoute
+    ? ["Paid class", "60-second signup", "All levels welcome"]
+    : ["57-minute class", "No card required", "Beginner friendly"];
+
   return (
     <div className="landing-page min-h-screen bg-background text-foreground">
-      <Header studioVariant={studioVariant} />
+      <Header studioVariant={studioVariant} paid={isPaidRoute} />
 
-      <section className="hero-shell relative overflow-hidden">
+      <section className="hero-shell overflow-hidden">
         <img
           className="hero-image absolute inset-0 h-full w-full object-cover object-center"
           src={heroImageUrl || groupBarre}
@@ -733,44 +736,64 @@ export function OpenBarreLanding({
           decoding="async"
         />
         <div
-          className="hero-glow absolute -left-32 top-1/3 h-80 w-80 rounded-full bg-primary/20 blur-3xl"
+          className="hero-glow absolute -left-40 top-16 h-[30rem] w-[30rem] rounded-full opacity-70"
           aria-hidden
         />
-        <div className="hero-grid absolute inset-0 opacity-20" aria-hidden />
+        <div className="hero-grid absolute inset-0 opacity-[0.16]" aria-hidden />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(135deg, rgba(8,10,15,0.92) 0%, rgba(8,10,15,0.75) 55%, rgba(8,10,15,0.55) 100%)",
+              "linear-gradient(102deg, rgba(5,9,13,0.96) 0%, rgba(5,9,13,0.88) 42%, rgba(5,9,13,0.55) 100%)",
           }}
           aria-hidden
         />
-        <div className="relative max-w-7xl mx-auto px-5 sm:px-6 pt-32 pb-16 lg:pt-36 lg:pb-24 grid lg:grid-cols-[0.88fr_1.12fr] gap-12 lg:gap-16 items-start text-white">
-          <div className="pt-2 lg:sticky lg:top-32">
-            <div className="mb-7 flex flex-wrap items-center gap-2">
-              <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold backdrop-blur-md">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
+
+        <div className="p57-shell relative grid items-start gap-10 pb-16 pt-10 text-white sm:pt-14 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14 lg:pb-24 lg:pt-16">
+          <div className="lg:sticky lg:top-24">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="p57-chip p57-chip--invert">
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]"
+                  aria-hidden="true"
+                />
                 {routeEvent?.studio || studioConfig.heroLocationLine}
-              </p>
+              </span>
               {routeEvent && (
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] font-bold text-white/80 backdrop-blur-md">
+                <span className="p57-chip p57-chip--invert">
                   {routeEvent.paid ? "Paid class" : "Complimentary"}
                 </span>
               )}
             </div>
-            <h1 className="max-w-xl font-display text-[clamp(3rem,6vw,5.5rem)] leading-[0.94] tracking-[-0.035em] text-balance">
+
+            <h1 className="mt-6 max-w-[15ch] text-[clamp(2.65rem,5.4vw,4.75rem)] font-normal leading-[0.94] tracking-[-0.035em] text-balance">
               {routeEvent?.name ||
                 (heroImageFallback ? `${heroImageFallback} · ${heroQuote}` : heroQuote)}
             </h1>
+
             {routeEventDetail && (
-              <p className="mt-5 text-sm md:text-base font-semibold uppercase tracking-[0.18em] text-primary">
+              <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
                 {routeEventDetail}
               </p>
             )}
-            <p className="mt-7 max-w-lg text-base md:text-lg text-white/72 leading-relaxed text-pretty">
+
+            <p className="mt-6 max-w-lg text-[0.98rem] leading-relaxed text-white/70 sm:text-[1.05rem]">
               {routeEvent?.paid ? PAID_EVENT_DESCRIPTION : studioConfig.description}
             </p>
-            <div className="mt-9 grid grid-cols-3 gap-3 max-w-lg border-t border-white/15 pt-7">
+
+            <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2.5">
+              {heroFacts.map((fact) => (
+                <li
+                  key={fact}
+                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/55"
+                >
+                  <Check className="h-3.5 w-3.5 text-primary" strokeWidth={3} aria-hidden="true" />
+                  {fact}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-9 grid max-w-md grid-cols-3 gap-4 border-t border-white/15 pt-6">
               <Stat n="57" label="minutes" />
               <Stat n={isBengaluru ? "8" : "3"} label={studioConfig.statLabel} />
               <Stat n="∞" label="energy" />
@@ -783,7 +806,8 @@ export function OpenBarreLanding({
             onSubmit={onSubmit}
             loading={loading}
             error={error}
-            valid={valid && signed}
+            valid={valid}
+            signed={signed}
             sigRef={sigRef}
             onSignChange={handleSignChange}
             studioSelected={studioSelected}
@@ -804,96 +828,119 @@ export function OpenBarreLanding({
       </section>
 
       {routeEvent?.details?.trim() && (
-        <section className="border-b border-border/60 bg-secondary py-14 lg:py-16">
-          <div className="mx-auto max-w-3xl px-5 sm:px-6">
-            <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold">
-              About this event
-            </p>
-            <p className="mt-4 whitespace-pre-line text-base md:text-lg leading-relaxed text-muted-foreground">
+        <section className="border-b border-border bg-secondary" aria-label="About this event">
+          <div className="p57-shell grid gap-6 py-12 lg:grid-cols-[0.55fr_1.45fr] lg:gap-12 lg:py-14">
+            <div>
+              <p className="p57-eyebrow">About this event</p>
+              {routeEventDetail && (
+                <p className="mt-3 text-sm font-semibold text-foreground">{routeEventDetail}</p>
+              )}
+            </div>
+            <p className="max-w-3xl whitespace-pre-line text-[0.95rem] leading-relaxed text-muted-foreground">
               {routeEvent.details.trim()}
             </p>
           </div>
         </section>
       )}
 
-      <section className="bg-foreground text-background overflow-hidden py-5 border-y border-white/10">
-        <div className="flex gap-12 animate-marquee whitespace-nowrap font-display text-3xl md:text-4xl italic">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="flex gap-12 items-center">
-              <Dot /> <span>Barre 57</span>
-              <Dot /> <span>FIT</span>
-              {!isBengaluru && (
-                <>
-                  <Dot /> <span>Strength Lab</span>
-                </>
-              )}
-              <Dot /> <span>Mat 57</span>
-              <Dot /> <span>HIIT</span>
-              {!isBengaluru && (
-                <>
-                  <Dot /> <span>powerCycle</span>
-                </>
-              )}
-              <Dot /> <span>Cardio Barre</span>
+      <section
+        className="overflow-hidden border-y border-white/10 bg-[#070c11] py-4 text-white"
+        aria-label="Class formats"
+      >
+        <div className="marquee-mask flex">
+          <div className="animate-marquee flex whitespace-nowrap">
+            {Array.from({ length: 2 }).map((_, groupIndex) => (
+              <div
+                key={groupIndex}
+                className="flex items-center gap-8 pr-8 font-display text-2xl italic text-white/85 md:text-3xl"
+                aria-hidden={groupIndex === 1 ? true : undefined}
+              >
+                <Dot /> <span>Barre 57</span>
+                <Dot /> <span>FIT</span>
+                {!isBengaluru && (
+                  <>
+                    <Dot /> <span>Strength Lab</span>
+                  </>
+                )}
+                <Dot /> <span>Mat 57</span>
+                <Dot /> <span>HIIT</span>
+                {!isBengaluru && (
+                  <>
+                    <Dot /> <span>powerCycle</span>
+                  </>
+                )}
+                <Dot /> <span>Cardio Barre</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="p57-section bg-background" aria-labelledby="method-heading">
+        <div className="p57-shell grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <p className="p57-eyebrow">The Physique 57 Method</p>
+            <h2 id="method-heading" className="p57-title mt-5">
+              Engineered to <em>reshape</em> you in 57 minutes.
+            </h2>
+            <p className="p57-lede mt-5">
+              The proven advantages that make Physique 57 India the preferred choice for fast,
+              visible results and sustainable transformation.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
+              <span className="p57-chip p57-chip--accent">Low impact</span>
+              <span className="p57-chip">Every level</span>
+              <span className="p57-chip">Expert coached</span>
             </div>
-          ))}
+            <Link to="/classes-info" className="p57-btn p57-btn--outline mt-9">
+              Explore every class
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card shadow-[var(--shadow-card)]">
+            {METHOD_PILLARS.map((pillar, index) => (
+              <Feature key={pillar.title} {...pillar} index={index} />
+            ))}
+          </div>
+        </div>
+
+        <div className="p57-shell">
+          <KeyBenefitsGrid />
         </div>
       </section>
 
-      <section className="section-wash max-w-7xl mx-auto px-5 sm:px-6 py-20 lg:py-28">
-        <div className="max-w-2xl mb-14">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
-            The Physique 57 Method & Key Benefits
-          </p>
-          <h2 className="font-display text-4xl md:text-6xl leading-[1.05] tracking-tight">
-            Engineered to <em className="italic">reshape</em> you in 57 minutes.
-          </h2>
-          <p className="mt-5 text-base text-muted-foreground leading-relaxed">
-            The proven advantages that make Physique 57 India the preferred choice for fast, visible
-            results and sustainable transformation.
+      <section className="bg-[#070c11]" aria-labelledby="gallery-heading">
+        <div className="p57-shell flex flex-wrap items-end justify-between gap-6 py-12 lg:py-16">
+          <div>
+            <p className="p57-eyebrow p57-eyebrow--invert">Inside the studio</p>
+            <h2 id="gallery-heading" className="p57-title p57-title--sm p57-title--invert mt-4">
+              A room built for <em>momentum</em>.
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-white/55">
+            Warm lighting, precision coaching, and a community that shows up. This is what a
+            57-minute class looks like.
           </p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          <Feature
-            img={trainerLunge}
-            tag="Sculpt"
-            title="Isometric holds + dynamic reps"
-            body="Tiny, precise movements that sculpt deep muscle - the Physique 57 signature."
-          />
-          <Feature
-            img={lunge}
-            tag="Burn"
-            title="Interval-style class structure"
-            body="Sequenced segments hit every muscle group with zero downtime, no impact."
-          />
-          <Feature
-            img={trainerArm}
-            tag="Recover"
-            title="Stretch to lengthen, every class"
-            body="We finish long and lean - every session ends with deep stretching to reset."
-          />
-        </div>
-
-        <KeyBenefitsGrid />
+        <FlippingGallery
+          slots={
+            isBengaluru
+              ? [
+                  [groupBarre, trainer2, trainerLunge],
+                  [intenseFace, trainer3, sculptSide],
+                  [kettlebellPink, trainer4, lunge],
+                  [sculptSide, trainerArm, groupBarre],
+                ]
+              : [
+                  [heroBike, trainer2, cycleShot],
+                  [intenseFace, trainer3, sculptSide],
+                  [kettlebellPink, trainer4, trainerLunge],
+                  [sculptSide, trainerArm, heroBike],
+                ]
+          }
+        />
       </section>
-
-      <FlippingGallery
-        slots={
-          isBengaluru
-            ? [
-                [groupBarre, trainer2, trainerLunge],
-                [intenseFace, trainer3, sculptSide],
-                [kettlebellPink, trainer4, lunge],
-                [sculptSide, trainerArm, groupBarre],
-              ]
-            : [
-                [heroBike, trainer2, cycleShot],
-                [intenseFace, trainer3, sculptSide],
-                [kettlebellPink, trainer4, trainerLunge],
-                [sculptSide, trainerArm, heroBike],
-              ]
-        }
-      />
 
       <WhatHappensNext />
 
@@ -901,21 +948,29 @@ export function OpenBarreLanding({
 
       <StudioLocations studioVariant={studioVariant} />
 
-      <section className="bg-secondary py-20 lg:py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-end justify-between flex-wrap gap-6 mb-10">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
-                Loved by {isBengaluru ? "Bengaluru" : "Mumbai"}
-              </p>
-              <h2 className="font-display text-4xl md:text-5xl tracking-tight">
-                What our community says
-              </h2>
-            </div>
+      <section className="p57-section bg-secondary" aria-labelledby="reviews-heading">
+        <div className="p57-shell">
+          <SectionHeading
+            eyebrow={`Loved by ${isBengaluru ? "Bengaluru" : "Mumbai"}`}
+            title={
+              <>
+                What our <em>community</em> says
+              </>
+            }
+            headingId="reviews-heading"
+            description="Real members, real classes, real results - in the studio and long after."
+          />
+          <div className="mt-10">
+            <ReviewsCarousel studioVariant={studioVariant} />
           </div>
-          <ReviewsCarousel studioVariant={studioVariant} />
         </div>
       </section>
+
+      <ClosingCta
+        studioVariant={studioVariant}
+        ctaLabel={studioConfig.signupCta}
+        paid={isPaidRoute}
+      />
 
       <Footer studioVariant={studioVariant} />
     </div>
@@ -962,42 +1017,43 @@ const BENGALURU_INSTRUCTORS = [
 
 function BengaluruInstructors() {
   return (
-    <section className="bg-foreground text-background py-20 lg:py-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6">
-        <div className="grid lg:grid-cols-[0.72fr_1.28fr] gap-10 lg:gap-16 items-end mb-11">
+    <section
+      className="bg-[#070c11] py-[var(--section-y)] text-white"
+      aria-labelledby="coaches-heading"
+    >
+      <div className="p57-shell">
+        <div className="grid items-end gap-8 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.32em] text-primary font-bold mb-4">
-              Your Bengaluru team
-            </p>
-            <h2 className="font-display text-4xl md:text-6xl leading-[1.02] tracking-tight">
-              Meet your <em className="italic text-primary">instructors.</em>
+            <p className="p57-eyebrow p57-eyebrow--invert">Your Bengaluru team</p>
+            <h2 id="coaches-heading" className="p57-title p57-title--invert mt-5">
+              Meet your <em>instructors</em>.
             </h2>
           </div>
-          <p className="max-w-2xl text-sm md:text-base leading-relaxed text-white/62 lg:justify-self-end">
+          <p className="max-w-xl text-sm leading-relaxed text-white/55 lg:justify-self-end">
             Expert guidance, thoughtful corrections, and the kind of energy that keeps you coming
             back. Get to know the instructors who bring the Physique 57 Method to life in Bengaluru.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
           {BENGALURU_INSTRUCTORS.map((instructor, index) => (
             <article
               key={instructor.name}
-              className="group min-w-0 overflow-hidden rounded-[1.35rem] border border-white/10 bg-white/[0.055] shadow-[0_18px_55px_rgba(0,0,0,0.18)]"
+              className="group overflow-hidden rounded-[var(--radius-card)] border border-white/10 bg-white/[0.045]"
             >
-              <div className="relative aspect-square overflow-hidden bg-white">
+              <div className="relative aspect-[4/3] overflow-hidden bg-white">
                 <LazyBackground
                   src={bengaluruInstructorCollage}
                   role="img"
                   aria-label={`${instructor.name}, Physique 57 Bengaluru ${instructor.role.toLowerCase()}`}
-                  className="absolute inset-0 bg-no-repeat transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+                  className="absolute inset-0 bg-no-repeat transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.03]"
                   style={{
                     backgroundSize: instructor.backgroundSize,
                     backgroundPosition: instructor.backgroundPosition,
                   }}
                 />
-                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent" />
-                <span className="absolute left-4 bottom-3 text-[9px] font-bold uppercase tracking-[0.24em] text-white/75">
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent" />
+                <span className="absolute bottom-3 left-4 text-[9px] font-bold uppercase tracking-[0.24em] text-white/75">
                   0{index + 1}
                 </span>
               </div>
@@ -1008,7 +1064,7 @@ function BengaluruInstructors() {
                 <h3 className="mt-2 font-display text-2xl tracking-tight text-white">
                   {instructor.name}
                 </h3>
-                <p className="mt-3 text-[13px] leading-relaxed text-white/58">{instructor.bio}</p>
+                <p className="mt-2.5 text-[13px] leading-relaxed text-white/55">{instructor.bio}</p>
               </div>
             </article>
           ))}
@@ -1018,52 +1074,91 @@ function BengaluruInstructors() {
   );
 }
 
-function Header({ studioVariant }: { studioVariant: StudioVariant }) {
+function Header({ studioVariant, paid = false }: { studioVariant: StudioVariant; paid?: boolean }) {
   const isBengaluru = studioVariant === "bengaluru";
+  const ctaLabel = paid ? "Reserve a place" : isBengaluru ? "Book a class" : "Claim your trial";
+
   return (
-    <header className="absolute top-0 inset-x-0 z-20 border-b border-white/10 bg-black/10 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-5 sm:px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070c11] text-white">
+      <div className="p57-shell flex h-16 items-center justify-between gap-4 lg:h-[4.5rem]">
+        <Link to="/" className="flex shrink-0 items-center gap-3" aria-label="Physique 57 home">
           <img
             width={108}
             height={80}
             src={logoUrl}
             alt="Physique 57"
-            className="brand-logo h-10 w-auto"
+            className="brand-logo h-9 w-auto"
           />
         </Link>
-        <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-[0.2em] text-white/70 font-bold">
-          <Link to="/about" className="hover:text-primary transition">
-            About
-          </Link>
-          <Link
-            to="/classes-info"
-            search={isBengaluru ? { studio: "bengaluru" } : undefined}
-            className="hover:text-primary transition"
-          >
-            Classes
-          </Link>
-          <Link
-            to="/faq"
-            search={isBengaluru ? { studio: "bengaluru" } : undefined}
-            className="hover:text-primary transition"
-          >
-            FAQ
-          </Link>
-          <Link
-            to="/contact"
-            search={isBengaluru ? { studio: "bengaluru" } : undefined}
-            className="hover:text-primary transition"
-          >
-            Contact
-          </Link>
-        </nav>
-        <a
-          href="#signup"
-          className="hidden sm:inline-flex h-11 px-6 items-center rounded-full bg-primary text-foreground border border-primary/60 text-[11px] font-bold uppercase tracking-[0.16em] shadow-[0_8px_30px_rgba(127,211,247,0.22)] hover:-translate-y-0.5 hover:bg-white transition duration-200"
+
+        <nav
+          aria-label="Primary"
+          className="hidden items-center gap-7 text-[11px] font-bold uppercase tracking-[0.18em] text-white/65 md:flex"
         >
-          Claim Your Trial Class
-        </a>
+          {[
+            { to: "/about", label: "About" },
+            { to: "/classes-info", label: "Classes" },
+            { to: "/faq", label: "FAQ" },
+            { to: "/contact", label: "Contact" },
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              search={isBengaluru ? { studio: "bengaluru" } : undefined}
+              className="relative py-1 transition-colors hover:text-white after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary after:transition-[width] after:duration-200 hover:after:w-full"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <a
+            href="tel:+919769665757"
+            className="hidden items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/65 transition-colors hover:text-white lg:flex"
+          >
+            <Phone className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            97696 65757
+          </a>
+          <a
+            href="#signup"
+            className="p57-btn p57-btn--brand h-10 min-h-10 px-4 text-[10px] sm:px-5 sm:text-[11px]"
+          >
+            {ctaLabel}
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </a>
+
+          <details className="group relative md:hidden">
+            <summary className="p57-btn p57-btn--outline-invert flex h-10 min-h-10 cursor-pointer list-none items-center px-3.5 [&::-webkit-details-marker]:hidden">
+              Menu
+            </summary>
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] w-56 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1218] p-2 shadow-2xl">
+              <nav aria-label="Mobile" className="flex flex-col">
+                {[
+                  { to: "/about", label: "About" },
+                  { to: "/classes-info", label: "Classes" },
+                  { to: "/faq", label: "FAQ" },
+                  { to: "/contact", label: "Contact" },
+                ].map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    search={isBengaluru ? { studio: "bengaluru" } : undefined}
+                    className="rounded-xl px-3 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <a
+                  href="#signup"
+                  className="mt-1 rounded-xl bg-primary px-3 py-2.5 text-center text-[11px] font-bold uppercase tracking-[0.16em] text-[#08131a]"
+                >
+                  {ctaLabel}
+                </a>
+              </nav>
+            </div>
+          </details>
+        </div>
       </div>
     </header>
   );
@@ -1071,9 +1166,11 @@ function Header({ studioVariant }: { studioVariant: StudioVariant }) {
 
 function Stat({ n, label }: { n: string; label: string }) {
   return (
-    <div className="rounded-xl bg-white/[0.04] px-3 py-3 ring-1 ring-white/10 backdrop-blur-sm">
-      <div className="font-display text-4xl text-primary leading-none tracking-tight">{n}</div>
-      <div className="mt-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/55">
+    <div className="min-w-0">
+      <div className="font-display text-[2rem] leading-none tracking-tight text-primary sm:text-[2.35rem]">
+        {n}
+      </div>
+      <div className="mt-2 text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">
         {label}
       </div>
     </div>
@@ -1081,33 +1178,92 @@ function Stat({ n, label }: { n: string; label: string }) {
 }
 
 function Dot() {
-  return <span className="inline-block h-2 w-2 rounded-full bg-primary shrink-0" />;
+  return <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary/80" />;
 }
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  headingId,
+  tone = "light",
+  actions,
+}: {
+  eyebrow: string;
+  title: React.ReactNode;
+  description?: string;
+  headingId?: string;
+  tone?: "light" | "dark";
+  actions?: React.ReactNode;
+}) {
+  const invert = tone === "dark";
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-6">
+      <div className="max-w-2xl">
+        <p className={cn("p57-eyebrow", invert && "p57-eyebrow--invert")}>{eyebrow}</p>
+        <h2 id={headingId} className={cn("p57-title mt-5", invert && "p57-title--invert")}>
+          {title}
+        </h2>
+        {description && (
+          <p className={cn("p57-lede mt-4", invert && "p57-lede--invert")}>{description}</p>
+        )}
+      </div>
+      {actions && <div className="shrink-0 pb-1">{actions}</div>}
+    </div>
+  );
+}
+
+const METHOD_PILLARS = [
+  {
+    img: trainerLunge,
+    tag: "Sculpt",
+    title: "Isometric holds plus dynamic reps",
+    body: "Tiny, precise movements that sculpt deep muscle - the Physique 57 signature.",
+  },
+  {
+    img: lunge,
+    tag: "Burn",
+    title: "Interval-style class structure",
+    body: "Sequenced segments hit every muscle group with zero downtime, no impact.",
+  },
+  {
+    img: trainerArm,
+    tag: "Recover",
+    title: "Stretch to lengthen, every class",
+    body: "We finish long and lean - every session ends with deep stretching to reset.",
+  },
+];
 
 function Feature({
   img,
   tag,
   title,
   body,
+  index,
 }: {
   img: string;
   tag: string;
   title: string;
   body: string;
+  index: number;
 }) {
   return (
-    <article className="feature-card group bg-card border border-border/80 rounded-[1.5rem] overflow-hidden shadow-[var(--shadow-card)] flex flex-col">
+    <article className="group grid items-center gap-5 border-b border-border p-4 last:border-b-0 sm:grid-cols-[minmax(0,13rem)_1fr] sm:gap-7 sm:p-5 lg:p-6">
       <LazyBackground
         src={img}
-        className="aspect-[4/3] bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
+        className="aspect-[16/10] w-full rounded-2xl bg-cover bg-center transition-transform duration-700 motion-safe:group-hover:scale-[1.015] sm:aspect-[4/3]"
         aria-hidden
       />
-      <div className="p-6 md:p-7">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-primary-deep font-bold mb-2">
+      <div className="min-w-0">
+        <p className="flex items-center gap-2.5 text-[10px] font-bold uppercase tracking-[0.26em] text-primary-deep">
+          <span aria-hidden="true">0{index + 1}</span>
+          <span className="h-px w-6 bg-primary-deep/40" aria-hidden="true" />
           {tag}
         </p>
-        <h3 className="font-bold text-xl leading-tight tracking-tight">{title}</h3>
-        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{body}</p>
+        <h3 className="mt-2.5 font-display text-[1.55rem] leading-tight tracking-tight sm:text-[1.75rem]">
+          {title}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
       </div>
     </article>
   );
@@ -1158,23 +1314,24 @@ const KEY_BENEFITS = [
 
 function KeyBenefitsGrid() {
   return (
-    <div className="mt-14 pt-14 border-t border-border">
-      <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-6">
-        Key Benefits
-      </p>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div className="mt-14 border-t border-border pt-14">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <p className="p57-eyebrow">Key benefits</p>
+        <p className="text-sm text-muted-foreground">Eight reasons members keep coming back.</p>
+      </div>
+      <div className="mt-7 grid gap-px overflow-hidden rounded-[var(--radius-card)] border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
         {KEY_BENEFITS.map((benefit) => (
           <div
             key={benefit.title}
-            className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
+            className="bg-card p-6 transition-colors duration-200 hover:bg-secondary"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/15 text-primary-deep">
-              <benefit.icon className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <h3 className="mt-4 font-bold text-base leading-tight tracking-tight">
+            <span className="p57-icon-tile">
+              <benefit.icon className="h-[1.15rem] w-[1.15rem]" aria-hidden="true" />
+            </span>
+            <h3 className="mt-4 text-[0.95rem] font-bold leading-snug tracking-tight">
               {benefit.title}
             </h3>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{benefit.body}</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{benefit.body}</p>
           </div>
         ))}
       </div>
@@ -1184,52 +1341,60 @@ function KeyBenefitsGrid() {
 
 const NEXT_STEPS = [
   {
+    n: "01",
+    title: "Share your details",
+    body: "Tell us who you are and where you would like to train. It takes 60 seconds, and no card is required.",
+  },
+  {
+    n: "02",
+    title: "We confirm your first class",
+    body: "Our studio team matches you to the right format and time, then sends your confirmation and next steps.",
+  },
+  {
     n: "03",
-    title: "You receive a guided confirmation",
-    body: "You hear back with the best-fit option, next steps, and booking details needed to secure your first class.",
+    title: "We help you prepare",
+    body: "You will know what to wear, when to arrive, and what to expect so your first visit feels effortless.",
   },
   {
     n: "04",
-    title: "We help you prepare",
-    body: "You'll know what to wear, when to arrive, and what to expect so your first visit feels effortless.",
-  },
-  {
-    n: "05",
     title: "Arrive ready for your first session",
     body: "Walk in with clarity, confidence, and a format that suits your schedule, goals, and energy.",
-  },
-  {
-    n: "06",
-    title: "Feel the signature finish",
-    body: "Expect expert coaching, boutique energy, and the unmistakable shake that makes the method memorable from class one.",
   },
 ];
 
 function WhatHappensNext() {
   return (
-    <section className="bg-secondary py-20 lg:py-28">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="max-w-2xl mb-14">
-          <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
-            Your First Visit
-          </p>
-          <h2 className="font-display text-4xl md:text-6xl leading-[1.05] tracking-tight">
-            What Happens <em className="italic">Next</em>.
-          </h2>
-          <p className="mt-5 text-base text-muted-foreground leading-relaxed">
-            From your first click to your first shake, every step is designed to feel curated,
-            clear, and high-touch.
-          </p>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section className="p57-section bg-secondary" aria-labelledby="next-heading">
+      <div className="p57-shell">
+        <SectionHeading
+          eyebrow="Your first visit"
+          title={
+            <>
+              What happens <em>next</em>.
+            </>
+          }
+          headingId="next-heading"
+          description="From your first click to your first shake, every step is designed to feel curated, clear, and high-touch."
+        />
+        <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {NEXT_STEPS.map((step) => (
-            <div key={step.n} className="relative rounded-2xl border border-border bg-card p-6">
-              <span className="font-display text-4xl text-primary-deep leading-none">{step.n}</span>
-              <h3 className="mt-3 font-bold text-lg leading-tight tracking-tight">{step.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{step.body}</p>
-            </div>
+            <li
+              key={step.n}
+              className="rounded-[var(--radius-card)] border border-border bg-card p-5 shadow-[var(--shadow-card)]"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-[10px] font-bold tracking-normal text-background">
+                  {step.n}
+                </span>
+                <span className="h-px flex-1 bg-border" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 text-[0.98rem] font-bold leading-snug tracking-tight">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{step.body}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );
@@ -1290,114 +1455,346 @@ const BENGALURU_STUDIOS = [
 
 function StudioLocations({ studioVariant }: { studioVariant: StudioVariant }) {
   const STUDIOS = studioVariant === "bengaluru" ? BENGALURU_STUDIOS : MUMBAI_STUDIOS;
+  const directionsHref = (address: string) =>
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
   return (
-    <section className="max-w-7xl mx-auto px-6 py-20 lg:py-28">
-      <div className="max-w-2xl mb-14">
-        <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-4">
-          Studio Locations
-        </p>
-        <h2 className="font-display text-4xl md:text-6xl leading-[1.05] tracking-tight">
-          Choose Your <em className="italic">Studio</em>.
-        </h2>
-        <p className="mt-5 text-base text-muted-foreground leading-relaxed">
-          Each location carries the same Physique 57 method, with its own neighborhood energy and
-          format mix.
-        </p>
-      </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {STUDIOS.map((studio) => (
-          <div
-            key={studio.name}
-            className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-card)]"
-          >
-            <div className="h-56 w-full bg-secondary">
-              <iframe
-                title={`Map to ${studio.name}`}
-                src={`https://www.google.com/maps?q=${encodeURIComponent(studio.address)}&output=embed`}
-                className="h-full w-full border-0 grayscale-[0.2]"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
-            </div>
+    <section className="p57-section bg-background" aria-labelledby="studios-heading">
+      <div className="p57-shell">
+        <SectionHeading
+          eyebrow="Studio locations"
+          title={
+            <>
+              Choose your <em>studio</em>.
+            </>
+          }
+          headingId="studios-heading"
+          description="Each location carries the same Physique 57 method, with its own neighborhood energy and format mix."
+          actions={
+            <a href="#signup" className="p57-btn p57-btn--dark hidden sm:inline-flex">
+              Reserve your spot
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          }
+        />
 
-            <div className="p-7">
-              <h3 className="font-display text-2xl tracking-tight">{studio.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{studio.neighborhood}</p>
+        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {STUDIOS.map((studio) => (
+            <article
+              key={studio.name}
+              className="p57-card p57-card--interactive flex flex-col overflow-hidden"
+            >
+              <StudioMap address={studio.address} name={studio.name} />
+              <div className="flex flex-1 flex-col p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-[1.45rem] leading-tight tracking-tight">
+                      {studio.location}
+                    </h3>
+                    <p className="mt-1 text-[13px] text-muted-foreground">{studio.neighborhood}</p>
+                  </div>
+                  <a
+                    href={directionsHref(studio.address)}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Get directions to ${studio.name}`}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background text-primary-deep transition hover:border-primary-deep hover:bg-primary/10"
+                  >
+                    <Navigation className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                </div>
 
-              <dl className="mt-6 space-y-4">
-                <div className="relative pl-7">
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    <span className="absolute left-0 top-0" aria-hidden="true">
-                      <MapPin
-                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    Location
-                  </dt>
-                  <dd className="text-sm">{studio.location}</dd>
-                </div>
-                <div className="relative pl-7">
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    <span className="absolute left-0 top-0" aria-hidden="true">
-                      <Phone
-                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    Phone
-                  </dt>
-                  <dd className="text-sm">
-                    <a
-                      href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
-                      className="hover:text-primary-deep transition"
-                    >
-                      {studio.phone}
-                    </a>
-                  </dd>
-                </div>
-                <div className="relative pl-7">
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    <span className="absolute left-0 top-0" aria-hidden="true">
-                      <Clock
-                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    Hours
-                  </dt>
-                  <dd className="text-sm">{studio.hours}</dd>
-                </div>
-                <div className="relative pl-7">
-                  <dt className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
-                    <span className="absolute left-0 top-0" aria-hidden="true">
-                      <FileText
-                        className="h-4 w-4 mt-0.5 shrink-0 text-primary-deep"
-                        aria-hidden="true"
-                      />
-                    </span>
-                    Address
-                  </dt>
-                  <dd className="text-sm">{studio.address}</dd>
-                </div>
-              </dl>
+                <dl className="mt-5 space-y-3.5 border-t border-border pt-5 text-[13px]">
+                  <div className="flex gap-3">
+                    <dt className="sr-only">Address</dt>
+                    <MapPin
+                      className="mt-0.5 h-4 w-4 shrink-0 text-primary-deep"
+                      aria-hidden="true"
+                    />
+                    <dd className="leading-relaxed text-muted-foreground">{studio.address}</dd>
+                  </div>
+                  <div className="flex gap-3">
+                    <dt className="sr-only">Hours</dt>
+                    <Clock
+                      className="mt-0.5 h-4 w-4 shrink-0 text-primary-deep"
+                      aria-hidden="true"
+                    />
+                    <dd className="leading-relaxed text-muted-foreground">{studio.hours}</dd>
+                  </div>
+                  <div className="flex gap-3">
+                    <dt className="sr-only">Phone</dt>
+                    <Phone
+                      className="mt-0.5 h-4 w-4 shrink-0 text-primary-deep"
+                      aria-hidden="true"
+                    />
+                    <dd>
+                      <a
+                        href={`tel:+91${studio.phone.replace(/\s/g, "")}`}
+                        className="font-medium text-foreground transition-colors hover:text-primary-deep"
+                      >
+                        {studio.phone}
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
 
-              <div className="mt-6 flex flex-wrap gap-2">
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(studio.address)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-background px-5 text-xs font-bold uppercase tracking-[0.15em] text-foreground transition hover:border-primary-deep"
-                >
-                  Directions
-                </a>
+                <div className="mt-6 flex gap-2">
+                  <a
+                    href={directionsHref(studio.address)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p57-btn p57-btn--outline h-10 min-h-10 text-[10px]"
+                  >
+                    Directions
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                  <a href="#signup" className="p57-btn p57-btn--dark h-10 min-h-10 text-[10px]">
+                    Book here
+                  </a>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            </article>
+          ))}
+        </div>
       </div>
     </section>
+  );
+}
+
+function StudioMap({ address, name }: { address: string; name: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const src = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+
+  return (
+    <div className="relative aspect-[16/10] w-full overflow-hidden bg-secondary">
+      {loaded ? (
+        <iframe
+          title={`Map to ${name}`}
+          src={src}
+          className="absolute inset-0 h-full w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setLoaded(true)}
+          className="map-placeholder group absolute inset-0 flex flex-col items-center justify-center gap-2.5"
+          aria-label={`Load map for ${name}`}
+        >
+          <span
+            className="pointer-events-none absolute inset-0 opacity-60"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(9,14,20,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(9,14,20,0.06) 1px, transparent 1px)",
+              backgroundSize: "34px 34px",
+            }}
+            aria-hidden="true"
+          />
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary-deep shadow-[var(--shadow-card)] transition group-hover:scale-105">
+            <MapPin className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <span className="relative text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/70">
+            Load map
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ClosingCta({
+  studioVariant,
+  ctaLabel,
+  paid = false,
+}: {
+  studioVariant: StudioVariant;
+  ctaLabel: string;
+  paid?: boolean;
+}) {
+  const isBengaluru = studioVariant === "bengaluru";
+  return (
+    <section
+      className="relative overflow-hidden bg-[#070c11] text-white"
+      aria-labelledby="cta-heading"
+    >
+      <div className="hero-grid absolute inset-0 opacity-25" aria-hidden />
+      <div className="relative p57-shell py-[var(--section-y)] text-center">
+        <p className="p57-eyebrow p57-eyebrow--invert">Your first class is on us</p>
+        <h2 id="cta-heading" className="p57-title p57-title--invert mx-auto mt-5 max-w-3xl">
+          57 minutes that change how you <em>train</em>.
+        </h2>
+        <p className="mx-auto mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/60">
+          Tell us where you would like to train and we will take care of the rest - your first
+          class, your coach, and everything you need before you arrive.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a href="#signup" className="p57-btn p57-btn--brand p57-btn--lg">
+            {ctaLabel}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+          <a href="tel:+919769665757" className="p57-btn p57-btn--outline-invert p57-btn--lg">
+            <Phone className="h-4 w-4" aria-hidden="true" />
+            {isBengaluru ? "Talk to Bengaluru" : "Talk to the studio"}
+          </a>
+        </div>
+        <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55">
+          {paid ? "Secure checkout · Places are limited" : "No card required · Cancel anytime"}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+const STUDIO_CARD_COPY: Record<number, { name: string; area: string }> = {
+  9030: { name: "Kwality House", area: "Kemps Corner" },
+  29821: { name: "Supreme HQ", area: "Bandra West" },
+  22116: { name: "Kenkere House", area: "Lavelle Road" },
+  36372: { name: "Copper & Cloves", area: "Indiranagar" },
+  287883: { name: "Plash Pilates", area: "Sadashivnagar" },
+};
+
+const SIGNUP_STEPS = [
+  { id: "details", label: "Details" },
+  { id: "studio", label: "Studio" },
+  { id: "waiver", label: "Waiver" },
+] as const;
+
+function SignupProgress({ completed }: { completed: boolean[] }) {
+  const activeIndex = completed.findIndex((done) => !done);
+  return (
+    <ol className="signup-steps" aria-label="Signup progress">
+      {SIGNUP_STEPS.map((step, index) => {
+        const done = completed[index] === true;
+        const state = done ? "done" : index === activeIndex ? "active" : "todo";
+        return (
+          <li key={step.id} className="signup-step" data-state={state}>
+            <span className="signup-step__marker" aria-hidden="true">
+              {done ? <Check className="h-3 w-3" strokeWidth={3} /> : index + 1}
+            </span>
+            <span className="signup-step__label">
+              {step.label}
+              {done && <span className="sr-only"> complete</span>}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function FormPanel({
+  index,
+  title,
+  hint,
+  done,
+  children,
+}: {
+  index: number;
+  title: string;
+  hint?: string;
+  done: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="form-panel" aria-label={title}>
+      <div className="form-panel__head">
+        <span className="form-panel__index" aria-hidden="true">
+          {done ? <Check className="h-3 w-3" strokeWidth={3} /> : index}
+        </span>
+        <div className="min-w-0">
+          <h3 className="form-panel__title">{title}</h3>
+          {hint ? <p className="form-panel__hint">{hint}</p> : null}
+        </div>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
+function StudioPicker({
+  locations,
+  value,
+  onChange,
+}: {
+  locations: ReadonlyArray<{ id: number; name: string }>;
+  value: number;
+  onChange: (id: number) => void;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Preferred studio"
+      className={cn("grid gap-2.5", locations.length > 2 ? "sm:grid-cols-3" : "sm:grid-cols-2")}
+    >
+      {locations.map((location) => {
+        const selected = value === location.id;
+        const copy = STUDIO_CARD_COPY[location.id] ?? { name: location.name, area: "" };
+        return (
+          <button
+            key={location.id}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(location.id)}
+            className="studio-option"
+          >
+            <span className="flex items-center gap-2 pr-4">
+              <span className="studio-option__icon">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              <span className="studio-option__name">{copy.name}</span>
+            </span>
+            {copy.area && <span className="studio-option__area">{copy.area}</span>}
+            {selected && (
+              <span className="studio-option__tick">
+                <Check className="h-2.5 w-2.5" strokeWidth={3.5} aria-hidden="true" />
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ClassFormatPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: ClassFormatKey[];
+  value: ClassFormatKey;
+  onChange: (key: ClassFormatKey) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Class format">
+      {options.map((key) => {
+        const format = classFormatForKey(key);
+        return (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={value === key}
+            onClick={() => onChange(key)}
+            className="format-option"
+          >
+            <span className="format-option__media">
+              <img
+                src={format.image}
+                alt=""
+                width={240}
+                height={300}
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+            <span className="format-option__name">{format.name}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1408,6 +1805,7 @@ function SignupCard({
   loading,
   error,
   valid,
+  signed,
   sigRef,
   onSignChange,
   studioSelected,
@@ -1424,6 +1822,7 @@ function SignupCard({
   loading: boolean;
   error: string | null;
   valid: boolean;
+  signed: boolean;
   sigRef: React.MutableRefObject<SignaturePadHandle | null>;
   onSignChange: (signed: boolean) => void;
   studioSelected: boolean;
@@ -1435,79 +1834,69 @@ function SignupCard({
   /** Pre-formatted by the page so the card and the hero can never disagree. */
   routeEventDetail?: string | null;
 }) {
-  const [hoveredClassType, setHoveredClassType] = useState<ClassFormatKey | null>(null);
-  const [descriptionClassType, setDescriptionClassType] = useState<ClassFormatKey | null>(null);
-  const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isBengaluru = studioVariant === "bengaluru";
   const LOCATIONS = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
-
-  function clearHoverDelay() {
-    if (!hoverDelayRef.current) return;
-    clearTimeout(hoverDelayRef.current);
-    hoverDelayRef.current = null;
-  }
-
-  function startDescriptionDelay(classType: ClassFormatKey) {
-    clearHoverDelay();
-    setHoveredClassType(classType);
-    hoverDelayRef.current = setTimeout(() => {
-      setDescriptionClassType(classType);
-    }, 2000);
-  }
-
-  function hideDescription(classType: ClassFormatKey) {
-    if (hoveredClassType === classType) {
-      setHoveredClassType(null);
-    }
-    if (descriptionClassType === classType) {
-      setDescriptionClassType(null);
-    }
-    clearHoverDelay();
-  }
-
-  useEffect(() => {
-    return () => clearHoverDelay();
-  }, []);
+  const detailsComplete =
+    form.firstName.trim().length > 0 &&
+    form.lastName.trim().length > 0 &&
+    /\S+@\S+\.\S+/.test(form.email) &&
+    isValidPhoneNumber(form.phoneNumber, form.countryCode);
+  const studioComplete = LOCATIONS.some((location) => location.id === form.homeLocationId);
+  const waiverComplete = form.waiverAccepted && signed && form.signatureName.trim().length >= 2;
+  const selectedFormat = classFormatForKey(form.classType);
+  const formatOptions = classTypeOptionsForLocation(form.homeLocationId);
+  const submitLabel = loading
+    ? "Activating membership…"
+    : !isBengaluru && isPaidNewcomersClassName(form.classType)
+      ? "Book My Trial Class"
+      : ctaLabel;
+  const isComplimentary = routeEvent ? !routeEvent.paid : !isBengaluru;
+  const phoneError = phoneNumberError(form.phoneNumber, form.countryCode);
 
   return (
-    <div
-      id="signup"
-      className="signup-card w-full bg-background/95 text-foreground rounded-[1.75rem] p-6 sm:p-7 md:p-9 shadow-[var(--shadow-form)] border border-white/60 backdrop-blur-xl"
-    >
-      <div className="flex items-start justify-between gap-4 border-b border-border/80 pb-6">
-        <div>
-          <h2 className="font-display text-3xl md:text-4xl leading-tight tracking-tight">
-            {routeEvent?.name
-              ? `Book ${routeEvent.name}`
-              : isKidsRoute
-                ? "Book a Juniors class"
-                : "Activate your trial"}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1.5">
-            {routeEvent
-              ? // The when-and-with-whom line if the route gave one, so the card stands on
-                // its own for anyone who scrolled past the hero.
-                (routeEventDetail ?? "Takes 60 seconds. Your place is held once you submit.")
-              : isKidsRoute
-                ? "Kids-specific signup with consent and waiver support."
-                : "Takes 60 seconds. No card required."}
-          </p>
+    <div id="signup" className="signup-card scroll-mt-24">
+      <div className="signup-card__head">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="p57-eyebrow p57-eyebrow--bare text-[0.6rem] tracking-[0.24em]">
+              {isComplimentary ? "Open Barre · Complimentary" : "Reserve your place"}
+            </p>
+            <h2 className="mt-3 font-display text-[1.85rem] leading-[1.06] tracking-tight sm:text-[2.15rem]">
+              {routeEvent?.name
+                ? `Book ${routeEvent.name}`
+                : isKidsRoute
+                  ? "Book a Juniors class"
+                  : "Activate your trial"}
+            </h2>
+            <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">
+              {routeEvent
+                ? // The when-and-with-whom line if the route gave one, so the card stands on
+                  // its own for anyone who scrolled past the hero.
+                  (routeEventDetail ?? "Takes 60 seconds. Your place is held once you submit.")
+                : isKidsRoute
+                  ? "Kids-specific signup with consent and waiver support."
+                  : "Takes 60 seconds. No card required."}
+            </p>
+          </div>
+          {isComplimentary && (
+            <span className="hidden shrink-0 rounded-full border border-primary/40 bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-primary-deep sm:inline-flex">
+              Free
+            </span>
+          )}
         </div>
-        {routeEvent
-          ? !routeEvent.paid && (
-              <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
-                Complimentary
-              </span>
-            )
-          : !isBengaluru && (
-              <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
-                Complimentary
-              </span>
-            )}
+
+        <div className="mt-5">
+          <SignupProgress completed={[detailsComplete, studioComplete, waiverComplete]} />
+        </div>
       </div>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-6">
-        <div className="space-y-3.5">
+      <form onSubmit={onSubmit} className="signup-form">
+        <FormPanel
+          index={1}
+          title="Your details"
+          hint="Where your confirmation and class details go."
+          done={detailsComplete}
+        >
           <div className="grid grid-cols-2 gap-3">
             <Field
               label="First name"
@@ -1516,6 +1905,7 @@ function SignupCard({
               required
               name="given-name"
               autoComplete="given-name"
+              placeholder="Asha"
             />
             <Field
               label="Last name"
@@ -1524,8 +1914,10 @@ function SignupCard({
               required
               name="family-name"
               autoComplete="family-name"
+              placeholder="Shah"
             />
           </div>
+
           <Field
             label="Email"
             type="email"
@@ -1534,10 +1926,12 @@ function SignupCard({
             required
             name="email"
             autoComplete="email"
+            placeholder="you@email.com"
           />
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-              Mobile number *
+
+          <div className="field">
+            <label htmlFor="signup-phone" className="p57-label">
+              Mobile number <span className="p57-label__req">*</span>
             </label>
             <div className="flex gap-2">
               <select
@@ -1552,7 +1946,7 @@ function SignupCard({
                     countryCode: selected.dial,
                   }));
                 }}
-                className="h-11 rounded-lg border border-input bg-background px-3 text-center text-xl focus:outline-none focus:ring-2 focus:ring-ring min-w-[4.25rem]"
+                className="p57-input p57-input--code"
                 aria-label="Country dialing code"
               >
                 {COUNTRY_CODES.map((c) => (
@@ -1562,6 +1956,7 @@ function SignupCard({
                 ))}
               </select>
               <input
+                id="signup-phone"
                 type="tel"
                 inputMode="numeric"
                 aria-label="Phone number"
@@ -1571,17 +1966,19 @@ function SignupCard({
                 value={form.phoneNumber}
                 onChange={(e) => setForm((prev) => ({ ...prev, phoneNumber: e.target.value }))}
                 placeholder="98765 43210"
-                aria-invalid={phoneNumberError(form.phoneNumber, form.countryCode) != null}
-                className="flex-1 h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                aria-invalid={phoneError != null}
+                aria-describedby={phoneError ? "signup-phone-error" : undefined}
+                className="p57-input p57-input--grow"
               />
             </div>
-            {phoneNumberError(form.phoneNumber, form.countryCode) ? (
-              <p className="mt-1.5 text-xs text-destructive">
-                {phoneNumberError(form.phoneNumber, form.countryCode)}
+            {phoneError ? (
+              <p id="signup-phone-error" className="text-[11px] font-medium text-destructive">
+                {phoneError}
               </p>
             ) : null}
           </div>
-          <label className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
+
+          <label className="check-row">
             <input
               type="checkbox"
               checked={form.whatsappConsent}
@@ -1596,172 +1993,59 @@ function SignupCard({
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-input"
             />
             <span>
-              Yes, send me class reminders and updates on WhatsApp at the number above. I can reply
-              STOP anytime to opt out.
+              Send me class reminders and updates on WhatsApp at the number above. I can reply STOP
+              anytime to opt out.
             </span>
           </label>
-        </div>
+        </FormPanel>
 
-        <div className="space-y-3.5">
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-              Preferred studio *
-            </label>
-            {isBengaluru ? (
-              <div
-                className="grid gap-2.5 sm:grid-cols-3"
-                role="radiogroup"
-                aria-label="Preferred studio"
-              >
-                {LOCATIONS.map((location) => {
-                  const selected = form.homeLocationId === location.id;
-                  const cardCopy =
-                    location.id === 22116
-                      ? { name: "Kenkere House", area: "Lavelle Road" }
-                      : location.id === 36372
-                        ? { name: "The Studio - By Copper & Cloves", area: "Indiranagar" }
-                        : { name: "Plash Pilates", area: "Sadashivnagar" };
-                  return (
-                    <button
-                      key={location.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => {
-                        setForm((prev) => ({ ...prev, homeLocationId: location.id }));
-                        onStudioSelectedChange(true);
-                      }}
-                      className={`group relative min-h-24 overflow-hidden rounded-2xl border p-4 text-left transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        selected
-                          ? "border-primary-deep bg-gradient-to-br from-primary/[0.16] to-background shadow-[0_10px_28px_rgba(64,170,215,0.16)] ring-1 ring-primary/15"
-                          : "border-border/80 bg-background shadow-[0_8px_22px_-20px_rgba(15,23,42,0.5)] hover:-translate-y-0.5 hover:border-primary/70 hover:bg-primary/[0.04] hover:shadow-[0_14px_30px_-22px_rgba(15,23,42,0.5)]"
-                      }`}
-                    >
-                      <span
-                        className={`absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent to-transparent transition ${
-                          selected ? "via-primary-deep" : "via-transparent"
-                        }`}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className={`mb-3 flex h-8 w-8 items-center justify-center rounded-xl transition ${
-                          selected
-                            ? "bg-primary-deep text-white shadow-sm"
-                            : "bg-secondary text-primary-deep group-hover:bg-primary/20"
-                        }`}
-                      >
-                        <MapPin className="h-4 w-4" aria-hidden="true" />
-                      </span>
-                      {selected && (
-                        <span className="absolute right-3.5 top-3.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background">
-                          <Check className="h-3 w-3" aria-hidden="true" />
-                        </span>
-                      )}
-                      <span className="block text-xs font-semibold leading-snug tracking-[-0.01em] text-foreground">
-                        {cardCopy.name}
-                      </span>
-                      <span className="mt-1.5 block text-[10px] font-medium uppercase leading-snug tracking-[0.08em] text-muted-foreground">
-                        {cardCopy.area}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <select
-                required
-                className="w-full h-11 px-3 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                value={form.homeLocationId}
-                onChange={(e) => {
-                  setForm((prev) => ({
-                    ...prev,
-                    homeLocationId: Number(e.target.value),
-                  }));
-                  onStudioSelectedChange(true);
-                }}
-              >
-                <option value={0} disabled>
-                  -- Select studio --
-                </option>
-                {LOCATIONS.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+        <FormPanel
+          index={2}
+          title="Studio and format"
+          hint="Pick where you would like to train and how you want to start."
+          done={studioComplete}
+        >
+          <StudioPicker
+            locations={LOCATIONS}
+            value={form.homeLocationId}
+            onChange={(id) => {
+              setForm((prev) => ({ ...prev, homeLocationId: id }));
+              onStudioSelectedChange(true);
+            }}
+          />
 
           {studioSelected && !isBengaluru && (
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-                Class type *
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {classTypeOptionsForLocation(form.homeLocationId).map((key) => {
-                  const classFormat = classFormatForKey(key);
-                  const selected = form.classType === key;
-                  const showDescription =
-                    (hoveredClassType === key || descriptionClassType === key) &&
-                    descriptionClassType === key;
-                  return (
-                    <div key={key} className="group relative">
-                      <button
-                        type="button"
-                        onClick={() => setForm((prev) => ({ ...prev, classType: key }))}
-                        onMouseEnter={() => startDescriptionDelay(key)}
-                        onMouseLeave={() => hideDescription(key)}
-                        onFocus={() => setDescriptionClassType(key)}
-                        onBlur={() => hideDescription(key)}
-                        aria-pressed={selected}
-                        className={`group/card flex w-full flex-col overflow-hidden rounded-xl border text-center transition shadow-sm ${
-                          selected
-                            ? "border-primary-deep bg-[#f8f5ff] ring-2 ring-primary-deep shadow-md"
-                            : "border-input bg-background hover:border-[#c8bef4] hover:shadow-md"
-                        }`}
-                      >
-                        <div className="w-full overflow-hidden">
-                          <img
-                            src={classFormat.image}
-                            alt=""
-                            className="h-52 w-full object-cover object-top transition-transform duration-500 group-hover/card:scale-105"
-                          />
-                        </div>
-                        <span className="px-2 py-2.5 text-xs font-semibold text-foreground">
-                          {classFormat.name}
-                        </span>
-                      </button>
-
-                      {showDescription && (
-                        <div
-                          role="tooltip"
-                          className="pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-20 w-56 -translate-x-1/2 rounded-md border border-border bg-background px-3 py-2 text-left text-[11px] leading-relaxed text-muted-foreground shadow-[var(--shadow-card)]"
-                        >
-                          {classFormat.description}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="space-y-2.5 pt-1">
+              <p className="p57-label">Class format</p>
+              <ClassFormatPicker
+                options={formatOptions}
+                value={form.classType}
+                onChange={(key) => setForm((prev) => ({ ...prev, classType: key }))}
+              />
+              <div className="rounded-xl border border-border bg-white p-3">
+                <p className="text-[11px] font-semibold text-foreground">
+                  {selectedFormat.duration} · {selectedFormat.intensity}
+                </p>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Best for {selectedFormat.bestFor.toLowerCase()}.
+                </p>
               </div>
             </div>
           )}
-        </div>
+        </FormPanel>
 
-        <div className="space-y-3.5">
-          <p className="text-xs text-muted-foreground leading-relaxed -mt-1">
-            Please review and sign before activating Open Barre. This consent is recorded with your
-            Momence member profile.
-          </p>
-
-          <details className="group/waiver rounded-lg border border-border bg-background open:pb-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3.5 py-2.5 text-xs font-semibold text-foreground">
+        <FormPanel
+          index={3}
+          title="Waiver and signature"
+          hint="Review and sign before activating Open Barre. Your consent is recorded with your Momence member profile."
+          done={waiverComplete}
+        >
+          <details className="consent-box">
+            <summary>
               <span>View full waiver details</span>
-              <span className="text-muted-foreground transition group-open/waiver:rotate-180">
-                ▾
-              </span>
+              <ChevronDown className="consent-box__chevron h-4 w-4" aria-hidden="true" />
             </summary>
-            <div className="space-y-3 px-3.5">
+            <div className="space-y-3 p-3.5">
               <ConsentLine>
                 I voluntarily participate in Physique 57 India classes and assume all risks of
                 injury.
@@ -1790,47 +2074,66 @@ function SignupCard({
             </div>
           </details>
 
-          <input
-            type="text"
-            required
-            value={form.signatureName}
-            placeholder="Type your full legal name"
-            readOnly
-            className="w-full h-10 px-3 rounded-lg border border-input bg-secondary/60 text-foreground text-sm cursor-default focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Full legal name"
-          />
+          <div className="field">
+            <label htmlFor="signup-signature-name" className="p57-label">
+              Full legal name <span className="p57-label__req">*</span>
+            </label>
+            <input
+              id="signup-signature-name"
+              type="text"
+              required
+              value={form.signatureName}
+              placeholder="Type your full legal name"
+              readOnly
+              className="p57-input"
+              aria-label="Full legal name"
+            />
+          </div>
+
           <div onPointerUp={() => onSignChange(!(sigRef.current?.isEmpty() ?? true))}>
             <DeferredSignaturePad sigRef={sigRef} />
           </div>
-          <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-border bg-background p-3 transition hover:border-primary/50">
+
+          <label className="check-row">
             <input
               type="checkbox"
               required
               checked={form.waiverAccepted}
               onChange={(e) => setForm((prev) => ({ ...prev, waiverAccepted: e.target.checked }))}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--primary)]"
+              className="mt-0.5 h-4 w-4 shrink-0"
             />
-            <span className="text-xs text-foreground leading-relaxed">
+            <span>
               I have read, signed, and accept the waiver and Physique 57 India&apos;s privacy terms.
             </span>
           </label>
-        </div>
+        </FormPanel>
 
         {error && (
-          <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded">{error}</p>
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-[12px] leading-relaxed text-destructive"
+          >
+            <CircleAlert className="mt-px h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
+          </p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading || !valid}
-          className="w-full h-13 rounded-full bg-foreground text-background font-bold uppercase tracking-[0.15em] text-xs shadow-[0_12px_28px_rgba(10,14,20,0.18)] hover:-translate-y-0.5 hover:bg-primary hover:text-foreground transition duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0"
-        >
-          {loading
-            ? "Activating membership…"
-            : !isBengaluru && isPaidNewcomersClassName(form.classType)
-              ? "Book My Trial Class"
-              : ctaLabel}
-        </button>
+        <div className="space-y-3 pt-1">
+          <button type="submit" disabled={loading || !valid} className="signup-submit">
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                {submitLabel}
+              </span>
+            ) : (
+              submitLabel
+            )}
+          </button>
+          <p className="signup-note">
+            <Lock className="h-3 w-3" aria-hidden="true" />
+            Secure signup · We only use your details for this booking.
+          </p>
+        </div>
       </form>
     </div>
   );
@@ -1844,6 +2147,7 @@ function Field({
   required,
   name,
   autoComplete,
+  placeholder,
 }: {
   label: string;
   value: string;
@@ -1852,16 +2156,14 @@ function Field({
   required?: boolean;
   name?: string;
   autoComplete?: string;
+  placeholder?: string;
 }) {
   const id = useId();
   return (
-    <div>
-      <label
-        htmlFor={id}
-        className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5"
-      >
+    <div className="field">
+      <label htmlFor={id} className="p57-label">
         {label}
-        {required ? " *" : ""}
+        {required ? <span className="p57-label__req"> *</span> : null}
       </label>
       <input
         id={id}
@@ -1869,6 +2171,7 @@ function Field({
         required={required}
         name={name}
         autoComplete={autoComplete}
+        placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={(e) => onChange(e.currentTarget.value)}
@@ -1877,7 +2180,7 @@ function Field({
             onChange(e.currentTarget.value);
           }
         }}
-        className="autofill-watch w-full h-11 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        className="p57-input autofill-watch"
       />
     </div>
   );
@@ -1885,7 +2188,7 @@ function Field({
 
 function ConsentLine({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex gap-2 text-xs leading-relaxed text-foreground">
+    <p className="flex gap-2 text-[12px] leading-relaxed text-foreground">
       <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary-deep" aria-hidden="true" />
       <span>{children}</span>
     </p>
@@ -1916,6 +2219,7 @@ function LazyBackground({ src, style, ...props }: React.ComponentProps<"div"> & 
       {...props}
       ref={ref}
       style={{ ...style, backgroundImage: ready ? `url(${src})` : undefined }}
+      aria-busy={ready ? undefined : true}
     />
   );
 }
@@ -1944,15 +2248,13 @@ function DeferredSignaturePad({
   }, []);
   const placeholder = (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-        Signature *
-      </p>
+      <p className="p57-label mb-1.5">Signature *</p>
       <div
-        className="h-32 rounded-md border border-input bg-background"
+        className="h-32 rounded-[var(--radius-control)] border border-input bg-white"
         role="status"
         aria-label="Signature pad loading"
       />
-      <p className="mt-1 text-[10px] text-muted-foreground">
+      <p className="mt-1.5 text-[10px] text-muted-foreground">
         Sign above with your finger, trackpad, stylus, or mouse.
       </p>
     </div>

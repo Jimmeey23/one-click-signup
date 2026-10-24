@@ -143,14 +143,10 @@ export const SignaturePad = forwardRef<SignaturePadHandle, { label?: string }>(
 
     return (
       <div>
-        {label && (
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
-            {label}
-          </p>
-        )}
+        {label && <p className="p57-label mb-1.5">{label}</p>}
         <div
           ref={wrapRef}
-          className="relative h-32 w-full rounded-md border border-input bg-background overflow-hidden touch-none"
+          className="relative h-32 w-full touch-none overflow-hidden rounded-[var(--radius-control)] border border-input bg-white"
         >
           <canvas
             ref={canvasRef}
@@ -167,12 +163,12 @@ export const SignaturePad = forwardRef<SignaturePadHandle, { label?: string }>(
           <button
             type="button"
             onClick={clear}
-            className="absolute bottom-1.5 right-1.5 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground bg-background/80 px-2 py-1 rounded"
+            className="absolute bottom-2 right-2 rounded-full border border-border bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition hover:border-primary-deep hover:text-foreground"
           >
             Clear
           </button>
         </div>
-        <p className="mt-1 text-[10px] text-muted-foreground">
+        <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
           Sign above with your finger, trackpad, stylus, or mouse.
         </p>
       </div>

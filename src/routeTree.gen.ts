@@ -9,84 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WaiverRouteImport } from './routes/waiver'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SkipLeadRouteImport } from './routes/skip-lead'
-import { Route as RouteBuilderRouteImport } from './routes/route-builder'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as KidsRouteImport } from './routes/kids'
-import { Route as InfluencersRouteImport } from './routes/influencers'
-import { Route as FaqRouteImport } from './routes/faq'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as ClassesInfoRouteImport } from './routes/classes-info'
-import { Route as BengaluruRouteImport } from './routes/bengaluru'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ScheduleIndexRouteImport } from './routes/schedule.index'
-import { Route as SignupShareIdRouteImport } from './routes/signup.$shareId'
-import { Route as ShareShareIdRouteImport } from './routes/share.$shareId'
-import { Route as ScheduleStudioRouteImport } from './routes/schedule.$studio'
+import { Route as SlugRouteImport } from './routes/$slug'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as BengaluruRouteImport } from './routes/bengaluru'
+import { Route as ClassesInfoRouteImport } from './routes/classes-info'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as InfluencersRouteImport } from './routes/influencers'
+import { Route as KidsRouteImport } from './routes/kids'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RouteBuilderRouteImport } from './routes/route-builder'
+import { Route as SkipLeadRouteImport } from './routes/skip-lead'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as WaiverRouteImport } from './routes/waiver'
 import { Route as ClassesMemberIdRouteImport } from './routes/classes.$memberId'
+import { Route as ScheduleIndexRouteImport } from './routes/schedule.index'
+import { Route as ScheduleStudioRouteImport } from './routes/schedule.$studio'
+import { Route as ShareShareIdRouteImport } from './routes/share.$shareId'
+import { Route as SignupShareIdRouteImport } from './routes/signup.$shareId'
 
-const WaiverRoute = WaiverRouteImport.update({
-  id: '/waiver',
-  path: '/waiver',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SkipLeadRoute = SkipLeadRouteImport.update({
-  id: '/skip-lead',
-  path: '/skip-lead',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RouteBuilderRoute = RouteBuilderRouteImport.update({
-  id: '/route-builder',
-  path: '/route-builder',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KidsRoute = KidsRouteImport.update({
-  id: '/kids',
-  path: '/kids',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InfluencersRoute = InfluencersRouteImport.update({
-  id: '/influencers',
-  path: '/influencers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClassesInfoRoute = ClassesInfoRouteImport.update({
-  id: '/classes-info',
-  path: '/classes-info',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BengaluruRoute = BengaluruRouteImport.update({
-  id: '/bengaluru',
-  path: '/bengaluru',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugRoute = SlugRouteImport.update({
@@ -94,9 +39,69 @@ const SlugRoute = SlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BengaluruRoute = BengaluruRouteImport.update({
+  id: '/bengaluru',
+  path: '/bengaluru',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesInfoRoute = ClassesInfoRouteImport.update({
+  id: '/classes-info',
+  path: '/classes-info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencersRoute = InfluencersRouteImport.update({
+  id: '/influencers',
+  path: '/influencers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KidsRoute = KidsRouteImport.update({
+  id: '/kids',
+  path: '/kids',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RouteBuilderRoute = RouteBuilderRouteImport.update({
+  id: '/route-builder',
+  path: '/route-builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkipLeadRoute = SkipLeadRouteImport.update({
+  id: '/skip-lead',
+  path: '/skip-lead',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WaiverRoute = WaiverRouteImport.update({
+  id: '/waiver',
+  path: '/waiver',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesMemberIdRoute = ClassesMemberIdRouteImport.update({
+  id: '/classes/$memberId',
+  path: '/classes/$memberId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScheduleIndexRoute = ScheduleIndexRouteImport.update({
@@ -104,9 +109,9 @@ const ScheduleIndexRoute = ScheduleIndexRouteImport.update({
   path: '/schedule/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupShareIdRoute = SignupShareIdRouteImport.update({
-  id: '/signup/$shareId',
-  path: '/signup/$shareId',
+const ScheduleStudioRoute = ScheduleStudioRouteImport.update({
+  id: '/schedule/$studio',
+  path: '/schedule/$studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShareShareIdRoute = ShareShareIdRouteImport.update({
@@ -114,14 +119,9 @@ const ShareShareIdRoute = ShareShareIdRouteImport.update({
   path: '/share/$shareId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScheduleStudioRoute = ScheduleStudioRouteImport.update({
-  id: '/schedule/$studio',
-  path: '/schedule/$studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClassesMemberIdRoute = ClassesMemberIdRouteImport.update({
-  id: '/classes/$memberId',
-  path: '/classes/$memberId',
+const SignupShareIdRoute = SignupShareIdRouteImport.update({
+  id: '/signup/$shareId',
+  path: '/signup/$shareId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -279,88 +279,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/waiver': {
-      id: '/waiver'
-      path: '/waiver'
-      fullPath: '/waiver'
-      preLoaderRoute: typeof WaiverRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/skip-lead': {
-      id: '/skip-lead'
-      path: '/skip-lead'
-      fullPath: '/skip-lead'
-      preLoaderRoute: typeof SkipLeadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/route-builder': {
-      id: '/route-builder'
-      path: '/route-builder'
-      fullPath: '/route-builder'
-      preLoaderRoute: typeof RouteBuilderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kids': {
-      id: '/kids'
-      path: '/kids'
-      fullPath: '/kids'
-      preLoaderRoute: typeof KidsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/influencers': {
-      id: '/influencers'
-      path: '/influencers'
-      fullPath: '/influencers'
-      preLoaderRoute: typeof InfluencersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/classes-info': {
-      id: '/classes-info'
-      path: '/classes-info'
-      fullPath: '/classes-info'
-      preLoaderRoute: typeof ClassesInfoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bengaluru': {
-      id: '/bengaluru'
-      path: '/bengaluru'
-      fullPath: '/bengaluru'
-      preLoaderRoute: typeof BengaluruRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -370,11 +293,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bengaluru': {
+      id: '/bengaluru'
+      path: '/bengaluru'
+      fullPath: '/bengaluru'
+      preLoaderRoute: typeof BengaluruRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes-info': {
+      id: '/classes-info'
+      path: '/classes-info'
+      fullPath: '/classes-info'
+      preLoaderRoute: typeof ClassesInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencers': {
+      id: '/influencers'
+      path: '/influencers'
+      fullPath: '/influencers'
+      preLoaderRoute: typeof InfluencersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kids': {
+      id: '/kids'
+      path: '/kids'
+      fullPath: '/kids'
+      preLoaderRoute: typeof KidsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/route-builder': {
+      id: '/route-builder'
+      path: '/route-builder'
+      fullPath: '/route-builder'
+      preLoaderRoute: typeof RouteBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skip-lead': {
+      id: '/skip-lead'
+      path: '/skip-lead'
+      fullPath: '/skip-lead'
+      preLoaderRoute: typeof SkipLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/waiver': {
+      id: '/waiver'
+      path: '/waiver'
+      fullPath: '/waiver'
+      preLoaderRoute: typeof WaiverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes/$memberId': {
+      id: '/classes/$memberId'
+      path: '/classes/$memberId'
+      fullPath: '/classes/$memberId'
+      preLoaderRoute: typeof ClassesMemberIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/schedule/': {
@@ -384,11 +391,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScheduleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup/$shareId': {
-      id: '/signup/$shareId'
-      path: '/signup/$shareId'
-      fullPath: '/signup/$shareId'
-      preLoaderRoute: typeof SignupShareIdRouteImport
+    '/schedule/$studio': {
+      id: '/schedule/$studio'
+      path: '/schedule/$studio'
+      fullPath: '/schedule/$studio'
+      preLoaderRoute: typeof ScheduleStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/share/$shareId': {
@@ -398,18 +405,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareShareIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/schedule/$studio': {
-      id: '/schedule/$studio'
-      path: '/schedule/$studio'
-      fullPath: '/schedule/$studio'
-      preLoaderRoute: typeof ScheduleStudioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/classes/$memberId': {
-      id: '/classes/$memberId'
-      path: '/classes/$memberId'
-      fullPath: '/classes/$memberId'
-      preLoaderRoute: typeof ClassesMemberIdRouteImport
+    '/signup/$shareId': {
+      id: '/signup/$shareId'
+      path: '/signup/$shareId'
+      fullPath: '/signup/$shareId'
+      preLoaderRoute: typeof SignupShareIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

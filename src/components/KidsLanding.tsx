@@ -86,29 +86,35 @@ const JUNIORS_LOCATIONS = ALL_LOCATIONS.filter((location) =>
 );
 
 const CUSTOM_BATCH_ACCENTS = [
-  { accent: "bg-sky-50 text-sky-700 ring-1 ring-sky-100", metaAccent: "text-sky-700" },
   {
-    accent: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
-    metaAccent: "text-emerald-700",
+    accent: "bg-primary/15 text-primary-deep ring-1 ring-primary/25",
+    metaAccent: "text-primary-deep",
   },
-  { accent: "bg-rose-50 text-rose-700 ring-1 ring-rose-100", metaAccent: "text-rose-700" },
-  { accent: "bg-violet-50 text-violet-700 ring-1 ring-violet-100", metaAccent: "text-violet-700" },
+  {
+    accent: "bg-secondary text-foreground/80 ring-1 ring-border",
+    metaAccent: "text-foreground/70",
+  },
+  {
+    accent: "bg-accent text-accent-foreground ring-1 ring-primary/20",
+    metaAccent: "text-primary-deep",
+  },
+  {
+    accent: "bg-primary/[0.08] text-foreground/80 ring-1 ring-border",
+    metaAccent: "text-foreground/70",
+  },
 ];
 
-const FIELD_GROUP_CLASS = "group/field space-y-2.5";
-const FIELD_LABEL_CLASS =
-  "inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600 transition-colors group-focus-within/field:text-slate-950";
-const FIELD_CONTROL_CLASS =
-  "h-12 rounded-[15px] border-slate-300/90 bg-white text-[15px] font-medium text-slate-950 shadow-[0_1px_0_rgba(15,23,42,0.03)] transition-all placeholder:text-slate-400 hover:border-slate-400 focus-visible:border-slate-950 focus-visible:ring-4 focus-visible:ring-slate-950/10";
+// The Juniors form uses the same primitives as the main landing signup so the two
+// routes read as one product rather than two different signups.
+const FIELD_GROUP_CLASS = "group/field space-y-2";
+const FIELD_LABEL_CLASS = "p57-label inline-flex items-center gap-1.5 transition-colors";
+const FIELD_CONTROL_CLASS = "p57-input";
 const FIELD_ERROR_CLASS = "text-sm font-semibold text-destructive";
-const FIELD_INVALID_CLASS = "border-destructive bg-red-50/40 focus-visible:ring-destructive/15";
-const SECTION_PANEL_CLASS =
-  "rounded-[22px] border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-4 shadow-sm ring-1 ring-white/80 sm:p-5";
-const SECTION_ICON_CLASS =
-  "flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] ring-4";
-const SECTION_TITLE_CLASS = "mt-1 text-xl font-semibold leading-snug text-slate-950";
-const SECTION_BADGE_CLASS =
-  "w-fit rounded-full border bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] shadow-sm";
+const FIELD_INVALID_CLASS = "border-destructive! bg-destructive/5!";
+const SECTION_PANEL_CLASS = "form-panel form-panel--plain";
+const SECTION_ICON_CLASS = "p57-icon-tile";
+const SECTION_TITLE_CLASS = "mt-0.5 text-lg font-bold leading-snug tracking-tight text-foreground";
+const SECTION_BADGE_CLASS = "p57-chip p57-chip--accent w-fit";
 
 export type KidsLandingProps = {
   /** Lock the page to one studio - used by shareable routes built for a single centre. */
@@ -398,20 +404,22 @@ export function KidsLanding({
 
   if (success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-        <section className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-950 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-secondary px-4 py-10">
+        <section className="w-full max-w-2xl rounded-[var(--radius-panel)] border border-border bg-card p-8 text-center shadow-[var(--shadow-card)]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#070c11] text-white">
             <CheckCircle2 className="h-9 w-9" />
           </div>
-          <h1 className="mt-6 text-3xl font-bold text-slate-950">
+          <h1 className="mt-6 text-3xl font-bold text-foreground">
             {success.booked ? "Your child's place is booked" : "Request received"}
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-base leading-7 text-slate-600">
+          <p className="mx-auto mt-3 max-w-md text-base leading-7 text-muted-foreground">
             {success.booked
               ? `${form.childName || "Your child"} is confirmed for ${sessionLabel || "the session"}. We have emailed the details to you.`
               : `Our team will contact you shortly to confirm the ${JUNIORS_PROGRAM_NAME} batch details.`}
           </p>
-          {status ? <p className="mt-4 text-sm leading-6 text-slate-600">{status.text}</p> : null}
+          {status ? (
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">{status.text}</p>
+          ) : null}
         </section>
       </main>
     );
@@ -419,9 +427,9 @@ export function KidsLanding({
 
   return (
     <>
-      <main className="min-h-screen overflow-x-hidden bg-slate-50 lg:fixed lg:inset-0 lg:h-[100dvh] lg:overflow-hidden">
+      <main className="min-h-screen overflow-x-hidden bg-secondary lg:fixed lg:inset-0 lg:h-[100dvh] lg:overflow-hidden">
         <div className="min-h-screen lg:min-h-0">
-          <aside className="relative hidden overflow-hidden bg-slate-950 lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:h-[100dvh] lg:w-[42vw]">
+          <aside className="relative hidden overflow-hidden bg-[#070c11] lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:h-[100dvh] lg:w-[42vw]">
             {heroImages.map((image, index) => (
               <img
                 key={image}
@@ -433,15 +441,15 @@ export function KidsLanding({
                 )}
               />
             ))}
-            <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/10" />
+            <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#070c11]/95 via-[#070c11]/35 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 z-30 p-10 text-white">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-950 shadow-lg">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-foreground shadow-lg">
                 <Sparkles className="h-6 w-6" />
               </div>
-              <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-sky-100">
-                {heroEyebrow}
-              </p>
-              <h1 className="mt-2 max-w-md text-5xl font-bold leading-tight">{heroTitle}</h1>
+              <p className="p57-eyebrow p57-eyebrow--invert mt-6">{heroEyebrow}</p>
+              <h1 className="mt-3 max-w-md font-display text-5xl leading-[1.02] tracking-tight">
+                {heroTitle}
+              </h1>
               <p className="mt-4 max-w-md text-base leading-7 text-white/80">{heroDescription}</p>
               <div className="mt-8 grid max-w-md grid-cols-3 gap-3 text-xs font-semibold uppercase tracking-wide text-white/80">
                 {heroHighlights.slice(0, 3).map((highlight) => (
@@ -453,31 +461,29 @@ export function KidsLanding({
             </div>
           </aside>
 
-          <section className="min-h-screen min-w-0 overflow-x-hidden bg-slate-50 px-3 py-6 sm:px-6 lg:ml-[42vw] lg:h-[100dvh] lg:min-h-0 lg:w-[58vw] lg:overflow-y-auto lg:px-10 lg:py-10">
+          <section className="min-h-screen min-w-0 overflow-x-hidden bg-secondary px-3 py-6 sm:px-6 lg:ml-[42vw] lg:h-[100dvh] lg:min-h-0 lg:w-[58vw] lg:overflow-y-auto lg:px-10 lg:py-10">
             <div className="mx-auto w-full max-w-4xl space-y-7">
-              <div className="relative overflow-hidden rounded-2xl bg-slate-950 lg:hidden">
+              <div className="relative overflow-hidden rounded-2xl bg-[#070c11] lg:hidden">
                 <img
                   src={heroImages[heroIndex]}
                   alt="Young movers at a Physique 57 Juniors barre session"
                   className="h-80 w-full object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/10 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#070c11]/95 via-[#070c11]/25 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-100">
-                    {heroEyebrow}
-                  </p>
-                  <h1 className="mt-2 text-3xl font-bold leading-tight">{heroTitle}</h1>
+                  <p className="p57-eyebrow p57-eyebrow--invert">{heroEyebrow}</p>
+                  <h1 className="mt-2 font-display text-[2rem] leading-[1.05] tracking-tight">
+                    {heroTitle}
+                  </h1>
                   <p className="mt-2 text-sm leading-6 text-white/80">{mobileHeroDescription}</p>
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_34px_90px_rgba(15,23,42,0.13)]">
-                <div className="bg-slate-950 text-white">
+              <div className="overflow-hidden rounded-[28px] border border-border bg-white shadow-[0_34px_90px_rgba(15,23,42,0.13)]">
+                <div className="bg-[#070c11] text-white">
                   <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-7 sm:py-6">
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-200">
-                        P57 Juniors
-                      </p>
+                      <p className="p57-eyebrow p57-eyebrow--invert">P57 Juniors</p>
                       <h2 className="mt-2 max-w-xl text-[1.7rem] font-bold leading-[1.1] sm:text-3xl">
                         {formTitle}
                       </h2>
@@ -496,18 +502,18 @@ export function KidsLanding({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-px bg-slate-800 sm:grid-cols-5">
+                  <div className="grid grid-cols-3 gap-px bg-white/10 sm:grid-cols-5">
                     {JUNIORS_PROGRAM_OUTCOMES.map((outcome, index) => {
                       const Icon = ICONS[outcome.icon];
                       return (
                         <div
                           key={outcome.title}
                           className={cn(
-                            "flex min-h-[92px] flex-col items-center justify-center bg-slate-950 px-2.5 py-3 text-center sm:min-h-[112px]",
+                            "flex min-h-[92px] flex-col items-center justify-center bg-[#070c11] px-2.5 py-3 text-center sm:min-h-[112px]",
                             index > 2 && "hidden sm:flex",
                           )}
                         >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-400/10 text-sky-300 ring-1 ring-sky-300/20 sm:h-11 sm:w-11">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/12 text-primary ring-1 ring-primary/25 sm:h-11 sm:w-11">
                             <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                           </div>
                           <p className="mt-2.5 text-[10px] font-extrabold uppercase tracking-[0.13em] leading-4 text-white/90 sm:text-[12px]">
@@ -523,19 +529,12 @@ export function KidsLanding({
                   <div className={SECTION_PANEL_CLASS}>
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            SECTION_ICON_CLASS,
-                            "border-sky-100 text-sky-700 ring-sky-50",
-                          )}
-                        >
+                        <div className={SECTION_ICON_CLASS}>
                           <UserRoundCheck className="h-5 w-5 stroke-[1.8]" />
                         </div>
                         <h3 className={SECTION_TITLE_CLASS}>Contact for confirmation</h3>
                       </div>
-                      <p className={cn(SECTION_BADGE_CLASS, "border-sky-100 text-sky-700")}>
-                        Parent Details
-                      </p>
+                      <p className={SECTION_BADGE_CLASS}>Parent Details</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
@@ -600,19 +599,12 @@ export function KidsLanding({
                   <div className={SECTION_PANEL_CLASS}>
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            SECTION_ICON_CLASS,
-                            "border-violet-100 text-violet-700 ring-violet-50",
-                          )}
-                        >
+                        <div className={SECTION_ICON_CLASS}>
                           <BadgeCheck className="h-5 w-5 stroke-[1.8]" />
                         </div>
                         <h3 className={SECTION_TITLE_CLASS}>Choose the right starting point</h3>
                       </div>
-                      <p className={cn(SECTION_BADGE_CLASS, "border-violet-100 text-violet-700")}>
-                        Child &amp; Session
-                      </p>
+                      <p className={SECTION_BADGE_CLASS}>Child &amp; Session</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-3">
@@ -628,7 +620,7 @@ export function KidsLanding({
                             aria-readonly="true"
                             className={cn(
                               FIELD_CONTROL_CLASS,
-                              "cursor-default bg-slate-100 text-slate-700",
+                              "cursor-default bg-secondary text-foreground/80",
                             )}
                           />
                         ) : (
@@ -694,26 +686,17 @@ export function KidsLanding({
                     <div className={SECTION_PANEL_CLASS}>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex items-start gap-3">
-                          <div
-                            className={cn(
-                              SECTION_ICON_CLASS,
-                              "border-emerald-100 text-emerald-700 ring-emerald-50",
-                            )}
-                          >
+                          <div className={SECTION_ICON_CLASS}>
                             <CalendarCheck2 className="h-5 w-5 stroke-[1.8]" />
                           </div>
                           <div>
                             <h3 className={SECTION_TITLE_CLASS}>Select a class batch</h3>
-                            <p className="mt-1 text-sm leading-6 text-slate-600">
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
                               Choose a center to see the available Juniors classes.
                             </p>
                           </div>
                         </div>
-                        <p
-                          className={cn(SECTION_BADGE_CLASS, "border-emerald-100 text-emerald-700")}
-                        >
-                          Batch Preference
-                        </p>
+                        <p className={SECTION_BADGE_CLASS}>Batch Preference</p>
                       </div>
 
                       {errors.batch ? (
@@ -731,10 +714,10 @@ export function KidsLanding({
                                 aria-pressed={isSelected}
                                 onClick={() => update("batch", batch.value)}
                                 className={cn(
-                                  "group min-w-0 rounded-[16px] border bg-white px-3.5 py-3 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50/80 sm:px-4",
+                                  "group min-w-0 rounded-[16px] border bg-white px-3.5 py-3 text-left shadow-sm transition hover:border-border hover:bg-secondary/70 sm:px-4",
                                   isSelected
-                                    ? "border-slate-950 bg-slate-50/70 ring-2 ring-slate-950/10"
-                                    : "border-slate-200/90",
+                                    ? "border-foreground bg-secondary/70 ring-2 ring-primary/20"
+                                    : "border-border",
                                 )}
                               >
                                 <div className="flex min-w-0 items-start gap-3">
@@ -748,25 +731,25 @@ export function KidsLanding({
                                   </div>
                                   <div className="min-w-0 flex-1">
                                     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-700">
+                                      <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground/80">
                                         {batch.studio}
                                       </span>
                                       {isSelected ? (
-                                        <span className="rounded-full bg-slate-950 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                                        <span className="rounded-full bg-[#070c11] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
                                           Selected
                                         </span>
                                       ) : null}
                                     </div>
                                     <div className="mt-2 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                      <h4 className="break-words text-sm font-semibold leading-snug text-slate-950 sm:text-base">
+                                      <h4 className="break-words text-sm font-semibold leading-snug text-foreground sm:text-base">
                                         {batch.days}
                                       </h4>
-                                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
+                                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-foreground/80 shadow-sm ring-1 ring-border">
                                         <Clock className={cn("h-3.5 w-3.5", batch.metaAccent)} />
                                         {batch.time}
                                       </span>
                                     </div>
-                                    <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-600 sm:text-sm">
+                                    <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted-foreground sm:text-sm">
                                       <span className="inline-flex min-w-0 items-center gap-1.5">
                                         <Users
                                           className={cn(
@@ -776,8 +759,10 @@ export function KidsLanding({
                                         />
                                         {batch.instructors}
                                       </span>
-                                      <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
-                                      <span className="min-w-0 text-slate-500">{batch.note}</span>
+                                      <span className="hidden h-1 w-1 rounded-full bg-border sm:block" />
+                                      <span className="min-w-0 text-muted-foreground">
+                                        {batch.note}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -785,7 +770,7 @@ export function KidsLanding({
                             );
                           })
                         ) : (
-                          <div className="rounded-[18px] border border-dashed border-slate-300 bg-white/70 p-4 text-sm leading-6 text-slate-600">
+                          <div className="rounded-[18px] border border-dashed border-border bg-white/70 p-4 text-sm leading-6 text-muted-foreground">
                             Select a center and we will show the available Juniors classes.
                           </div>
                         )}
@@ -796,28 +781,21 @@ export function KidsLanding({
                   <div className={cn(SECTION_PANEL_CLASS, "bg-white")}>
                     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            SECTION_ICON_CLASS,
-                            "border-amber-100 text-amber-700 ring-amber-50",
-                          )}
-                        >
+                        <div className={SECTION_ICON_CLASS}>
                           <FileText className="h-5 w-5 stroke-[1.8]" />
                         </div>
                         <div>
                           <h3 className={SECTION_TITLE_CLASS}>Consent and parent signature</h3>
-                          <p className="mt-1 text-sm leading-6 text-slate-600">
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
                             Review the Juniors consent form, then sign so the consent can be
                             recorded on the Momence member profile.
                           </p>
                         </div>
                       </div>
-                      <p className={cn(SECTION_BADGE_CLASS, "border-amber-100 text-amber-700")}>
-                        Required
-                      </p>
+                      <p className={SECTION_BADGE_CLASS}>Required</p>
                     </div>
 
-                    <div className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700">
+                    <div className="rounded-[18px] border border-border bg-secondary/70 p-4 text-sm leading-6 text-foreground/80">
                       <p>
                         Parent/guardian confirms capacity to consent, health declaration, release
                         and indemnity, personal information consent, and class policies for{" "}
@@ -825,7 +803,7 @@ export function KidsLanding({
                         <button
                           type="button"
                           onClick={() => setConsentOpen(true)}
-                          className="font-bold text-slate-950 underline underline-offset-4"
+                          className="font-bold text-foreground underline underline-offset-4"
                         >
                           Juniors consent form
                         </button>
@@ -843,7 +821,7 @@ export function KidsLanding({
                       />
 
                       <div className={FIELD_GROUP_CLASS}>
-                        <div className="flex items-center gap-2 text-slate-700">
+                        <div className="flex items-center gap-2 text-foreground/80">
                           <PenLine className="h-4 w-4" />
                           <Label className={FIELD_LABEL_CLASS}>
                             Parent/guardian drawn signature{" "}
@@ -868,7 +846,7 @@ export function KidsLanding({
                     </div>
 
                     <div className="mt-4 space-y-2">
-                      <div className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-4 text-sm leading-6 text-slate-800">
+                      <div className="flex items-start gap-3 rounded-[18px] border border-border bg-white px-4 py-4 text-sm leading-6 text-foreground/90">
                         <Checkbox
                           id="kidsAcceptedTerms"
                           checked={form.acceptedTerms}
@@ -883,7 +861,7 @@ export function KidsLanding({
                           <button
                             type="button"
                             onClick={() => setConsentOpen(true)}
-                            className="font-bold text-slate-950 underline underline-offset-4"
+                            className="font-bold text-foreground underline underline-offset-4"
                           >
                             Juniors consent form
                           </button>{" "}
@@ -902,8 +880,8 @@ export function KidsLanding({
                       className={cn(
                         "rounded-xl border px-4 py-3 text-sm",
                         status.tone === "error"
-                          ? "border-red-300 bg-red-50 text-red-800"
-                          : "border-slate-300 bg-slate-50 text-slate-800",
+                          ? "border-destructive/25 bg-destructive/10 text-destructive"
+                          : "border-border bg-secondary text-foreground/90",
                       )}
                     >
                       {status.text}
@@ -914,7 +892,7 @@ export function KidsLanding({
                     id="kids-submit-button"
                     type="submit"
                     disabled={submitting || !isFormValid}
-                    className="h-14 w-full rounded-[16px] bg-slate-950 text-base font-bold text-white shadow-[0_20px_42px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:bg-slate-800 disabled:translate-y-0 disabled:shadow-none"
+                    className="signup-submit"
                   >
                     {submitting ? (
                       <>
@@ -928,14 +906,14 @@ export function KidsLanding({
                     )}
                   </Button>
 
-                  <div className="rounded-[20px] border border-slate-200 bg-slate-50/80 px-3 py-4 sm:px-4">
+                  <div className="rounded-[20px] border border-border bg-secondary/70 px-3 py-4 sm:px-4">
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {JUNIORS_PROGRAM_FEATURES.map((feature) => {
                         const Icon = ICONS[feature.icon];
                         return (
                           <div
                             key={feature.title}
-                            className="flex min-w-0 items-center gap-2 rounded-[14px] border border-slate-200 bg-white px-3 py-2.5 shadow-sm"
+                            className="flex min-w-0 items-center gap-2 rounded-[14px] border border-border bg-white px-3 py-2.5 shadow-sm"
                           >
                             <div
                               className={cn(
@@ -945,7 +923,7 @@ export function KidsLanding({
                             >
                               <Icon className="h-4 w-4" />
                             </div>
-                            <p className="min-w-0 text-sm font-semibold leading-snug text-slate-800">
+                            <p className="min-w-0 text-sm font-semibold leading-snug text-foreground/90">
                               {feature.title}
                             </p>
                           </div>
@@ -958,16 +936,16 @@ export function KidsLanding({
 
               <section className="space-y-6 pb-10">
                 <div className="px-1">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
-                    <Sparkles className="h-4 w-4 text-slate-800" />
-                    <span className="text-sm font-semibold text-slate-950">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 shadow-sm">
+                    <Sparkles className="h-4 w-4 text-foreground/90" />
+                    <span className="text-sm font-semibold text-foreground">
                       Signature Movement Intelligence
                     </span>
                   </div>
-                  <h2 className="mt-5 text-3xl font-bold text-slate-950">
+                  <h2 className="mt-5 text-3xl font-bold text-foreground">
                     Inside The Juniors Method
                   </h2>
-                  <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+                  <p className="mt-3 max-w-3xl text-base leading-7 text-muted-foreground">
                     The Juniors experience carries the same Physique 57 promise: precise movement,
                     premium instruction, low-impact intensity, and a community-led studio journey.
                   </p>
@@ -977,10 +955,7 @@ export function KidsLanding({
                   {JUNIORS_USPS.map((item) => {
                     const Icon = ICONS[item.icon];
                     return (
-                      <div
-                        key={item.title}
-                        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_48px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5"
-                      >
+                      <div key={item.title} className="p57-card p57-card--interactive p-5">
                         <div
                           className={cn(
                             "flex h-11 w-11 items-center justify-center rounded-xl shadow-md",
@@ -989,8 +964,10 @@ export function KidsLanding({
                         >
                           <Icon className="h-5 w-5" />
                         </div>
-                        <h3 className="mt-4 text-lg font-bold text-slate-950">{item.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
+                        <h3 className="mt-4 text-lg font-bold text-foreground">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          {item.description}
+                        </p>
                       </div>
                     );
                   })}
@@ -999,14 +976,14 @@ export function KidsLanding({
                 <section className="rounded-[26px] border border-white/80 bg-white/90 p-5 shadow-[0_22px_70px_rgba(15,23,42,0.10)] sm:p-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/80">
                         What Young Movers Build
                       </p>
-                      <h3 className="mt-2 text-2xl font-bold text-slate-950">
+                      <h3 className="mt-2 text-2xl font-bold text-foreground">
                         Strength that feels composed, not rushed
                       </h3>
                     </div>
-                    <div className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700">
+                    <div className="w-fit rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-foreground/80">
                       Low impact
                     </div>
                   </div>
@@ -1016,7 +993,7 @@ export function KidsLanding({
                       return (
                         <div
                           key={item.title}
-                          className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4"
+                          className="rounded-[18px] border border-border/80 bg-secondary/70 p-4"
                         >
                           <div
                             className={cn(
@@ -1026,8 +1003,8 @@ export function KidsLanding({
                           >
                             <Icon className="h-5 w-5" />
                           </div>
-                          <h4 className="mt-4 text-base font-bold text-slate-950">{item.title}</h4>
-                          <p className="mt-2 text-sm leading-6 text-slate-600">
+                          <h4 className="mt-4 text-base font-bold text-foreground">{item.title}</h4>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             {item.description}
                           </p>
                         </div>
@@ -1037,10 +1014,8 @@ export function KidsLanding({
                 </section>
 
                 <section className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-                  <div className="rounded-[26px] bg-slate-950 p-5 text-white shadow-[0_26px_80px_rgba(15,23,42,0.22)] sm:p-6">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
-                      First Session Flow
-                    </p>
+                  <div className="rounded-[26px] bg-[#070c11] p-5 text-white shadow-[0_26px_80px_rgba(15,23,42,0.22)] sm:p-6">
+                    <p className="p57-eyebrow">First Session Flow</p>
                     <h3 className="mt-2 text-2xl font-bold">
                       A warm, confident start at the barre
                     </h3>
@@ -1050,7 +1025,7 @@ export function KidsLanding({
                           key={step}
                           className="flex gap-3 rounded-[18px] border border-white/10 bg-white/10 p-4"
                         >
-                          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-950">
+                          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-foreground">
                             {index + 1}
                           </span>
                           <p className="text-sm leading-6 text-white/80">{step}</p>
@@ -1059,21 +1034,21 @@ export function KidsLanding({
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.09)] sm:p-6">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
+                  <div className="rounded-[26px] border border-border bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.09)] sm:p-6">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/80">
                       Good To Know
                     </p>
-                    <h3 className="mt-2 text-2xl font-bold text-slate-950">
+                    <h3 className="mt-2 text-2xl font-bold text-foreground">
                       Helpful notes before you book
                     </h3>
                     <div className="mt-5 space-y-3">
                       {JUNIORS_PARENT_NOTES.map((note) => (
                         <div
                           key={note}
-                          className="flex gap-3 rounded-[16px] bg-slate-50 p-3 shadow-sm"
+                          className="flex gap-3 rounded-[16px] bg-secondary p-3 shadow-sm"
                         >
-                          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-700" />
-                          <p className="text-sm leading-6 text-slate-700">{note}</p>
+                          <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-foreground/80" />
+                          <p className="text-sm leading-6 text-foreground/80">{note}</p>
                         </div>
                       ))}
                     </div>

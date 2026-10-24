@@ -42,6 +42,6 @@ export default defineConfig(({ command }) => ({
   server: {
     host: "::",
     port: 8080,
-    allowedHosts: [".ngrok-free.app"],
+    allowedHosts: [".ngrok-free.app", ".e2b.app"],
   },
 }));

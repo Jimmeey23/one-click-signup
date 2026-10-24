@@ -74,6 +74,10 @@ export function ReviewsCarousel({
 }) {
   const [bengaluruReviews, setBengaluruReviews] = useState<Review[]>([]);
   const [reviewsFailed, setReviewsFailed] = useState(false);
+  // Nothing is fetched until the strip is close to the viewport: the reviews sit below
+  // several full-height sections, and their first paint should not compete with the hero.
+  const [inView, setInView] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
   const reviews = studioVariant === "bengaluru" ? bengaluruReviews : REVIEWS;
   const isBengaluru = studioVariant === "bengaluru";
   // Extra copies of the deck appended so the track always has cards to slide in from the right.
@@ -83,7 +87,28 @@ export function ReviewsCarousel({
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (studioVariant !== "bengaluru") return;
+    if (studioVariant !== "bengaluru" || inView) return;
+    const node = sectionRef.current;
+    if (!node) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [studioVariant, inView]);
+
+  useEffect(() => {
+    if (studioVariant !== "bengaluru" || !inView) return;
     const controller = new AbortController();
     fetch(BENGALURU_REVIEWS_URL, {
       headers: { "x-origin": window.location.origin },
@@ -109,7 +134,7 @@ export function ReviewsCarousel({
         setReviewsFailed(true);
       });
     return () => controller.abort();
-  }, [studioVariant]);
+  }, [studioVariant, inView]);
 
   useVisibleInterval(trackRef, () => setStep((value) => value + 1), 4500, reviews.length > 0);
 
@@ -128,7 +153,12 @@ export function ReviewsCarousel({
         Reviews are temporarily unavailable. Please try again shortly.
       </p>
     ) : (
-      <div className="grid gap-4 md:grid-cols-3" role="status" aria-label="Loading member reviews">
+      <div
+        ref={sectionRef}
+        className="grid gap-4 md:grid-cols-3"
+        role="status"
+        aria-label="Loading member reviews"
+      >
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
@@ -140,7 +170,7 @@ export function ReviewsCarousel({
   }
 
   return (
-    <div className="overflow-hidden">
+    <div ref={sectionRef} className="overflow-hidden">
       <div
         ref={trackRef}
         onTransitionEnd={handleTransitionEnd}
@@ -239,6 +269,7 @@ export function ReviewsCarousel({
                       isBengaluru ? "ring-2 ring-primary/15" : "ring-1 ring-border"
                     }`}
                     loading="lazy"
+                    decoding="async"
                   />
                 ) : (
                   <span
