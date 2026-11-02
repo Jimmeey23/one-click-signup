@@ -8,7 +8,7 @@ export const Route = createFileRoute("/skip-lead")({
       {
         name: "description",
         content:
-          "Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
+          "Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
       },
       {
         property: "og:title",
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/skip-lead")({
       {
         property: "og:description",
         content:
-          "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
+          "Book your first 57-minute Barre 57 class at Physique 57 in Mumbai.",
       },
     ],
   }),

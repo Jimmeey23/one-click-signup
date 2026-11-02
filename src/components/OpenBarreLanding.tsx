@@ -157,10 +157,10 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
   mumbai: {
     title: "Physique 57 India - Discover the workout everyone talks about.",
     description:
-      "Your first Barre 57 class is complimentary. Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
+      "Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
     ogTitle: "Physique 57 India - Discover the workout everyone talks about.",
     ogDescription:
-      "Activate your complimentary Open Barre membership and book your first 57-minute class in Mumbai.",
+      "Book your first 57-minute Barre 57 class at Physique 57 in Mumbai.",
     heroLocationLine: "Mumbai · Bengaluru",
     statLabel: "studios",
     signupCta: "Claim Your Trial Class",
@@ -752,11 +752,6 @@ export function OpenBarreLanding({
                 <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
                 {routeEvent?.studio || studioConfig.heroLocationLine}
               </p>
-              {routeEvent && (
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] font-bold text-white/80 backdrop-blur-md">
-                  {routeEvent.paid ? "Paid class" : "Complimentary"}
-                </span>
-              )}
             </div>
             <h1 className="max-w-xl font-display text-[clamp(3rem,6vw,5.5rem)] leading-[0.94] tracking-[-0.035em] text-balance">
               {routeEvent?.name ||
@@ -1493,17 +1488,6 @@ function SignupCard({
                 : "Takes 60 seconds. No card required."}
           </p>
         </div>
-        {routeEvent
-          ? !routeEvent.paid && (
-              <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
-                Complimentary
-              </span>
-            )
-          : !isBengaluru && (
-              <span className="hidden sm:inline-flex shrink-0 rounded-full bg-primary/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-primary-deep">
-                Complimentary
-              </span>
-            )}
       </div>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-6">
