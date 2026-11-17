@@ -18,6 +18,8 @@ import { bookSessionWithMomenceMembership } from "./momence-sessions.functions";
 import {
   buildNewcomersCheckoutSessionParams,
   buildBengaluruCheckoutSessionParams,
+  isMomenceMembershipAlreadyPurchased,
+  MOMENCE_MEMBERSHIP_PURCHASED_METADATA_KEY,
   type NewcomersCheckoutMetadata,
   type BengaluruCheckoutMetadata,
 } from "./stripe-checkout.helpers";
@@ -66,6 +68,62 @@ async function getStripeClient(): Promise<Stripe> {
 
 function parseCheckoutMetadata(metadata: Stripe.Metadata | null | undefined) {
   return CheckoutMetadataSchema.parse(metadata ?? {});
+}
+
+type RetrievedCheckout = {
+  checkoutSession: Stripe.Checkout.Session;
+  paymentIntent: Stripe.PaymentIntent | null;
+};
+
+async function retrieveCheckout(
+  stripe: Stripe,
+  checkoutSessionId: string,
+): Promise<RetrievedCheckout> {
+  const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId, {
+    expand: ["payment_intent"],
+  });
+  const paymentIntent =
+    checkoutSession.payment_intent && typeof checkoutSession.payment_intent === "object"
+      ? checkoutSession.payment_intent
+      : null;
+  return { checkoutSession, paymentIntent };
+}
+
+async function markMomenceMembershipPurchased(
+  stripe: Stripe,
+  paymentIntent: Stripe.PaymentIntent | null,
+  checkoutSessionId: string,
+) {
+  if (!paymentIntent) {
+    console.error(
+      `Checkout ${checkoutSessionId} has no PaymentIntent - cannot record the Momence purchase; a retry may buy it again.`,
+    );
+    return;
+  }
+  const metadata = { [MOMENCE_MEMBERSHIP_PURCHASED_METADATA_KEY]: new Date().toISOString() };
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await stripe.paymentIntents.update(paymentIntent.id, { metadata });
+      return;
+    } catch (error) {
+      if (attempt === 3) {
+        console.error(
+          `Failed to record Momence purchase on ${paymentIntent.id} (checkout ${checkoutSessionId}); a retry may buy it again.`,
+          error,
+        );
+      }
+    }
+  }
+}
+
+/** Thrown once the membership is bought but the class booking failed. Not worth a Stripe retry. */
+export class CheckoutBookingFailedAfterPurchaseError extends Error {
+  constructor(checkoutSessionId: string, cause: unknown) {
+    const detail = cause instanceof Error ? cause.message : String(cause);
+    super(`Membership bought for checkout ${checkoutSessionId} but booking failed: ${detail}`);
+    this.name = "CheckoutBookingFailedAfterPurchaseError";
+    this.cause = cause;
+  }
 }
 
 function assertCheckoutMatchesExpected(
@@ -150,7 +208,7 @@ export async function fulfillNewcomersCheckoutSession(
   expected?: z.infer<typeof CompleteCheckoutInput>,
 ) {
   const stripe = await getStripeClient();
-  const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+  const { checkoutSession, paymentIntent } = await retrieveCheckout(stripe, checkoutSessionId);
 
   if (checkoutSession.payment_status !== "paid" && checkoutSession.status !== "complete") {
     throw new Error("Stripe Checkout session is not paid yet.");
@@ -165,7 +223,10 @@ export async function fulfillNewcomersCheckoutSession(
     homeLocationId: metadata.homeLocationId,
   };
 
-  await ensureNewcomersMembership(bookingInput);
+  if (!isMomenceMembershipAlreadyPurchased(paymentIntent)) {
+    await ensureNewcomersMembership(bookingInput);
+    await markMomenceMembershipPurchased(stripe, paymentIntent, checkoutSessionId);
+  }
 
   try {
     return await bookSessionWithMomenceMembership({
@@ -177,7 +238,7 @@ export async function fulfillNewcomersCheckoutSession(
     if (isAlreadyFulfilledBookingError(error)) {
       return { booked: true as const, method: "already-booked" as const };
     }
-    throw error;
+    throw new CheckoutBookingFailedAfterPurchaseError(checkoutSessionId, error);
   }
 }
 
@@ -270,7 +331,7 @@ export async function fulfillBengaluruCheckoutSession(
   expected?: z.infer<typeof CompleteCheckoutInput>,
 ) {
   const stripe = await getStripeClient();
-  const checkoutSession = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+  const { checkoutSession, paymentIntent } = await retrieveCheckout(stripe, checkoutSessionId);
 
   if (checkoutSession.payment_status !== "paid" && checkoutSession.status !== "complete") {
     throw new Error("Stripe Checkout session is not paid yet.");
@@ -285,7 +346,10 @@ export async function fulfillBengaluruCheckoutSession(
     homeLocationId: metadata.homeLocationId,
   };
 
-  await ensureBengaluruMembership({ ...bookingInput, membershipId: metadata.membershipId });
+  if (!isMomenceMembershipAlreadyPurchased(paymentIntent)) {
+    await ensureBengaluruMembership({ ...bookingInput, membershipId: metadata.membershipId });
+    await markMomenceMembershipPurchased(stripe, paymentIntent, checkoutSessionId);
+  }
 
   try {
     return await bookSessionWithMomenceMembership({
@@ -299,7 +363,7 @@ export async function fulfillBengaluruCheckoutSession(
     if (isAlreadyFulfilledBookingError(error)) {
       return { booked: true as const, method: "already-booked" as const };
     }
-    throw error;
+    throw new CheckoutBookingFailedAfterPurchaseError(checkoutSessionId, error);
   }
 }
 
@@ -328,7 +392,18 @@ export async function handleStripeWebhook(rawBody: string, signature: string | n
     event.type === "checkout.session.async_payment_succeeded"
   ) {
     const session = event.data.object as Stripe.Checkout.Session;
-    await fulfillCheckoutSessionByMetadata(session.id);
+    try {
+      await fulfillCheckoutSessionByMetadata(session.id);
+    } catch (error) {
+      // The membership is already bought and recorded; a Stripe retry can only re-attempt
+      // the booking. Acknowledge the event so Stripe stops retrying, and leave the booking
+      // to the success page / studio staff.
+      if (error instanceof CheckoutBookingFailedAfterPurchaseError) {
+        console.error(`Stripe webhook ${event.id}:`, error.message, error.cause);
+        return { received: true as const, fulfilled: false as const, bookingFailed: true as const };
+      }
+      throw error;
+    }
     return { received: true as const, fulfilled: true as const };
   }
 

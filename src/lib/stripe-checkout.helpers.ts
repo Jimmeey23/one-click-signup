@@ -128,3 +128,16 @@ export function buildBengaluruCheckoutSessionParams(
       : { productId: bengaluruStripeProductIdForLocation(input.homeLocationId) }),
   });
 }
+
+// Stripe PaymentIntent metadata key set once the Momence membership for this payment has
+// been bought. Fulfilment runs from both the success page and every Stripe webhook
+// delivery/retry, so it must not infer "already bought" from Momence's compatible
+// memberships: a single-class membership stops being compatible as soon as it is used to
+// book, and the next run would buy (and charge the member for) another one.
+export const MOMENCE_MEMBERSHIP_PURCHASED_METADATA_KEY = "momenceMembershipPurchasedAt";
+
+export function isMomenceMembershipAlreadyPurchased(
+  paymentIntent: Pick<Stripe.PaymentIntent, "metadata"> | null,
+): boolean {
+  return Boolean(paymentIntent?.metadata?.[MOMENCE_MEMBERSHIP_PURCHASED_METADATA_KEY]);
+}

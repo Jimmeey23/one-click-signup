@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import {
   buildBengaluruCheckoutSessionParams,
   buildNewcomersCheckoutSessionParams,
+  isMomenceMembershipAlreadyPurchased,
+  MOMENCE_MEMBERSHIP_PURCHASED_METADATA_KEY,
 } from "./stripe-checkout.helpers.ts";
 import {
   BENGALURU_INDIRANAGAR_LOCATION_ID,
@@ -107,5 +109,21 @@ describe("Stripe checkout helpers", () => {
     assert.equal(params.metadata?.membershipId, String(BENGALURU_PLASH_PILATES_MEMBERSHIP_ID));
     assert.equal(params.line_items?.[0]?.price, BENGALURU_PLASH_PILATES_STRIPE_PRICE_ID);
     assert.equal(params.line_items?.[0]?.price_data, undefined);
+  });
+});
+
+describe("Stripe checkout fulfilment idempotency", () => {
+  it("buys the Momence membership when the payment has no purchase marker", () => {
+    assert.equal(isMomenceMembershipAlreadyPurchased({ metadata: {} }), false);
+    assert.equal(isMomenceMembershipAlreadyPurchased(null), false);
+  });
+
+  it("skips the Momence purchase on webhook retries once the payment is marked", () => {
+    assert.equal(
+      isMomenceMembershipAlreadyPurchased({
+        metadata: { [MOMENCE_MEMBERSHIP_PURCHASED_METADATA_KEY]: "2026-11-17T07:04:30.000Z" },
+      }),
+      true,
+    );
   });
 });
