@@ -228,7 +228,7 @@ export async function momenceReadonlyFetch<T>(path: string, init: RequestInit = 
 export {
   NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
   OPEN_BARRE_MEMBERSHIP_ID,
-} from "./momence-booking.helpers";
+} from "./momence-booking.helpers.ts";
 
 export const LOCATIONS = [
   { id: 9030, name: "Kwality House, Kemps Corner" },

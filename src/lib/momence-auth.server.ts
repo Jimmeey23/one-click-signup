@@ -1,7 +1,7 @@
 // Server-only: logs into the Momence dashboard (email + password + TOTP MFA) and
 // caches the resulting session cookie in-memory, refreshing it automatically when
 // missing or expired instead of relying on a manually pasted MOMENCE_ALL_COOKIES value.
-import { requireServerEnv } from "./momence.server";
+import { requireServerEnv } from "./momence.server.ts";
 
 const LOGIN_URL = "https://api.momence.com/auth/login";
 const MFA_URL = "https://api.momence.com/auth/mfa/totp/verify";

@@ -1,6 +1,6 @@
 // Turns a lead payload into the row we store in Supabase. Kept separate from the
 // PostgREST call so the mapping can be tested without a network or a database.
-import type { LeadCapturePayload } from "./signup-and-enroll.helpers";
+import type { LeadCapturePayload } from "./signup-and-enroll.helpers.ts";
 
 export const COMPLETED_SUBMISSIONS_TABLE = "signup_submissions";
 export const PARTIAL_SUBMISSIONS_TABLE = "partial_submissions";

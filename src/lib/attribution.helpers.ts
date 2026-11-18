@@ -1,4 +1,4 @@
-import { readRawFbclid } from "./analytics";
+import { readRawFbclid } from "./analytics.ts";
 
 export type StoredAttribution = {
   utmSource?: string;

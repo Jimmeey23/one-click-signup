@@ -14,8 +14,8 @@ import {
   NEWCOMERS_2_FOR_1_PRICE_INR,
   OPEN_BARRE_MEMBERSHIP_ID,
   openBarreMembershipIdForLocation,
-} from "./momence-booking.helpers";
-import { MUMBAI_LOCATIONS } from "./momence-locations";
+} from "./momence-booking.helpers.ts";
+import { MUMBAI_LOCATIONS } from "./momence-locations.ts";
 
 const MUMBAI_LOCATION_IDS = MUMBAI_LOCATIONS.map((location) => location.id as number);
 

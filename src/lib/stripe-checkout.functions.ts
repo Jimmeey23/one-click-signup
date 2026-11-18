@@ -12,15 +12,15 @@ import {
   NEWCOMERS_2_FOR_1_MEMBERSHIP_ID,
   BENGALURU_MOMENCE_HOST_ID,
   type CompatibleMembershipsResponse,
-} from "./momence-booking.helpers";
-import { momenceFetch, requireServerEnv } from "./momence.server";
-import { bookSessionWithMomenceMembership } from "./momence-sessions.functions";
+} from "./momence-booking.helpers.ts";
+import { momenceFetch, requireServerEnv } from "./momence.server.ts";
+import { bookSessionWithMomenceMembership } from "./momence-sessions.functions.ts";
 import {
   buildNewcomersCheckoutSessionParams,
   buildBengaluruCheckoutSessionParams,
   type NewcomersCheckoutMetadata,
   type BengaluruCheckoutMetadata,
-} from "./stripe-checkout.helpers";
+} from "./stripe-checkout.helpers.ts";
 
 const STRIPE_API_VERSION = "2026-05-27.dahlia";
 const NEWCOMERS_MEMBERSHIP_LABEL = "Newcomers 2 For 1";

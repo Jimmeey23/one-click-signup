@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { momenceFetch } from "./momence.server";
+import { momenceFetch } from "./momence.server.ts";
 
 // Note: Momence's signable-documents endpoints are usually member-token scoped.
 // We try the host equivalent first; on failure, callers should fall back to a

@@ -4,8 +4,8 @@ import {
   buildCustomerFieldsDataRequest,
   validateCustomerFieldValues,
   type CustomerFieldValues,
-} from "./momence-customer-fields.helpers";
-import { momenceDashboardFetch } from "./momence.server";
+} from "./momence-customer-fields.helpers.ts";
+import { momenceDashboardFetch } from "./momence.server.ts";
 
 const CustomerFieldValuesSchema = z.object({
   fitnessGoal: z.string().max(500).optional(),
