@@ -4,7 +4,7 @@
 // PostgREST is called directly rather than through supabase-js for the same reason
 // route-store.functions.ts does - the SDK builds a Realtime client on construction, which
 // throws on Node 20 for want of a native WebSocket.
-import type { LeadCapturePayload } from "./signup-and-enroll.helpers";
+import type { LeadCapturePayload } from "./signup-and-enroll.helpers.ts";
 import {
   buildSubmissionRow,
   partialPruneFilter,
@@ -13,7 +13,7 @@ import {
   COMPLETED_SUBMISSIONS_TABLE,
   PARTIAL_SUBMISSIONS_TABLE,
   type SubmissionWebhookOutcome,
-} from "./submission-store.helpers";
+} from "./submission-store.helpers.ts";
 
 function submissionStoreConfig() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;

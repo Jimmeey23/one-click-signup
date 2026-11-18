@@ -1,11 +1,11 @@
 import {
   buildHostMemberCreateRequest,
   type HostMemberCreateRequest,
-} from "./momence-member.helpers";
+} from "./momence-member.helpers.ts";
 import {
   isPaidNewcomersClassName,
   momenceHomeLocationIdForLocation,
-} from "./momence-booking.helpers";
+} from "./momence-booking.helpers.ts";
 
 export type SignupAndEnrollInput = {
   firstName: string;

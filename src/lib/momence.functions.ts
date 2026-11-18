@@ -1,42 +1,42 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { META_CLICK_ID_MAX_LENGTH, META_CURRENCY, META_PLACEHOLDER_VALUE } from "./analytics";
-import { metaGeoForLocationId } from "./momence-locations";
-import { sendMetaCapiEvent } from "./meta-capi";
-import { metaRequestContext, type MetaRequestContext } from "./meta-request.helpers";
-import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server";
+import { META_CLICK_ID_MAX_LENGTH, META_CURRENCY, META_PLACEHOLDER_VALUE } from "./analytics.ts";
+import { metaGeoForLocationId } from "./momence-locations.ts";
+import { sendMetaCapiEvent } from "./meta-capi.ts";
+import { metaRequestContext, type MetaRequestContext } from "./meta-request.helpers.ts";
+import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server.ts";
 import {
   BENGALURU_MOMENCE_HOST_ID,
   buildMembershipCheckoutRequest,
   buildOpenBarreCheckoutRequestForLocation,
   isBengaluruLocation,
   momenceHomeLocationIdForLocation,
-} from "./momence-booking.helpers";
-import { bookSessionWithMomenceMembership } from "./momence-sessions.functions";
+} from "./momence-booking.helpers.ts";
+import { bookSessionWithMomenceMembership } from "./momence-sessions.functions.ts";
 import {
   defaultMembershipIdForLocation,
   isFreeMembershipId,
   membershipOptionById,
-} from "./membership-catalog";
-import { JUNIORS_PROGRAM_NAME } from "./kids-program";
-import { buildHostMemberCreateRequest, splitChildName } from "./momence-member.helpers";
+} from "./membership-catalog.ts";
+import { JUNIORS_PROGRAM_NAME } from "./kids-program.ts";
+import { buildHostMemberCreateRequest, splitChildName } from "./momence-member.helpers.ts";
 import {
   buildDashboardPublicWaiverSignRequests,
   KIDS_CHILD_PREDEFINED_WAIVER_IDS,
   KIDS_PARENT_PREDEFINED_WAIVER_IDS,
   type DashboardWaiver,
-} from "./momence-waivers.helpers";
+} from "./momence-waivers.helpers.ts";
 import {
   buildChildAccountCreateRequest,
   parseChildAccountMemberId,
-} from "./momence-child-account.helpers";
+} from "./momence-child-account.helpers.ts";
 import {
   runSignupAndEnroll,
   type LeadCapturePayload,
   type SignupAndEnrollDependencies,
-} from "./signup-and-enroll.helpers";
-import type { SubmissionWebhookOutcome } from "./submission-store.helpers";
+} from "./signup-and-enroll.helpers.ts";
+import type { SubmissionWebhookOutcome } from "./submission-store.helpers.ts";
 
 const SignatureSchema = z.object({
   documentId: z.number().int().positive(),

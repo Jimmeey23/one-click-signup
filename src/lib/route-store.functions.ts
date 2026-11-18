@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { decodeShareableRoutePayload, type ShareableRoutePayload } from "./shareable-route";
-import { isReservedSlug } from "./route-slug";
+import { decodeShareableRoutePayload, type ShareableRoutePayload } from "./shareable-route.ts";
+import { isReservedSlug } from "./route-slug.ts";
 
 const TABLE = "shareable_routes";
 

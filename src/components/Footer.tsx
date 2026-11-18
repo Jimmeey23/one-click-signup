@@ -47,13 +47,21 @@ export function Footer({
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/55">
               The signature 57-minute method for strength, posture and lasting transformation.
             </p>
-            <a
-              href="#signup"
+            {/*
+              The signup form (id="signup") only exists on the landing routes, / and
+              /bengaluru. The footer renders on nine other pages, where a bare href="#signup"
+              matched nothing and the click silently did nothing - Clarity recorded 184 dead
+              clicks and repeated rage clicks on this button. Route to the landing page that
+              owns the form, then let the router scroll to it.
+            */}
+            <Link
+              to={isBengaluru ? "/bengaluru" : "/"}
+              hash="signup"
               className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#0b1117] transition duration-200 hover:-translate-y-0.5 hover:bg-white"
             >
               Book your first class
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
+            </Link>
           </div>
 
           <div>

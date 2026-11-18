@@ -159,8 +159,7 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
     description:
       "Sculpt, strengthen, and energize your body in just 57 minutes. Sign up below to get started.",
     ogTitle: "Physique 57 India - Discover the workout everyone talks about.",
-    ogDescription:
-      "Book your first 57-minute Barre 57 class at Physique 57 in Mumbai.",
+    ogDescription: "Book your first 57-minute Barre 57 class at Physique 57 in Mumbai.",
     heroLocationLine: "Mumbai · Bengaluru",
     statLabel: "studios",
     signupCta: "Claim Your Trial Class",
@@ -176,7 +175,9 @@ const STUDIO_CONFIG: Record<StudioVariant, StudioConfig> = {
       "Explore Physique 57 Bengaluru studios, discover upcoming classes, and book the session that fits you.",
     heroLocationLine: "Bengaluru",
     statLabel: "formats",
-    signupCta: "Book Your Trial Class",
+    // Bengaluru studios do not offer a free trial class, so nothing in this variant should
+    // promise one.
+    signupCta: "Book Your First Class",
     landingNote:
       "Please review and sign before activating your Bengaluru booking. This consent is recorded with your Momence member profile.",
   },
@@ -1053,11 +1054,16 @@ function Header({ studioVariant }: { studioVariant: StudioVariant }) {
             Contact
           </Link>
         </nav>
+        {/*
+          Was hidden below the sm breakpoint, so the header carried no call to action at all
+          on phones - 96% of this site's traffic. Shown at every width now, and Bengaluru gets
+          wording that does not promise a trial those studios do not offer.
+        */}
         <a
           href="#signup"
-          className="hidden sm:inline-flex h-11 px-6 items-center rounded-full bg-primary text-foreground border border-primary/60 text-[11px] font-bold uppercase tracking-[0.16em] shadow-[0_8px_30px_rgba(127,211,247,0.22)] hover:-translate-y-0.5 hover:bg-white transition duration-200"
+          className="inline-flex h-10 sm:h-11 px-4 sm:px-6 items-center rounded-full bg-primary text-foreground border border-primary/60 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] sm:tracking-[0.16em] shadow-[0_8px_30px_rgba(127,211,247,0.22)] hover:-translate-y-0.5 hover:bg-white transition duration-200"
         >
-          Claim Your Trial Class
+          {isBengaluru ? "Book Your First Class" : "Claim Your Trial Class"}
         </a>
       </div>
     </header>
@@ -1476,7 +1482,9 @@ function SignupCard({
               ? `Book ${routeEvent.name}`
               : isKidsRoute
                 ? "Book a Juniors class"
-                : "Activate your trial"}
+                : isBengaluru
+                  ? "Book your first class"
+                  : "Activate your trial"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1.5">
             {routeEvent
@@ -1485,7 +1493,9 @@ function SignupCard({
                 (routeEventDetail ?? "Takes 60 seconds. Your place is held once you submit.")
               : isKidsRoute
                 ? "Kids-specific signup with consent and waiver support."
-                : "Takes 60 seconds. No card required."}
+                : isBengaluru
+                  ? "Takes 60 seconds. Choose your studio and class."
+                  : "Takes 60 seconds. No card required."}
           </p>
         </div>
       </div>

@@ -1,6 +1,13 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
+import {
+  drawablePaths,
+  rescaleFactor,
+  scalePaths,
+  shouldRebuildCanvas,
+} from "@/lib/signature-paths";
+
 export type SignaturePadHandle = {
   clear: () => void;
   isEmpty: () => boolean;
@@ -57,15 +64,42 @@ export const SignaturePad = forwardRef<SignaturePadHandle, { label?: string }>(
     }
 
     useEffect(() => {
+      // Width at the last canvas rebuild. On mobile, window.resize fires every time the
+      // on-screen keyboard opens or closes and every time the browser address bar collapses
+      // on scroll - both change height only. Rebuilding the canvas on those events wiped the
+      // stored paths and reset emptyRef, silently erasing a signature the visitor had already
+      // drawn. Clarity caught the result: repeated taps on the pad, Clear pressed in
+      // confusion, then abandonment at the last step of the form.
+      let lastWidth = 0;
+
+      function repaint(scale: number) {
+        const ctx = getContext();
+        if (!ctx) return;
+        pathsRef.current = scalePaths(pathsRef.current, scale);
+        for (const path of drawablePaths(pathsRef.current)) {
+          ctx.beginPath();
+          ctx.moveTo(path[0], path[1]);
+          for (let i = 2; i < path.length; i += 2) {
+            ctx.lineTo(path[i], path[i + 1]);
+          }
+          ctx.stroke();
+        }
+      }
+
       function resize() {
         const wrap = wrapRef.current;
         const canvas = canvasRef.current;
         if (!wrap || !canvas) return;
 
-        const ratio = window.devicePixelRatio || 1;
         // Read layout once before writing canvas dimensions.
         const width = wrap.clientWidth;
         const height = wrap.clientHeight;
+        if (!shouldRebuildCanvas(lastWidth, width)) return; // height-only: keep the signature
+
+        const ratio = window.devicePixelRatio || 1;
+        const scale = rescaleFactor(lastWidth, width);
+        lastWidth = width;
+
         canvas.width = Math.max(1, Math.floor(width * ratio));
         canvas.height = Math.max(1, Math.floor(height * ratio));
         canvas.style.width = `${width}px`;
@@ -73,10 +107,10 @@ export const SignaturePad = forwardRef<SignaturePadHandle, { label?: string }>(
 
         const ctx = canvas.getContext("2d");
         ctx?.setTransform(ratio, 0, 0, ratio, 0, 0);
-        pathsRef.current = [];
         currentPathRef.current = null;
-        emptyRef.current = true;
         lastPointRef.current = null;
+        // Redraw whatever the visitor already signed, rescaled to the new width.
+        repaint(scale);
         setRenderTick((tick) => tick + 1);
       }
 
@@ -94,7 +128,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, { label?: string }>(
       },
       toRealSignature: () => {
         if (emptyRef.current) return null;
-        const paths = pathsRef.current.filter((path) => path.length >= 4);
+        const paths = drawablePaths(pathsRef.current);
         if (paths.length === 0) return null;
         return JSON.stringify(
           paths.map((path) => path.map((coordinate) => Number(coordinate.toFixed(4)))),

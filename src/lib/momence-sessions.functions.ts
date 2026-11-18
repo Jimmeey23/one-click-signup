@@ -6,7 +6,7 @@ import {
   momenceReadonlyFetch,
   MOMENCE_HOST_ID,
   type MomenceApiAccount,
-} from "./momence.server";
+} from "./momence.server.ts";
 import {
   buildCompatibleMembershipsRequest,
   findCompatibleBoughtMembershipId,
@@ -17,7 +17,7 @@ import {
   BENGALURU_PLASH_PILATES_TAG_ID,
   isBengaluruLocation,
   type CompatibleMembershipsResponse,
-} from "./momence-booking.helpers";
+} from "./momence-booking.helpers.ts";
 
 const ListInput = z.object({
   locationId: z.number().int().positive(),
