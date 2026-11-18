@@ -32,7 +32,6 @@ import {
 } from "@/lib/analytics";
 import { storeRegistrationMeta } from "@/lib/registration-meta.helpers";
 import { isValidPhoneNumber, phoneNumberError } from "@/lib/phone-validation";
-import { getVariant, VARIANT_COPY } from "@/lib/ab-test";
 import {
   MUMBAI_LOCATIONS,
   BENGALURU_LOCATIONS,
@@ -242,10 +241,6 @@ export function OpenBarreLanding({
   const [error, setError] = useState<string | null>(null);
   const [waiverFailed, setWaiverFailed] = useState(false);
   const heroQuote = HERO_HEADLINE;
-  // Match the server's first render before reading browser-only A/B storage.
-  // Changing the CTA during hydration causes React error #418 for variant B.
-  const [variant, setVariant] = useState<"a" | "b">("a");
-  const variantCopy = VARIANT_COPY[variant];
   const waiverSignedTrackedRef = useRef(false);
   const partialCapturedRef = useRef(false);
   // Set the moment a real submit starts, so a member who is midway through signing up is
@@ -286,10 +281,10 @@ export function OpenBarreLanding({
   const studioConfig = STUDIO_CONFIG[studioVariant];
   const routeEventDetail = routeEvent ? eventDetailLine(routeEvent) : null;
   const LOCATIONS = isBengaluru ? BENGALURU_LOCATIONS : MUMBAI_LOCATIONS;
-
-  useEffect(() => {
-    setVariant(getVariant());
-  }, []);
+  // Replaces the old random A/B split. Downstream this value is still called abVariant and
+  // momence.functions.ts keys Bengaluru lead routing off the literal "bengaluru", so the
+  // field stays - it now just identifies which landing page the signup came from.
+  const landingVariant = isBengaluru ? "bengaluru" : "mumbai";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -448,7 +443,7 @@ export function OpenBarreLanding({
           fbclid: readRawFbclid(window.location.search) ?? stored.fbclid,
           referrer: trimToMaxLength(stored.referrer ?? document.referrer),
           landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
-          abVariant: isBengaluru ? "bengaluru" : variant,
+          abVariant: landingVariant,
           classType: form.classType,
           ...(routeSourceId ? { sourceId: routeSourceId } : {}),
           whatsappConsent: form.whatsappConsent,
@@ -459,7 +454,7 @@ export function OpenBarreLanding({
         },
       }).catch((e) => console.debug("[debug:signup] partial lead capture failed", e));
     },
-    [captureLead, form, isBengaluru, routeSource, routeSourceId, submitPartialLead, variant],
+    [captureLead, form, isBengaluru, routeSource, routeSourceId, submitPartialLead, landingVariant],
   );
 
   // Listeners and timers read this so they always send the details as they stand now,
@@ -502,7 +497,7 @@ export function OpenBarreLanding({
     setSigned(isSigned);
     if (isSigned && !waiverSignedTrackedRef.current) {
       waiverSignedTrackedRef.current = true;
-      trackWaiverSigned({ variant });
+      trackWaiverSigned({ variant: landingVariant });
     }
   }
 
@@ -567,10 +562,10 @@ export function OpenBarreLanding({
               stored.landingPage ??
                 (typeof window !== "undefined" ? window.location.href : undefined),
             ),
-            abVariant: isBengaluru ? "bengaluru" : variant,
+            abVariant: landingVariant,
             ...(routeSourceId ? { sourceId: routeSourceId } : {}),
           }
-        : { abVariant: variant };
+        : { abVariant: landingVariant };
       console.debug("[debug:signup] calling signup server fn", { captureLead });
       const signupPayload = {
         firstName: form.firstName.trim(),
@@ -625,7 +620,10 @@ export function OpenBarreLanding({
           countryIso: form.countryIso,
           ...metaGeoForLocationId(form.homeLocationId),
         });
-        trackSignupStart({ variant, content_name: form.classType }, leadEventIdRef.current);
+        trackSignupStart(
+          { variant: landingVariant, content_name: form.classType },
+          leadEventIdRef.current,
+        );
         sendLeadCapiFn({
           data: {
             eventId: leadEventIdRef.current,
@@ -675,7 +673,7 @@ export function OpenBarreLanding({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           classType: form.classType,
-          variant,
+          variant: landingVariant,
           countryIso: form.countryIso,
           fbp: metaCookies.fbp,
           fbc: metaCookies.fbc,
@@ -784,13 +782,7 @@ export function OpenBarreLanding({
             onSignChange={handleSignChange}
             studioSelected={studioSelected}
             onStudioSelectedChange={setStudioSelected}
-            ctaLabel={
-              routeEvent?.paid
-                ? "Book My Place"
-                : isBengaluru
-                  ? studioConfig.signupCta
-                  : variantCopy.ctaLabel
-            }
+            ctaLabel={routeEvent?.paid ? "Book My Place" : studioConfig.signupCta}
             studioVariant={studioVariant}
             isKidsRoute={isKidsRoute}
             routeEvent={routeEvent}
