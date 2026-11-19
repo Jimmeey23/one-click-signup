@@ -79,6 +79,8 @@ const searchSchema = z.object({
   paidSessionId: z.coerce.number().int().positive().optional(),
   paidLocationId: z.coerce.number().int().positive().optional(),
   classType: z.enum(CLASS_FORMAT_KEYS).optional(),
+  // Set by the gamified /find-your-57 flow: book straight away, skip the profile fields.
+  quick: z.coerce.string().optional(),
 });
 
 const logoUrl = "/physique57-logo.png";
@@ -318,7 +320,9 @@ function ClassesPage() {
     paidSessionId,
     paidLocationId,
     classType: initialClassType,
+    quick,
   } = Route.useSearch();
+  const skipCustomerFields = quick === "1" || quick === "true";
   const memberId = Number(memberIdStr);
   const isBengaluru = isBengaluruLocation(locationId);
 
@@ -542,6 +546,10 @@ function ClassesPage() {
   }
 
   function openCustomerFields(session: SessionDTO) {
+    if (skipCustomerFields) {
+      void continueBooking(session);
+      return;
+    }
     setBookErr(null);
     setCustomFieldSubmitError(null);
     setCustomFieldErrors({});

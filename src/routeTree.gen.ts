@@ -16,6 +16,7 @@ import { Route as BengaluruRouteImport } from './routes/bengaluru'
 import { Route as ClassesInfoRouteImport } from './routes/classes-info'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FindYour57RouteImport } from './routes/find-your-57'
 import { Route as InfluencersRouteImport } from './routes/influencers'
 import { Route as KidsRouteImport } from './routes/kids'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -62,6 +63,11 @@ const ContactRoute = ContactRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FindYour57Route = FindYour57RouteImport.update({
+  id: '/find-your-57',
+  path: '/find-your-57',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InfluencersRoute = InfluencersRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/find-your-57': typeof FindYour57Route
   '/influencers': typeof InfluencersRoute
   '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/find-your-57': typeof FindYour57Route
   '/influencers': typeof InfluencersRoute
   '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/classes-info': typeof ClassesInfoRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/find-your-57': typeof FindYour57Route
   '/influencers': typeof InfluencersRoute
   '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/classes-info'
     | '/contact'
     | '/faq'
+    | '/find-your-57'
     | '/influencers'
     | '/kids'
     | '/privacy'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/classes-info'
     | '/contact'
     | '/faq'
+    | '/find-your-57'
     | '/influencers'
     | '/kids'
     | '/privacy'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/classes-info'
     | '/contact'
     | '/faq'
+    | '/find-your-57'
     | '/influencers'
     | '/kids'
     | '/privacy'
@@ -263,6 +275,7 @@ export interface RootRouteChildren {
   ClassesInfoRoute: typeof ClassesInfoRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
+  FindYour57Route: typeof FindYour57Route
   InfluencersRoute: typeof InfluencersRoute
   KidsRoute: typeof KidsRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/find-your-57': {
+      id: '/find-your-57'
+      path: '/find-your-57'
+      fullPath: '/find-your-57'
+      preLoaderRoute: typeof FindYour57RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/influencers': {
@@ -423,6 +443,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesInfoRoute: ClassesInfoRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
+  FindYour57Route: FindYour57Route,
   InfluencersRoute: InfluencersRoute,
   KidsRoute: KidsRoute,
   PrivacyRoute: PrivacyRoute,
