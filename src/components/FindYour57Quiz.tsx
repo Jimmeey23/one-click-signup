@@ -277,7 +277,7 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
   async function submitLead() {
     if (!format) return;
     if (!waiverAccepted) {
-      setError("Please accept the terms to continue.");
+      setError("Please accept the terms and privacy policy to continue.");
       return;
     }
     signupStartedRef.current = true;
@@ -298,7 +298,8 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
           phoneNumber: phone.trim(),
           homeLocationId: LOCATION.id,
           classType: format.key,
-          waiverAccepted: true,
+          // No waiver is shown or signed on this route; the checkbox covers terms/privacy only.
+          waiverAccepted: false,
           whatsappConsent,
           whatsappConsentAt: whatsappConsent ? new Date().toISOString() : undefined,
           metaEventId: leadEventId.current,
@@ -668,28 +669,42 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
                 checked={waiverAccepted}
                 onChange={(e) => {
                   setWaiverAccepted(e.target.checked);
-                  if (e.target.checked && !waiverTrackedRef.current) {
+                  if (e.target.checked && !leadOnly && !waiverTrackedRef.current) {
                     waiverTrackedRef.current = true;
                     trackWaiverSigned({ variant: SOURCE_FORM });
                   }
                 }}
                 className="mt-1"
               />
-              <span>
-                I accept the{" "}
-                <Link to="/waiver" target="_blank" className="underline text-primary">
-                  waiver
-                </Link>
-                ,{" "}
-                <Link to="/terms" target="_blank" className="underline text-primary">
-                  terms
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" target="_blank" className="underline text-primary">
-                  privacy policy
-                </Link>
-                .
-              </span>
+              {leadOnly ? (
+                <span>
+                  I accept the{" "}
+                  <Link to="/terms" target="_blank" className="underline text-primary">
+                    terms
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" target="_blank" className="underline text-primary">
+                    privacy policy
+                  </Link>
+                  .
+                </span>
+              ) : (
+                <span>
+                  I accept the{" "}
+                  <Link to="/waiver" target="_blank" className="underline text-primary">
+                    waiver
+                  </Link>
+                  ,{" "}
+                  <Link to="/terms" target="_blank" className="underline text-primary">
+                    terms
+                  </Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" target="_blank" className="underline text-primary">
+                    privacy policy
+                  </Link>
+                  .
+                </span>
+              )}
             </label>
             {!leadOnly && (
               <div className="rounded-xl bg-white p-2 text-foreground">
