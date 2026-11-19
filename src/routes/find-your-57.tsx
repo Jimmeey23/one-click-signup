@@ -27,8 +27,8 @@ function FindYour57Page() {
       routeSource="find-your-57"
       // The quiz does its own signup; the landing's partial-lead capture has no fields to watch.
       captureLead={false}
-      heroHeadline="4 taps to your perfect workout."
-      heroDescription="Answer a few quick taps and we'll match you to your perfect class at Supreme HQ, Bandra - then book it in seconds."
+      heroHeadline="Your perfect 57 minutes, matched."
+      heroDescription="Tell us what you want your body to do for you, and we'll match you to the 57-minute class that sculpts, strengthens and energizes you at Supreme HQ, Bandra - then book it in seconds."
       signupSlot={<FindYour57Quiz />}
     />
   );
