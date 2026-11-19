@@ -263,12 +263,12 @@ function formatInfoForKey(key: ClassFormatKey): FormatInfo {
     case "strength-lab":
       return {
         family: classFormat.name,
-        level: "ADVANCED STRENGTH",
+        level: "ALL LEVELS",
         teaser:
           "Structured circuit training with heavier weights, progressive overload, and power work.",
         detail:
           "StrengthLab is a 57-minute full-body strength class built around power, upper-body, lower-body, and core circuits. It prioritizes heavier weights, moderate reps, and clean form.",
-        bestFor: "Experienced members with FIT experience or a consistent external strength base.",
+        bestFor: "Anyone wanting to build real strength - all levels, with coached progressions.",
         expect:
           "Dumbbells, kettlebells, resistance bands, pull-up bars, strength circuits, and form-led progressions.",
         icon: <Dumbbell className="h-4 w-4" aria-hidden="true" />,
@@ -715,8 +715,30 @@ function ClassesPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-10">
-        <section className="mb-8 rounded-[28px] border border-border bg-card/90 p-4 shadow-[var(--shadow-card)] backdrop-blur-sm md:p-6">
+      <section className="relative overflow-hidden bg-foreground text-background">
+        <img
+          src={classFormatForKey(activeClassType).image}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-[center_35%] opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/30" />
+        <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-10 md:px-8 md:pb-24 md:pt-14">
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary">
+            {currentLoc.name} · You're in
+          </p>
+          <h2 className="font-display mt-3 max-w-2xl text-[clamp(2.25rem,5vw,4rem)] leading-[0.95] tracking-[-0.03em] text-white">
+            Pick your {classFormatForKey(activeClassType).name} class.
+          </h2>
+          <p className="mt-4 max-w-xl text-sm text-white/70 md:text-base">
+            {skipCustomerFields
+              ? "Tap Book now and you're in - paid formats take you to secure checkout first."
+              : "Choose a time that suits you and lock in your spot."}
+          </p>
+        </div>
+      </section>
+
+      <main className="relative z-10 mx-auto -mt-12 max-w-7xl px-4 pb-10 md:-mt-14 md:px-8">
+        <section className="mb-8 rounded-[28px] border border-border bg-card p-4 shadow-[0_24px_60px_-24px_rgb(0_0_0/0.35)] md:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary-deep">
@@ -780,7 +802,7 @@ function ClassesPage() {
               className={
                 viewMode === "month"
                   ? "flex-1"
-                  : `grid flex-1 gap-2 ${viewMode === "day" ? "grid-cols-1" : "grid-cols-4 sm:grid-cols-7"}`
+                  : `grid flex-1 gap-1 sm:gap-2 ${viewMode === "day" ? "grid-cols-1" : "grid-cols-7"}`
               }
             >
               {viewMode === "month" ? (
@@ -808,13 +830,13 @@ function ClassesPage() {
                       onClick={() => {
                         if (viewMode !== "day") setSelectedDateKey(selected ? null : item.key);
                       }}
-                      className={`min-h-[64px] rounded-[18px] px-2 text-center transition duration-150 ${
+                      className={`min-h-[60px] rounded-[14px] px-0.5 text-center sm:min-h-[64px] sm:rounded-[18px] sm:px-2 transition duration-150 ${
                         selected
                           ? "bg-card text-primary-deep shadow-[var(--shadow-card)] ring-1 ring-primary/40"
                           : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                       }`}
                     >
-                      <span className="block text-[11px] font-semibold uppercase leading-none">
+                      <span className="block text-[10px] font-semibold uppercase leading-none sm:text-[11px]">
                         {item.weekday}
                       </span>
                       <span
@@ -1523,7 +1545,7 @@ function SessionCard({
   const priceDisplay = getSchedulePriceDisplay(s.name, locationId);
 
   return (
-    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-border bg-card p-4 shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_20px_44px_-16px_color-mix(in_oklab,var(--primary)_45%,transparent)] md:grid-cols-[154px_minmax(0,1fr)_188px]">
+    <article className="relative grid gap-4 overflow-visible rounded-[22px] border border-border bg-card p-4 shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_20px_44px_-16px_color-mix(in_oklab,var(--primary)_45%,transparent)] md:grid-cols-[168px_minmax(0,1fr)_200px] md:p-5">
       <div className="flex items-start gap-4 md:block">
         <ClassImageInfoTrigger format={format} durationInMinutes={s.durationInMinutes} />
         <div className="md:hidden">

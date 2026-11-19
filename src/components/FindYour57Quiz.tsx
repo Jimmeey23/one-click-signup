@@ -233,8 +233,22 @@ export function FindYour57Quiz() {
     });
   }, [firstName, lastName, email, phone, countryCode]);
 
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const firstRenderRef = useRef(true);
   useEffect(() => {
     if (step === "match") fireDualSideConfetti(confetti);
+    // Each level swaps the card's height; bring its top back into view so the new
+    // question / match image is not left above the fold.
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false;
+      return;
+    }
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    if (rect.top < 72 || rect.top > window.innerHeight * 0.4) {
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, [step]);
 
   const detailsValid =
@@ -346,6 +360,7 @@ export function FindYour57Quiz() {
 
   return (
     <div
+      ref={cardRef}
       id="signup"
       className="scroll-mt-28 rounded-[28px] border border-white/15 bg-[rgba(8,10,15,0.82)] p-5 sm:p-7 text-white shadow-2xl backdrop-blur-xl"
     >
@@ -430,30 +445,46 @@ export function FindYour57Quiz() {
         )}
 
         {step === "match" && format && location && (
-          <div className="text-center">
-            <Trophy className="mx-auto h-12 w-12 text-primary" aria-hidden />
-            <p className="mt-4 text-xs uppercase tracking-[0.3em] text-primary font-bold">
-              It's a match
-            </p>
-            <h2 className="mt-2 font-display text-4xl sm:text-5xl tracking-tight">{format.name}</h2>
-            <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left">
-              <img src={format.image} alt="" className="h-48 w-full object-cover" />
-              <div className="p-5 space-y-2 text-sm">
-                <p className="text-white/80">{format.description}</p>
-                <p>
-                  <span className="text-white/50">Intensity:</span> {format.intensity}
-                </p>
-                <p>
-                  <span className="text-white/50">Studio:</span> {location.name}
-                </p>
-                <p className="flex items-center gap-1.5 text-primary font-semibold">
-                  <Sparkles className="h-4 w-4" aria-hidden />
-                  {isPaidFormat && price
-                    ? `${price.label}: ₹${price.bookingPriceInCurrency} + GST, paid securely when you book`
-                    : "Your first class is on us"}
-                </p>
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-primary font-bold">
+              <Trophy className="h-4 w-4" aria-hidden /> It's a match
+            </div>
+            <div className="relative mt-4 overflow-hidden rounded-2xl border border-white/10">
+              {/* Fixed aspect + upper-centre focus keeps faces and bikes in frame at every width. */}
+              <img
+                src={format.image}
+                alt={`${format.name} class at Physique 57`}
+                className="aspect-[16/9] w-full object-cover object-[center_35%]"
+                loading="eager"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                <h2 className="font-display text-4xl sm:text-5xl leading-none tracking-tight">
+                  {format.name}
+                </h2>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+                  <span className="rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
+                    {format.intensity}
+                  </span>
+                  <span className="rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
+                    {format.duration}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
+                    <MapPin className="h-3 w-3" aria-hidden /> {location.name}
+                  </span>
+                </div>
               </div>
             </div>
+            <p className="mt-4 text-sm text-white/75 leading-relaxed line-clamp-3">
+              {format.bestFor}. {format.description}
+            </p>
+            <p className="mt-3 flex items-start gap-1.5 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary font-semibold">
+              <Sparkles className="h-4 w-4 mt-0.5 shrink-0" aria-hidden />
+              {isPaidFormat && price
+                ? `${price.label}: ₹${price.bookingPriceInCurrency} + GST, paid securely when you book`
+                : "Your first class is on us"}
+            </p>
             <PrimaryButton onClick={() => setStep("details")}>
               {isPaidFormat ? "Claim my intro offer" : "Claim my free class"}
             </PrimaryButton>

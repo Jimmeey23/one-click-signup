@@ -107,10 +107,10 @@ export const CLASS_FORMATS: ClassFormat[] = [
     key: "strength-lab",
     name: "StrengthLab",
     image: strengthImage,
-    intensity: "Advanced (newcomer-friendly with prior strength experience)",
+    intensity: "All Levels",
     bestFor: "Building lean muscle and boosting metabolism",
     description:
-      "A comprehensive circuit format blending strength, core, mobility, and stretch work, built on principles of progressive overload. Can be done by a newcomer with relevant strength training experience from the past; otherwise start with barre or Studio FIT first.",
+      "A comprehensive circuit format blending strength, core, mobility, and stretch work, built on principles of progressive overload. Open to all levels - every move is coached with options to scale up or down.",
     duration: "57 minutes",
     equipment: "Dumbbells, kettlebells, plyo boxes, pull-up bars, resistance bands",
   },

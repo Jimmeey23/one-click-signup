@@ -41,81 +41,109 @@ function ClassesInfoPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <header className="absolute inset-x-0 top-0 z-20">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-5 flex items-center justify-between">
           <Link to="/">
-            <img src={logoUrl} alt="Physique 57" className="h-10 w-auto" />
+            <img src={logoUrl} alt="Physique 57" className="h-10 w-auto brightness-0 invert" />
           </Link>
           <Link
-            to="/"
-            className="hidden sm:inline-flex h-10 px-5 items-center rounded-full bg-foreground text-background text-xs font-bold uppercase tracking-widest"
+            to={isBengaluru ? "/bengaluru" : "/"}
+            className="inline-flex h-10 px-5 items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-widest shadow-lg"
           >
             {isBengaluru ? "Bengaluru Offer" : "Claim Your Trial Class"}
           </Link>
         </div>
       </header>
-      <section className="max-w-7xl mx-auto px-6 py-16">
-        <p className="text-xs uppercase tracking-[0.3em] text-primary-deep font-bold mb-3">
-          Our classes
-        </p>
-        <h1 className="font-display text-5xl md:text-6xl mb-10">
-          {isBengaluru ? "Built for Bengaluru in 57 minutes." : "Built for results in 57 minutes."}
-        </h1>
-        <div className="mb-10 grid gap-4 rounded-2xl border border-border bg-secondary p-6 md:grid-cols-2">
-          {isBengaluru ? (
-            <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-primary-deep font-bold mb-2">
-                Bengaluru studios
-              </p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Lavelle Road and Indiranagar focus on Barre-first bookings and Bengaluru-specific
-                introductory offers.
-              </p>
-            </div>
-          ) : (
-            <div>
-              <p className="text-xs uppercase tracking-[0.25em] text-primary-deep font-bold mb-2">
-                Mumbai studios
-              </p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle, and
-                StrengthLab.
-              </p>
-            </div>
-          )}
+
+      <section className="relative overflow-hidden bg-foreground text-background">
+        <img
+          src={classFormats[0]?.image}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-[center_35%] opacity-35"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-foreground" />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-6 pt-36 pb-16 lg:pt-44 lg:pb-24">
+          <p className="text-xs uppercase tracking-[0.3em] text-primary font-bold mb-4">
+            Our classes · {classFormats.length} formats
+          </p>
+          <h1 className="font-display text-[clamp(2.75rem,6vw,5.5rem)] leading-[0.95] tracking-[-0.03em] max-w-3xl text-white">
+            {isBengaluru
+              ? "Built for Bengaluru in 57 minutes."
+              : "Built for results in 57 minutes."}
+          </h1>
+          <p className="mt-6 max-w-xl text-base md:text-lg text-white/70 leading-relaxed">
+            {isBengaluru
+              ? "Lavelle Road and Indiranagar focus on Barre-first bookings and Bengaluru-specific introductory offers."
+              : "Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle, and StrengthLab."}
+          </p>
+          <nav className="mt-10 flex flex-wrap gap-2" aria-label="Jump to a class format">
+            {classFormats.map((c) => (
+              <a
+                key={c.key}
+                href={`#${c.key}`}
+                className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white/85 backdrop-blur transition hover:border-primary hover:text-white"
+              >
+                {c.name}
+              </a>
+            ))}
+          </nav>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
-          {classFormats.map((c) => (
-            <article
-              key={c.name}
-              className="bg-card border border-border rounded-lg overflow-hidden shadow-[var(--shadow-card)]"
-            >
-              <div
-                className="aspect-[4/3] bg-cover bg-center"
-                style={{ backgroundImage: `url(${c.image})` }}
-                aria-hidden
+      </section>
+
+      <section className="max-w-7xl mx-auto px-5 sm:px-6 py-16 lg:py-24 space-y-8 lg:space-y-14">
+        {classFormats.map((c, i) => (
+          <article
+            id={c.key}
+            key={c.key}
+            className="scroll-mt-8 grid overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] lg:grid-cols-2"
+          >
+            <div className={`relative min-h-[260px] sm:min-h-[340px] ${i % 2 ? "lg:order-2" : ""}`}>
+              <img
+                src={c.image}
+                alt={`${c.name} class`}
+                loading={i < 2 ? "eager" : "lazy"}
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-[center_35%]"
               />
-              <div className="p-6">
-                <h2 className="font-display text-3xl">{c.name}</h2>
-                <p className="text-muted-foreground mt-2 leading-relaxed">{c.description}</p>
-                <div className="mt-5 grid gap-2 text-xs sm:grid-cols-2">
-                  <p className="rounded-md bg-secondary px-3 py-2">
-                    <span className="font-bold text-foreground">Duration:</span> {c.duration}
-                  </p>
-                  <p className="rounded-md bg-secondary px-3 py-2">
-                    <span className="font-bold text-foreground">Level:</span> {c.intensity}
-                  </p>
-                  <p className="rounded-md bg-secondary px-3 py-2 sm:col-span-2">
-                    <span className="font-bold text-foreground">Best for:</span> {c.bestFor}
-                  </p>
-                  <p className="rounded-md bg-secondary px-3 py-2 sm:col-span-2">
-                    <span className="font-bold text-foreground">Equipment:</span> {c.equipment}
-                  </p>
+              <span className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+            </div>
+            <div className="flex flex-col p-6 sm:p-8 lg:p-10">
+              <span className="self-start rounded-full bg-primary/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-primary-deep">
+                {c.intensity}
+              </span>
+              <h2 className="mt-4 font-display text-4xl md:text-5xl tracking-tight">{c.name}</h2>
+              <p className="mt-4 text-muted-foreground leading-relaxed">{c.description}</p>
+              <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl bg-secondary px-4 py-3">
+                  <dt className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                    Duration
+                  </dt>
+                  <dd className="mt-1 font-semibold">{c.duration}</dd>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="rounded-xl bg-secondary px-4 py-3">
+                  <dt className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                    Best for
+                  </dt>
+                  <dd className="mt-1 font-semibold">{c.bestFor}</dd>
+                </div>
+                <div className="rounded-xl bg-secondary px-4 py-3 sm:col-span-2">
+                  <dt className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                    Equipment
+                  </dt>
+                  <dd className="mt-1 font-semibold">{c.equipment}</dd>
+                </div>
+              </dl>
+              <Link
+                to={isBengaluru ? "/bengaluru" : "/"}
+                className="mt-8 self-start inline-flex h-11 items-center rounded-full bg-foreground px-6 text-xs font-bold uppercase tracking-widest text-background transition hover:bg-primary hover:text-primary-foreground"
+              >
+                Book {c.name}
+              </Link>
+            </div>
+          </article>
+        ))}
 
         <div className="mt-16 grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-7">
