@@ -202,6 +202,11 @@ type OpenBarreLandingProps = {
    * standing pages, which keep the copy they have always had.
    */
   routeEvent?: RouteEvent;
+  /** Replaces the hero signup card (e.g. the gamified /find-your-57 quiz). */
+  signupSlot?: React.ReactNode;
+  /** Overrides the hero headline and description. */
+  heroHeadline?: string;
+  heroDescription?: string;
 };
 
 const KIDS_HERO_QUOTES = [
@@ -225,6 +230,9 @@ export function OpenBarreLanding({
   routeSessionId,
   routeSourceId,
   routeEvent,
+  signupSlot,
+  heroHeadline,
+  heroDescription,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -241,7 +249,7 @@ export function OpenBarreLanding({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [waiverFailed, setWaiverFailed] = useState(false);
-  const heroQuote = HERO_HEADLINE;
+  const heroQuote = heroHeadline ?? HERO_HEADLINE;
   // Match the server's first render before reading browser-only A/B storage.
   // Changing the CTA during hydration causes React error #418 for variant B.
   const [variant, setVariant] = useState<"a" | "b">("a");
@@ -764,7 +772,9 @@ export function OpenBarreLanding({
               </p>
             )}
             <p className="mt-7 max-w-lg text-base md:text-lg text-white/72 leading-relaxed text-pretty">
-              {routeEvent?.paid ? PAID_EVENT_DESCRIPTION : studioConfig.description}
+              {routeEvent?.paid
+                ? PAID_EVENT_DESCRIPTION
+                : (heroDescription ?? studioConfig.description)}
             </p>
             <div className="mt-9 grid grid-cols-3 gap-3 max-w-lg border-t border-white/15 pt-7">
               <Stat n="57" label="minutes" />
@@ -773,29 +783,31 @@ export function OpenBarreLanding({
             </div>
           </div>
 
-          <SignupCard
-            form={form}
-            setForm={setForm}
-            onSubmit={onSubmit}
-            loading={loading}
-            error={error}
-            valid={valid && signed}
-            sigRef={sigRef}
-            onSignChange={handleSignChange}
-            studioSelected={studioSelected}
-            onStudioSelectedChange={setStudioSelected}
-            ctaLabel={
-              routeEvent?.paid
-                ? "Book My Place"
-                : isBengaluru
-                  ? studioConfig.signupCta
-                  : variantCopy.ctaLabel
-            }
-            studioVariant={studioVariant}
-            isKidsRoute={isKidsRoute}
-            routeEvent={routeEvent}
-            routeEventDetail={routeEventDetail}
-          />
+          {signupSlot ?? (
+            <SignupCard
+              form={form}
+              setForm={setForm}
+              onSubmit={onSubmit}
+              loading={loading}
+              error={error}
+              valid={valid && signed}
+              sigRef={sigRef}
+              onSignChange={handleSignChange}
+              studioSelected={studioSelected}
+              onStudioSelectedChange={setStudioSelected}
+              ctaLabel={
+                routeEvent?.paid
+                  ? "Book My Place"
+                  : isBengaluru
+                    ? studioConfig.signupCta
+                    : variantCopy.ctaLabel
+              }
+              studioVariant={studioVariant}
+              isKidsRoute={isKidsRoute}
+              routeEvent={routeEvent}
+              routeEventDetail={routeEventDetail}
+            />
+          )}
         </div>
       </section>
 

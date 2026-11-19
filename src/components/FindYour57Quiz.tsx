@@ -272,18 +272,21 @@ export function FindYour57Quiz() {
   const cityLocations = CITIES.find((c) => c.id === city)!.locations;
 
   return (
-    <div className="min-h-screen bg-foreground text-background flex flex-col">
-      <header className="mx-auto w-full max-w-xl px-5 pt-6 flex items-center justify-between">
-        <Link to="/" aria-label="Physique 57 home">
-          <img src="/physique57-logo-small.webp" alt="Physique 57" className="h-8 w-auto" />
-        </Link>
+    <div
+      id="signup"
+      className="scroll-mt-28 rounded-[28px] border border-white/15 bg-[rgba(8,10,15,0.82)] p-5 sm:p-7 text-white shadow-2xl backdrop-blur-xl"
+    >
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] uppercase tracking-[0.25em] text-white/60">
+          4 taps · your match · your free class
+        </p>
         <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">
           <Zap className="h-3.5 w-3.5 text-primary" aria-hidden />
           <span>{xp} XP</span>
         </div>
-      </header>
+      </div>
 
-      <div className="mx-auto w-full max-w-xl px-5 mt-5">
+      <div className="mt-4">
         <div
           className="h-2 rounded-full bg-white/10 overflow-hidden"
           role="progressbar"
@@ -312,10 +315,7 @@ export function FindYour57Quiz() {
         </div>
       </div>
 
-      <main
-        key={step}
-        className="mx-auto w-full max-w-xl flex-1 px-5 py-8 animate-in fade-in slide-in-from-right-4 duration-300"
-      >
+      <main key={step} className="pt-6 animate-in fade-in slide-in-from-right-4 duration-300">
         {step === "goal" && (
           <Question title="What do you want your body to do for you?" kicker="Find your 57">
             {GOALS.map((g) => (
@@ -392,7 +392,7 @@ export function FindYour57Quiz() {
             <p className="mt-4 text-xs uppercase tracking-[0.3em] text-primary font-bold">
               It's a match
             </p>
-            <h1 className="mt-2 font-display text-5xl tracking-tight">{format.name}</h1>
+            <h2 className="mt-2 font-display text-4xl sm:text-5xl tracking-tight">{format.name}</h2>
             <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left">
               <img src={format.image} alt="" className="h-48 w-full object-cover" />
               <div className="p-5 space-y-2 text-sm">
@@ -567,7 +567,9 @@ function Question({
   return (
     <section>
       <p className="text-xs uppercase tracking-[0.3em] text-primary font-bold">{kicker}</p>
-      <h1 className="mt-2 font-display text-4xl leading-tight tracking-tight">{title}</h1>
+      <h2 className="mt-2 font-display text-3xl sm:text-4xl leading-tight tracking-tight">
+        {title}
+      </h2>
       <div className="mt-6 space-y-3">{children}</div>
     </section>
   );
