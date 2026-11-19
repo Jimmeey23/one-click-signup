@@ -22,6 +22,11 @@ export type SignupAndEnrollInput = {
   classType?: string;
   /** Momence lead source id chosen for this route. Empty falls back to the studio default. */
   sourceId?: string;
+  /** Pins the webhook centre instead of deriving it from homeLocationId. */
+  center?: string;
+  leadSource?: string;
+  sourceForm?: string;
+  quizAnswers?: Record<string, string>;
   whatsappConsent?: boolean;
   whatsappConsentAt?: string;
   utmSource?: string;
@@ -74,6 +79,9 @@ export type LeadCapturePayload = {
   childDateOfBirth?: string;
   batch?: string;
   sourceForm?: string;
+  /** Respond.io lead_source; falls back to utm_source, then "website". */
+  leadSource?: string;
+  quizAnswers?: Record<string, string>;
 };
 
 export class WaiverConsentError extends Error {
@@ -191,7 +199,7 @@ export async function runSignupAndEnroll(
       lastName: createMemberRequest.body.lastName,
       email: data.email,
       phoneE164,
-      center: dependencies.resolveCenterName(data.homeLocationId),
+      center: data.center || dependencies.resolveCenterName(data.homeLocationId),
       homeLocationId: data.homeLocationId,
       classType: data.classType,
       waiverAccepted: data.waiverAccepted,
@@ -207,6 +215,9 @@ export async function runSignupAndEnroll(
       referrer: data.referrer,
       landingPage: data.landingPage,
       sourceId: data.sourceId,
+      leadSource: data.leadSource,
+      sourceForm: data.sourceForm,
+      quizAnswers: data.quizAnswers,
       abVariant: data.abVariant,
       memberId: created.memberId,
       stage: "completed",

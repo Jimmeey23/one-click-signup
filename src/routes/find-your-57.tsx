@@ -4,7 +4,7 @@ import { FindYour57Quiz } from "@/components/FindYour57Quiz";
 import groupBarre from "@/assets/landing-group-barre.webp";
 
 const title = "Find your 57 - Physique 57 India";
-const description = "4 taps. Your match, your studio, your free class.";
+const description = "4 taps to your perfect class at Physique 57 Supreme HQ, Bandra.";
 
 export const Route = createFileRoute("/find-your-57")({
   head: () => ({
@@ -28,7 +28,7 @@ function FindYour57Page() {
       // The quiz does its own signup; the landing's partial-lead capture has no fields to watch.
       captureLead={false}
       heroHeadline="Find your 57."
-      heroDescription="Answer 4 quick taps and we'll match you to your perfect class, studio and free first session."
+      heroDescription="Answer a few quick taps and we'll match you to your perfect class at Supreme HQ, Bandra - then book it in seconds."
       signupSlot={<FindYour57Quiz />}
     />
   );

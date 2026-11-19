@@ -5,7 +5,12 @@ import { META_CLICK_ID_MAX_LENGTH, META_CURRENCY, META_PLACEHOLDER_VALUE } from 
 import { metaGeoForLocationId } from "./momence-locations.ts";
 import { sendMetaCapiEvent } from "./meta-capi.ts";
 import { metaRequestContext, type MetaRequestContext } from "./meta-request.helpers.ts";
-import { momenceDashboardFetch, momenceFetch, MOMENCE_HOST_ID, LOCATIONS } from "./momence.server.ts";
+import {
+  momenceDashboardFetch,
+  momenceFetch,
+  MOMENCE_HOST_ID,
+  LOCATIONS,
+} from "./momence.server.ts";
 import {
   BENGALURU_MOMENCE_HOST_ID,
   buildMembershipCheckoutRequest,
@@ -62,6 +67,11 @@ const SignupInput = z.object({
   signatures: z.array(SignatureSchema).max(20).optional().default([]),
   classType: z.string().max(100).optional(),
   sourceId: z.string().max(40).optional(),
+  // Optional per-form overrides (e.g. the /find-your-57 quiz pins its studio and source).
+  center: z.string().trim().max(120).optional(),
+  leadSource: z.string().trim().max(60).optional(),
+  sourceForm: z.string().trim().max(60).optional(),
+  quizAnswers: z.record(z.string().max(40), z.string().max(120)).optional(),
   whatsappConsent: z.boolean().optional().default(false),
   whatsappConsentAt: z.string().max(40).optional(),
   // Tracking
@@ -82,6 +92,11 @@ const SignupInput = z.object({
 
 const PartialLeadInput = z.object({
   sourceId: z.string().max(40).optional(),
+  // Optional per-form overrides (e.g. the /find-your-57 quiz pins its studio and source).
+  center: z.string().trim().max(120).optional(),
+  leadSource: z.string().trim().max(60).optional(),
+  sourceForm: z.string().trim().max(60).optional(),
+  quizAnswers: z.record(z.string().max(40), z.string().max(120)).optional(),
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().max(100).optional().default(""),
   email: z.string().trim().email().max(150),
@@ -245,7 +260,7 @@ export function buildRespondIoContactBody(payload: LeadCapturePayload) {
     member_id: memberId,
     MemberId: memberId,
     event_id: respondIoEventId(payload),
-    lead_source: payload.utmSource ?? "website",
+    lead_source: payload.leadSource ?? payload.utmSource ?? "website",
     source_id: payload.sourceId,
     source_form: payload.sourceForm ?? (payload.stage === "partial" ? "partial-signup" : undefined),
     landing_page: respondIoLandingPage(payload.landingPage),
@@ -1009,7 +1024,7 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => PartialLeadInput.parse(input))
   .handler(async ({ data }) => {
     const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
-    const center = webhookCenterForLocationId(data.homeLocationId);
+    const center = data.center || webhookCenterForLocationId(data.homeLocationId);
 
     const lead = await captureLead({
       firstName: data.firstName,
@@ -1033,6 +1048,9 @@ export const captureLeadPartial = createServerFn({ method: "POST" })
       abVariant: data.abVariant,
       classType: data.classType,
       sourceId: data.sourceId,
+      leadSource: data.leadSource,
+      sourceForm: data.sourceForm,
+      quizAnswers: data.quizAnswers,
       stage: "partial",
       fbp: data.fbp,
       fbc: data.fbc,

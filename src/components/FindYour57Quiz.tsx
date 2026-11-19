@@ -3,20 +3,18 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import confetti from "canvas-confetti";
 import { ArrowLeft, Check, MapPin, Sparkles, Trophy, Zap } from "lucide-react";
-import { signupAndEnroll, sendSignupLeadCapi } from "@/lib/momence.functions";
+import { signupAndEnroll, sendSignupLeadCapi, captureLeadPartial } from "@/lib/momence.functions";
 import {
   readMetaCookies,
   readRawFbclid,
   setMetaAdvancedMatching,
   trackSignupStart,
+  trackWaiverSigned,
 } from "@/lib/analytics";
+import { getSchedulePriceDisplay, isPaidNewcomersClassName } from "@/lib/momence-booking.helpers";
 import { storeRegistrationMeta } from "@/lib/registration-meta.helpers";
 import { isValidPhoneNumber, phoneNumberError } from "@/lib/phone-validation";
-import {
-  MUMBAI_LOCATIONS,
-  BENGALURU_LOCATIONS,
-  metaGeoForLocationId,
-} from "@/lib/momence-locations";
+import { MUMBAI_LOCATIONS, metaGeoForLocationId } from "@/lib/momence-locations";
 import { COUNTRY_CODES } from "@/lib/country-codes";
 import { parseAttributionFromSearch, trimToMaxLength } from "@/lib/attribution.helpers";
 import type { ClassFormatKey } from "@/lib/class-format-matchers";
@@ -48,11 +46,13 @@ const ENERGIES: { id: Energy; label: string; hint: string }[] = [
   { id: "sweat", label: "Max sweat", hint: "Beat-driven, heart pumping" },
 ];
 
-const CITIES = [
-  { id: "mumbai", label: "Mumbai", locations: MUMBAI_LOCATIONS },
-  { id: "bengaluru", label: "Bengaluru", locations: BENGALURU_LOCATIONS },
-] as const;
-type CityId = (typeof CITIES)[number]["id"];
+/** This form is for Supreme HQ, Bandra only: studio, webhook centre and source are fixed. */
+const LOCATION = MUMBAI_LOCATIONS.find((l) => l.id === 29821)!;
+const WEBHOOK_CENTER = "Supreme HQ, Bandra";
+const LEAD_SOURCE = "website";
+const WEBSITE_SOURCE_ID = "8082"; // Momence lead source "Website"
+const SOURCE_FORM = "find-your-57";
+const PARTIAL_LEAD_IDLE_MS = 90_000;
 
 /** Pick the best-fit class format the chosen studio actually runs. */
 function recommendFormat(goal: Goal, energy: Energy, locationId: number): ClassFormatKey {
@@ -99,12 +99,16 @@ function newId(prefix: string) {
     : `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
-const STEPS = ["goal", "energy", "studio", "match", "details", "waiver"] as const;
+const STEPS = ["goal", "energy", "match", "details", "waiver"] as const;
 type Step = (typeof STEPS)[number];
 
 export function FindYour57Quiz() {
   const signup = useServerFn(signupAndEnroll);
   const sendLeadCapi = useServerFn(sendSignupLeadCapi);
+  const submitPartialLead = useServerFn(captureLeadPartial);
+  const partialCapturedRef = useRef(false);
+  const signupStartedRef = useRef(false);
+  const waiverTrackedRef = useRef(false);
   const sigRef = useRef<SignaturePadHandle | null>(null);
   const leadEventId = useRef(newId("lead"));
   const registrationEventId = useRef(newId("reg"));
@@ -112,8 +116,6 @@ export function FindYour57Quiz() {
   const [step, setStep] = useState<Step>("goal");
   const [goal, setGoal] = useState<Goal | null>(null);
   const [energy, setEnergy] = useState<Energy | null>(null);
-  const [city, setCity] = useState<CityId>("mumbai");
-  const [locationId, setLocationId] = useState<number>(0);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -128,22 +130,108 @@ export function FindYour57Quiz() {
 
   useEffect(() => {
     persistAttribution();
-    const city = new URLSearchParams(window.location.search).get("city");
-    if (city === "bengaluru") setCity("bengaluru");
   }, []);
 
   const stepIndex = STEPS.indexOf(step);
   const xp = stepIndex * XP_PER_STEP;
   const progress = Math.round((stepIndex / STEPS.length) * 100);
 
-  const location = [...MUMBAI_LOCATIONS, ...BENGALURU_LOCATIONS].find((l) => l.id === locationId);
+  const location = LOCATION;
   const format = useMemo(
-    () =>
-      goal && energy && locationId
-        ? classFormatForKey(recommendFormat(goal, energy, locationId))
-        : null,
-    [goal, energy, locationId],
+    () => (goal && energy ? classFormatForKey(recommendFormat(goal, energy, LOCATION.id)) : null),
+    [goal, energy],
   );
+  const isPaidFormat = format ? isPaidNewcomersClassName(format.name) : false;
+  const price = format ? getSchedulePriceDisplay(format.name, LOCATION.id) : null;
+  const quizAnswers = useMemo(
+    () => ({
+      ...(goal ? { goal } : {}),
+      ...(energy ? { energy } : {}),
+      ...(format ? { match: format.key } : {}),
+    }),
+    [goal, energy, format],
+  );
+
+  function trackingFields() {
+    const params = new URLSearchParams(window.location.search);
+    const stored = readStoredAttribution();
+    const fbclid = readRawFbclid(window.location.search) ?? stored.fbclid;
+    const metaCookies = readMetaCookies(fbclid);
+    return {
+      metaCookies,
+      fields: {
+        utmSource: params.get("utm_source") ?? stored.utmSource,
+        utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? SOURCE_FORM,
+        utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
+        utmTerm: params.get("utm_term") ?? stored.utmTerm,
+        utmContent: params.get("utm_content") ?? stored.utmContent,
+        gclid: params.get("gclid") ?? stored.gclid,
+        fbclid,
+        referrer: trimToMaxLength(stored.referrer ?? document.referrer),
+        landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
+        abVariant: SOURCE_FORM,
+        sourceId: WEBSITE_SOURCE_ID,
+        center: WEBHOOK_CENTER,
+        leadSource: LEAD_SOURCE,
+        sourceForm: SOURCE_FORM,
+        quizAnswers,
+        fbp: metaCookies.fbp,
+        fbc: metaCookies.fbc,
+      },
+    };
+  }
+
+  // Abandoned-signup capture, same rules as the main form: once, never after submit.
+  const firePartialLeadRef = useRef<() => void>(() => {});
+  firePartialLeadRef.current = () => {
+    if (partialCapturedRef.current || signupStartedRef.current) return;
+    if (!firstName.trim() || !/\S+@\S+\.\S+/.test(email)) return;
+    if (phone.replace(/[^0-9]/g, "").length < 6) return;
+    partialCapturedRef.current = true;
+    const { fields } = trackingFields();
+    submitPartialLead({
+      data: {
+        ...fields,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        countryCode,
+        phoneNumber: phone.trim(),
+        homeLocationId: LOCATION.id,
+        classType: format?.key,
+        whatsappConsent,
+        whatsappConsentAt: whatsappConsent ? new Date().toISOString() : undefined,
+        metaEventId: leadEventId.current,
+      },
+    }).catch((e) => console.debug("[debug:quiz] partial lead failed", e));
+  };
+
+  useEffect(() => {
+    const send = () => firePartialLeadRef.current();
+    const onHidden = () => document.visibilityState === "hidden" && send();
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", send);
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", send);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (partialCapturedRef.current) return;
+    const t = setTimeout(() => firePartialLeadRef.current(), PARTIAL_LEAD_IDLE_MS);
+    return () => clearTimeout(t);
+  }, [firstName, lastName, email, phone, countryCode]);
+
+  useEffect(() => {
+    if (!firstName && !email && !phone) return;
+    setMetaAdvancedMatching({
+      email: email.includes("@") ? email : undefined,
+      phone: phone.replace(/[^0-9]/g, "").length >= 6 ? `${countryCode}${phone}` : undefined,
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+    });
+  }, [firstName, lastName, email, phone, countryCode]);
 
   useEffect(() => {
     if (step === "match") fireDualSideConfetti(confetti);
@@ -167,12 +255,10 @@ export function FindYour57Quiz() {
       setError("Please accept the waiver and sign in the box.");
       return;
     }
+    signupStartedRef.current = true;
     setLoading(true);
     setError(null);
-    const params = new URLSearchParams(window.location.search);
-    const stored = readStoredAttribution();
-    const fbclid = readRawFbclid(window.location.search) ?? stored.fbclid;
-    const metaCookies = readMetaCookies(fbclid);
+    const { metaCookies, fields } = trackingFields();
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
     const fullPhone = `${countryCode}${phone.trim()}`;
     try {
@@ -190,19 +276,8 @@ export function FindYour57Quiz() {
           classType: format.key,
           whatsappConsent,
           whatsappConsentAt: whatsappConsent ? new Date().toISOString() : undefined,
-          fbp: metaCookies.fbp,
-          fbc: metaCookies.fbc,
+          ...fields,
           leadEventId: leadEventId.current,
-          utmSource: params.get("utm_source") ?? stored.utmSource,
-          utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? "find-your-57",
-          utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
-          utmTerm: params.get("utm_term") ?? stored.utmTerm,
-          utmContent: params.get("utm_content") ?? stored.utmContent,
-          gclid: params.get("gclid") ?? stored.gclid,
-          fbclid,
-          referrer: stored.referrer ?? document.referrer,
-          landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
-          abVariant: "find-your-57",
         },
       });
 
@@ -269,8 +344,6 @@ export function FindYour57Quiz() {
     }
   }
 
-  const cityLocations = CITIES.find((c) => c.id === city)!.locations;
-
   return (
     <div
       id="signup"
@@ -278,7 +351,7 @@ export function FindYour57Quiz() {
     >
       <div className="flex items-center justify-between">
         <p className="text-[11px] uppercase tracking-[0.25em] text-white/60">
-          4 taps · your match · your free class
+          Supreme HQ, Bandra · 4 taps to your class
         </p>
         <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">
           <Zap className="h-3.5 w-3.5 text-primary" aria-hidden />
@@ -344,43 +417,13 @@ export function FindYour57Quiz() {
                 selected={energy === e.id}
                 onClick={() => {
                   setEnergy(e.id);
-                  setStep("studio");
+                  setStep("match");
                 }}
               >
                 <span className="flex flex-col text-left">
                   <span>{e.label}</span>
                   <span className="text-xs text-white/55 font-normal">{e.hint}</span>
                 </span>
-              </Choice>
-            ))}
-          </Question>
-        )}
-
-        {step === "studio" && (
-          <Question title="Where will you train?" kicker="Almost matched">
-            <div className="flex gap-2 mb-2">
-              {CITIES.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setCity(c.id)}
-                  className={`rounded-full px-4 py-1.5 text-sm font-semibold border ${city === c.id ? "bg-primary text-primary-foreground border-primary" : "border-white/20 text-white/70"}`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            {cityLocations.map((l) => (
-              <Choice
-                key={l.id}
-                selected={locationId === l.id}
-                onClick={() => {
-                  setLocationId(l.id);
-                  setStep("match");
-                }}
-              >
-                <MapPin className="h-5 w-5 text-primary shrink-0" aria-hidden />
-                <span>{l.name}</span>
               </Choice>
             ))}
           </Question>
@@ -404,11 +447,16 @@ export function FindYour57Quiz() {
                   <span className="text-white/50">Studio:</span> {location.name}
                 </p>
                 <p className="flex items-center gap-1.5 text-primary font-semibold">
-                  <Sparkles className="h-4 w-4" aria-hidden /> Your first class is on us
+                  <Sparkles className="h-4 w-4" aria-hidden />
+                  {isPaidFormat && price
+                    ? `${price.label}: ₹${price.bookingPriceInCurrency} + GST, paid securely when you book`
+                    : "Your first class is on us"}
                 </p>
               </div>
             </div>
-            <PrimaryButton onClick={() => setStep("details")}>Claim my free class</PrimaryButton>
+            <PrimaryButton onClick={() => setStep("details")}>
+              {isPaidFormat ? "Claim my intro offer" : "Claim my free class"}
+            </PrimaryButton>
           </div>
         )}
 
@@ -486,7 +534,13 @@ export function FindYour57Quiz() {
               <input
                 type="checkbox"
                 checked={waiverAccepted}
-                onChange={(e) => setWaiverAccepted(e.target.checked)}
+                onChange={(e) => {
+                  setWaiverAccepted(e.target.checked);
+                  if (e.target.checked && !waiverTrackedRef.current) {
+                    waiverTrackedRef.current = true;
+                    trackWaiverSigned({ variant: SOURCE_FORM });
+                  }
+                }}
                 className="mt-1"
               />
               <span>
@@ -546,7 +600,7 @@ export function FindYour57Quiz() {
                 void submit();
               }}
             >
-              {loading ? "Unlocking…" : signed ? "Pick my class time" : "Pick my class time"}
+              {loading ? "Unlocking…" : isPaidFormat ? "Pick my class & pay" : "Pick my class time"}
             </PrimaryButton>
           </Question>
         )}

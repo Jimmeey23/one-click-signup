@@ -26,6 +26,10 @@ export type SubmissionRow = {
   class_type: string | null;
   source_id: string | null;
   source_form: string | null;
+  // Only sent when set, so forms that never use them keep working on a database that
+  // has not had the 20261119 migration applied yet.
+  lead_source?: string | null;
+  quiz_answers?: Record<string, string> | null;
   waiver_accepted: boolean;
   whatsapp_consent: boolean;
   whatsapp_consent_at: string | null;
@@ -95,6 +99,8 @@ export function buildSubmissionRow(
     class_type: orNull(payload.classType),
     source_id: orNull(payload.sourceId),
     source_form: orNull(payload.sourceForm),
+    ...(orNull(payload.leadSource) ? { lead_source: orNull(payload.leadSource) } : {}),
+    ...(payload.quizAnswers ? { quiz_answers: payload.quizAnswers } : {}),
     waiver_accepted: payload.waiverAccepted === true,
     whatsapp_consent: payload.whatsappConsent === true,
     whatsapp_consent_at: asTimestamp(payload.whatsappConsentAt),

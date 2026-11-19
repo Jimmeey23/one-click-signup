@@ -376,8 +376,9 @@ html {
     scroll-behavior: auto;
   }
 
+  /* Keep the strip moving (a stopped strip reads as broken), just much slower. */
   .animate-marquee {
-    animation-play-state: paused;
+    animation-duration: 120s;
   }
 
   .brand-logo {

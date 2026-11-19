@@ -44,16 +44,32 @@ export async function recordSubmission(
 
   const table = tableForStage(payload.stage);
   try {
-    const res = await fetch(`${config.url}/rest/v1/${table}?select=id,created_at`, {
-      method: "POST",
-      headers: {
-        apikey: config.key,
-        Authorization: `Bearer ${config.key}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify(buildSubmissionRow(payload, outcome)),
-    });
+    const row = buildSubmissionRow(payload, outcome);
+    const post = (body: unknown) =>
+      fetch(`${config.url}/rest/v1/${table}?select=id,created_at`, {
+        method: "POST",
+        headers: {
+          apikey: config.key,
+          Authorization: `Bearer ${config.key}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(body),
+      });
+    let res = await post(row);
+    // PGRST204 = unknown column: the optional quiz columns are not migrated yet. Keep the
+    // row (the values are still in `raw`) rather than losing the submission.
+    if (!res.ok && res.status === 400 && ("lead_source" in row || "quiz_answers" in row)) {
+      const detail = await res
+        .clone()
+        .text()
+        .catch(() => "");
+      if (detail.includes("PGRST204")) {
+        const { lead_source: _ls, quiz_answers: _qa, ...fallback } = row;
+        console.warn("Submission store missing quiz columns - retrying without them");
+        res = await post(fallback);
+      }
+    }
 
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
