@@ -27,7 +27,7 @@ function FindYour57Page() {
       routeSource="find-your-57"
       // The quiz does its own signup; the landing's partial-lead capture has no fields to watch.
       captureLead={false}
-      heroHeadline="Find your 57."
+      heroHeadline="4 taps to your perfect workout."
       heroDescription="Answer a few quick taps and we'll match you to your perfect class at Supreme HQ, Bandra - then book it in seconds."
       signupSlot={<FindYour57Quiz />}
     />
