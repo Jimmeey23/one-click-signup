@@ -72,7 +72,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: ({ matches }) => {
     const landing = matches.some((match) =>
-      ["/", "/bengaluru", "/find-your-57"].includes(match.routeId as string),
+      ["/", "/bengaluru", "/find-your-57", "/find-your-57-lead"].includes(match.routeId as string),
     );
     return {
       meta: [
@@ -188,7 +188,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const landing = pathname === "/" || pathname === "/bengaluru" || pathname === "/find-your-57";
+  const landing =
+    pathname === "/" ||
+    pathname === "/bengaluru" ||
+    pathname === "/find-your-57" ||
+    pathname === "/find-your-57-lead";
   return (
     <html lang="en">
       <head>

@@ -1516,3 +1516,50 @@ export const submitKidsRegistration = createServerFn({ method: "POST" })
       bookingError,
     };
   });
+
+// Lead-only submission (/find-your-57-lead): sends the lead webhook to Momence (plus
+// respond.io and our submission store) and nothing else - no member, no waiver, no booking.
+const LeadOnlyInput = PartialLeadInput.extend({
+  waiverAccepted: z.boolean().optional().default(false),
+});
+
+export const submitLeadOnly = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => LeadOnlyInput.parse(input))
+  .handler(async ({ data }) => {
+    const phoneE164 = `${data.countryCode}${data.phoneNumber.replace(/[^0-9]/g, "")}`;
+    const lead = await captureLead({
+      firstName: data.firstName,
+      lastName: data.lastName ?? "",
+      email: data.email,
+      phoneE164,
+      center: data.center || webhookCenterForLocationId(data.homeLocationId),
+      homeLocationId: data.homeLocationId,
+      waiverAccepted: data.waiverAccepted,
+      whatsappConsent: data.whatsappConsent ?? false,
+      whatsappConsentAt: data.whatsappConsentAt,
+      utmSource: data.utmSource,
+      utmMedium: data.utmMedium,
+      utmCampaign: data.utmCampaign,
+      utmTerm: data.utmTerm,
+      utmContent: data.utmContent,
+      gclid: data.gclid,
+      fbclid: data.fbclid,
+      referrer: data.referrer,
+      landingPage: data.landingPage,
+      abVariant: data.abVariant,
+      classType: data.classType,
+      sourceId: data.sourceId,
+      leadSource: data.leadSource,
+      sourceForm: data.sourceForm,
+      quizAnswers: data.quizAnswers,
+      stage: "completed",
+      fbp: data.fbp,
+      fbc: data.fbc,
+      metaEventId: data.metaEventId,
+    });
+    return {
+      leadCaptured: lead.ok,
+      leadError: lead.skipped ? null : (lead.error ?? null),
+      repeat: Boolean(lead.repeat),
+    };
+  });

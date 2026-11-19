@@ -3,7 +3,12 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import confetti from "canvas-confetti";
 import { ArrowLeft, Check, MapPin, Sparkles, Trophy, Zap } from "lucide-react";
-import { signupAndEnroll, sendSignupLeadCapi, captureLeadPartial } from "@/lib/momence.functions";
+import {
+  signupAndEnroll,
+  sendSignupLeadCapi,
+  captureLeadPartial,
+  submitLeadOnly,
+} from "@/lib/momence.functions";
 import {
   readMetaCookies,
   readRawFbclid,
@@ -102,7 +107,14 @@ function newId(prefix: string) {
 const STEPS = ["goal", "energy", "match", "details", "waiver"] as const;
 type Step = (typeof STEPS)[number];
 
-export function FindYour57Quiz() {
+/**
+ * leadOnly: the /find-your-57-lead variant. Same quiz and tracking, but submitting only
+ * sends the lead webhook to Momence - no member, no waiver signing, no class booking,
+ * and no signature pad.
+ */
+export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}) {
+  const sendLeadOnly = useServerFn(submitLeadOnly);
+  const [leadSent, setLeadSent] = useState(false);
   const signup = useServerFn(signupAndEnroll);
   const sendLeadCapi = useServerFn(sendSignupLeadCapi);
   const submitPartialLead = useServerFn(captureLeadPartial);
@@ -262,6 +274,76 @@ export function FindYour57Quiz() {
     if (stepIndex > 0) setStep(STEPS[stepIndex - 1]);
   }
 
+  async function submitLead() {
+    if (!format) return;
+    if (!waiverAccepted) {
+      setError("Please accept the terms to continue.");
+      return;
+    }
+    signupStartedRef.current = true;
+    setLoading(true);
+    setError(null);
+    const { metaCookies, fields } = trackingFields();
+    const fullPhone = `${countryCode}${phone.trim()}`;
+    try {
+      const result = await sendLeadOnly({
+        data: {
+          ...fields,
+          sourceForm: `${SOURCE_FORM}-lead`,
+          abVariant: `${SOURCE_FORM}-lead`,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
+          countryCode,
+          phoneNumber: phone.trim(),
+          homeLocationId: LOCATION.id,
+          classType: format.key,
+          waiverAccepted: true,
+          whatsappConsent,
+          whatsappConsentAt: whatsappConsent ? new Date().toISOString() : undefined,
+          metaEventId: leadEventId.current,
+        },
+      });
+      if (result.leadError) {
+        console.warn("[debug:quiz-lead] lead webhook failed:", result.leadError);
+      }
+      // Lead pixel + CAPI share one event id, same as the main form. A repeat already sent.
+      if (!result.repeat) {
+        setMetaAdvancedMatching({
+          email: email.trim(),
+          phone: fullPhone,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          countryIso,
+          ...metaGeoForLocationId(LOCATION.id),
+        });
+        trackSignupStart({ variant: "a", content_name: format.key }, leadEventId.current);
+        sendLeadCapi({
+          data: {
+            eventId: leadEventId.current,
+            email: email.trim(),
+            phone: fullPhone,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            classType: format.key,
+            countryIso,
+            locationId: LOCATION.id,
+            landingPage: trimToMaxLength(window.location.href),
+            fbp: metaCookies.fbp,
+            fbc: metaCookies.fbc,
+          },
+        }).catch(() => {});
+      }
+      setLeadSent(true);
+      fireDualSideConfetti(confetti);
+    } catch (e) {
+      signupStartedRef.current = false;
+      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function submit() {
     if (!format || !location) return;
     const signatureRealSignature = sigRef.current?.toRealSignature() ?? undefined;
@@ -391,7 +473,7 @@ export function FindYour57Quiz() {
           <span>
             Level {stepIndex + 1} / {STEPS.length}
           </span>
-          {stepIndex > 0 && (
+          {stepIndex > 0 && !leadSent && (
             <button
               type="button"
               onClick={back}
@@ -559,8 +641,27 @@ export function FindYour57Quiz() {
           </Question>
         )}
 
-        {step === "waiver" && (
-          <Question title="Sign & unlock your class." kicker="Last level">
+        {leadSent && format && (
+          <div className="text-center py-6">
+            <Trophy className="mx-auto h-12 w-12 text-primary" aria-hidden />
+            <p className="mt-4 text-xs uppercase tracking-[0.3em] text-primary font-bold">
+              Level complete · {STEPS.length * XP_PER_STEP} XP
+            </p>
+            <h2 className="mt-2 font-display text-4xl tracking-tight">
+              You're on the list, {firstName.trim() || "friend"}!
+            </h2>
+            <p className="mt-4 text-sm text-white/75 leading-relaxed">
+              Our Supreme HQ, Bandra team will reach out shortly
+              {whatsappConsent ? " on WhatsApp" : ""} to book your first {format.name} class.
+            </p>
+          </div>
+        )}
+
+        {step === "waiver" && !leadSent && (
+          <Question
+            title={leadOnly ? "One last tap." : "Sign & unlock your class."}
+            kicker="Last level"
+          >
             <label className="flex items-start gap-2 text-sm text-white/80">
               <input
                 type="checkbox"
@@ -590,39 +691,45 @@ export function FindYour57Quiz() {
                 .
               </span>
             </label>
-            <div className="rounded-xl bg-white p-2 text-foreground">
-              <Suspense fallback={<div className="h-32" />}>
-                <SignaturePad
-                  ref={(h) => {
-                    sigRef.current = h;
-                  }}
-                  label="Sign here"
-                />
-              </Suspense>
-              <div className="flex justify-between px-1 pt-1 text-xs">
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => {
-                    sigRef.current?.clear();
-                    setSigned(false);
-                  }}
-                >
-                  Clear
-                </button>
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => setSigned(!(sigRef.current?.isEmpty() ?? true))}
-                >
-                  Done signing
-                </button>
+            {!leadOnly && (
+              <div className="rounded-xl bg-white p-2 text-foreground">
+                <Suspense fallback={<div className="h-32" />}>
+                  <SignaturePad
+                    ref={(h) => {
+                      sigRef.current = h;
+                    }}
+                    label="Sign here"
+                  />
+                </Suspense>
+                <div className="flex justify-between px-1 pt-1 text-xs">
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={() => {
+                      sigRef.current?.clear();
+                      setSigned(false);
+                    }}
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={() => setSigned(!(sigRef.current?.isEmpty() ?? true))}
+                  >
+                    Done signing
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
             {error && <p className="text-sm text-red-300">{error}</p>}
             <PrimaryButton
               disabled={!waiverAccepted || loading}
               onClick={() => {
+                if (leadOnly) {
+                  void submitLead();
+                  return;
+                }
                 if (sigRef.current?.isEmpty() ?? true) {
                   setError("Please sign in the box above.");
                   return;
@@ -631,7 +738,13 @@ export function FindYour57Quiz() {
                 void submit();
               }}
             >
-              {loading ? "Unlocking…" : isPaidFormat ? "Pick my class & pay" : "Pick my class time"}
+              {loading
+                ? "Unlocking…"
+                : leadOnly
+                  ? "Claim my spot"
+                  : isPaidFormat
+                    ? "Pick my class & pay"
+                    : "Pick my class time"}
             </PrimaryButton>
           </Question>
         )}
