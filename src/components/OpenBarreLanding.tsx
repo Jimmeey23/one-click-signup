@@ -207,6 +207,8 @@ type OpenBarreLandingProps = {
   /** Overrides the hero headline and description. */
   heroHeadline?: string;
   heroDescription?: string;
+  /** Overrides the small pill above the hero headline. */
+  heroKicker?: string;
 };
 
 const KIDS_HERO_QUOTES = [
@@ -233,6 +235,7 @@ export function OpenBarreLanding({
   signupSlot,
   heroHeadline,
   heroDescription,
+  heroKicker,
 }: OpenBarreLandingProps) {
   const signupWithLead = useServerFn(signupAndEnroll);
   const signupWithoutLead = useServerFn(signupAndEnrollWithoutLead);
@@ -759,7 +762,7 @@ export function OpenBarreLanding({
             <div className="mb-7 flex flex-wrap items-center gap-2">
               <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold backdrop-blur-md">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
-                {routeEvent?.studio || studioConfig.heroLocationLine}
+                {routeEvent?.studio || heroKicker || studioConfig.heroLocationLine}
               </p>
             </div>
             <h1 className="max-w-xl font-display text-[clamp(3rem,6vw,5.5rem)] leading-[0.94] tracking-[-0.035em] text-balance">

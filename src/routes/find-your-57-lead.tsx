@@ -27,7 +27,8 @@ function FindYour57LeadPage() {
       routeSource="find-your-57-lead"
       // The quiz does its own signup; the landing's partial-lead capture has no fields to watch.
       captureLead={false}
-      heroHeadline="57 minutes. Made for you."
+      heroKicker="Where Strength Meets Confidence"
+      heroHeadline="Make Room for Your Strongest Self."
       heroDescription="Four taps to the Supreme HQ class built around your goals, your energy and your body. We'll take it from there."
       signupSlot={<FindYour57Quiz leadOnly />}
     />
