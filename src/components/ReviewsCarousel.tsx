@@ -153,8 +153,12 @@ export function ReviewsCarousel({
         {track.map((r, i) => (
           <article
             key={i}
-            className={`group w-full shrink-0 basis-full md:basis-1/3 ${
+            className={`group w-full shrink-0 basis-full md:basis-1/3 transition-[opacity,transform] duration-700 ease-out ${
               isBengaluru ? "px-1.5 sm:px-2.5" : "px-2"
+            } ${
+              i < step || i >= step + VISIBLE_DESKTOP
+                ? "opacity-30 scale-[0.94]"
+                : "opacity-100 scale-100"
             }`}
             aria-hidden={i < step || i >= step + VISIBLE_DESKTOP}
           >

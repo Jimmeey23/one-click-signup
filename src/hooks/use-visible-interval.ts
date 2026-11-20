@@ -1,7 +1,8 @@
 import { useEffect, useRef, type RefObject } from "react";
 
 // Carousels should animate only while someone can see them. Keep their current
-// position when hidden, and honor both OS motion preferences and tab visibility.
+// position when hidden and pause in background tabs. Reduced motion slows the rotation
+// rather than stopping it, so a carousel never looks frozen.
 export function useVisibleInterval(
   ref: RefObject<Element | null>,
   callback: () => void,
@@ -18,9 +19,15 @@ export function useVisibleInterval(
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let visible = false;
     let timer: ReturnType<typeof setInterval> | undefined;
+    const restart = () => {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+      update();
+    };
     const update = () => {
-      const active = visible && !document.hidden && !motion.matches;
-      if (active && !timer) timer = setInterval(() => callbackRef.current(), delay);
+      const active = visible && !document.hidden;
+      if (active && !timer)
+        timer = setInterval(() => callbackRef.current(), motion.matches ? delay * 1.6 : delay);
       if (!active && timer) {
         clearInterval(timer);
         timer = undefined;
@@ -32,12 +39,12 @@ export function useVisibleInterval(
     });
     observer.observe(node);
     document.addEventListener("visibilitychange", update);
-    motion.addEventListener("change", update);
+    motion.addEventListener("change", restart);
     return () => {
       observer.disconnect();
       if (timer) clearInterval(timer);
       document.removeEventListener("visibilitychange", update);
-      motion.removeEventListener("change", update);
+      motion.removeEventListener("change", restart);
     };
   }, [ref, delay, enabled]);
 }

@@ -56,7 +56,8 @@ const LOCATION = MUMBAI_LOCATIONS.find((l) => l.id === 29821)!;
 const WEBHOOK_CENTER = "Supreme HQ, Bandra";
 const LEAD_SOURCE = "website";
 const WEBSITE_SOURCE_ID = "8082"; // Momence lead source "Website"
-const SOURCE_FORM = "find-your-57";
+/** Route identifier stored on every submission (source_form / ab_variant columns). */
+export type SignupFormId = "signup-01" | "signup-02";
 const PARTIAL_LEAD_IDLE_MS = 90_000;
 
 /** Pick the best-fit class format the chosen studio actually runs. */
@@ -80,7 +81,7 @@ function readStoredAttribution(): Record<string, string | undefined> {
   }
 }
 
-function persistAttribution() {
+function persistAttribution(formId: SignupFormId) {
   try {
     const parsed = parseAttributionFromSearch(window.location.search);
     if (Object.keys(parsed).length === 0) return;
@@ -88,7 +89,7 @@ function persistAttribution() {
       ATTRIBUTION_STORAGE_KEY,
       JSON.stringify({
         ...parsed,
-        utmMedium: parsed.utmMedium ?? "find-your-57",
+        utmMedium: parsed.utmMedium ?? formId,
         referrer: document.referrer || undefined,
         landingPage: window.location.href,
       }),
@@ -108,13 +109,14 @@ const STEPS = ["goal", "energy", "match", "details", "waiver"] as const;
 type Step = (typeof STEPS)[number];
 
 /**
- * leadOnly: the /find-your-57-lead variant. Same quiz and tracking, but submitting only
+ * leadOnly: the /signup-02 variant. Same quiz and tracking, but submitting only
  * sends the lead webhook to Momence - no member, no waiver signing, no class booking,
  * and no signature pad.
  */
 export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}) {
   const sendLeadOnly = useServerFn(submitLeadOnly);
   const [leadSent, setLeadSent] = useState(false);
+  const formId: SignupFormId = leadOnly ? "signup-02" : "signup-01";
   const signup = useServerFn(signupAndEnroll);
   const sendLeadCapi = useServerFn(sendSignupLeadCapi);
   const submitPartialLead = useServerFn(captureLeadPartial);
@@ -141,8 +143,8 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    persistAttribution();
-  }, []);
+    persistAttribution(formId);
+  }, [formId]);
 
   const stepIndex = STEPS.indexOf(step);
   const xp = stepIndex * XP_PER_STEP;
@@ -173,7 +175,7 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
       metaCookies,
       fields: {
         utmSource: params.get("utm_source") ?? stored.utmSource,
-        utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? SOURCE_FORM,
+        utmMedium: params.get("utm_medium") ?? stored.utmMedium ?? formId,
         utmCampaign: params.get("utm_campaign") ?? stored.utmCampaign,
         utmTerm: params.get("utm_term") ?? stored.utmTerm,
         utmContent: params.get("utm_content") ?? stored.utmContent,
@@ -181,11 +183,11 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
         fbclid,
         referrer: trimToMaxLength(stored.referrer ?? document.referrer),
         landingPage: trimToMaxLength(stored.landingPage ?? window.location.href),
-        abVariant: SOURCE_FORM,
+        abVariant: formId,
         sourceId: WEBSITE_SOURCE_ID,
         center: WEBHOOK_CENTER,
         leadSource: LEAD_SOURCE,
-        sourceForm: SOURCE_FORM,
+        sourceForm: formId,
         quizAnswers,
         fbp: metaCookies.fbp,
         fbc: metaCookies.fbc,
@@ -289,8 +291,6 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
       const result = await sendLeadOnly({
         data: {
           ...fields,
-          sourceForm: `${SOURCE_FORM}-lead`,
-          abVariant: `${SOURCE_FORM}-lead`,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           email: email.trim(),
@@ -671,7 +671,7 @@ export function FindYour57Quiz({ leadOnly = false }: { leadOnly?: boolean } = {}
                   setWaiverAccepted(e.target.checked);
                   if (e.target.checked && !leadOnly && !waiverTrackedRef.current) {
                     waiverTrackedRef.current = true;
-                    trackWaiverSigned({ variant: SOURCE_FORM });
+                    trackWaiverSigned({ variant: formId });
                   }
                 }}
                 className="mt-1"

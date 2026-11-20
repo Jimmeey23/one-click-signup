@@ -66,9 +66,7 @@ import {
   startOfCalendarMonth,
   type MonthCalendarWeek,
 } from "@/lib/schedule-calendar.helpers";
-import { whatsappPhoneForLocationId } from "@/lib/whatsapp-contact.helpers";
 import { trainerImageForName } from "@/lib/trainer-thumbnails";
-import { RespondIoWidget } from "@/components/RespondIoWidget";
 import { Footer } from "@/components/Footer";
 import trainerPortrait from "@/assets/2136 _ Physique57 _ Trainer Shots _ _56A2021.webp";
 import profileHeroPortrait from "@/assets/2087 _ Physique57 _ Trainer Shots _ _56A2974.webp";
@@ -976,8 +974,7 @@ function ClassesPage() {
         />
       )}
 
-      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} showWhatsApp />
-      <RespondIoWidget />
+      <Footer studioVariant={isBengaluru ? "bengaluru" : "mumbai"} />
     </div>
   );
 }
@@ -1952,7 +1949,6 @@ function classPolicy(name: string): { entryMin: number; cancelHrs: number; famil
 
 function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () => void }) {
   const policy = classPolicy(booked.session.name);
-  const whatsappPhone = whatsappPhoneForLocationId(booked.location.id);
   const confettiFiredRef = useRef(false);
   useEffect(() => {
     if (confettiFiredRef.current) return;
@@ -2077,22 +2073,10 @@ function ThankYou({ booked, onAnother }: { booked: BookedClass; onAnother: () =>
           >
             Book another class
           </button>
-          <a
-            href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(`Hi! I just booked ${booked.session.name} at ${booked.location.name}.`)}`}
-            target="_blank"
-            rel="noreferrer"
-            className="h-12 px-6 rounded-full bg-[#25D366] text-white text-xs uppercase tracking-[0.2em] font-bold flex items-center"
-          >
-            Message the studio
-          </a>
         </div>
       </main>
 
-      <Footer
-        studioVariant={isBengaluruLocation(booked.location.id) ? "bengaluru" : "mumbai"}
-        showWhatsApp
-      />
-      <RespondIoWidget />
+      <Footer studioVariant={isBengaluruLocation(booked.location.id) ? "bengaluru" : "mumbai"} />
     </div>
   );
 }

@@ -22,6 +22,8 @@ import { Route as InfluencersRouteImport } from './routes/influencers'
 import { Route as KidsRouteImport } from './routes/kids'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RouteBuilderRouteImport } from './routes/route-builder'
+import { Route as Signup01RouteImport } from './routes/signup-01'
+import { Route as Signup02RouteImport } from './routes/signup-02'
 import { Route as SkipLeadRouteImport } from './routes/skip-lead'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WaiverRouteImport } from './routes/waiver'
@@ -96,6 +98,16 @@ const RouteBuilderRoute = RouteBuilderRouteImport.update({
   path: '/route-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Signup01Route = Signup01RouteImport.update({
+  id: '/signup-01',
+  path: '/signup-01',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Signup02Route = Signup02RouteImport.update({
+  id: '/signup-02',
+  path: '/signup-02',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkipLeadRoute = SkipLeadRouteImport.update({
   id: '/skip-lead',
   path: '/skip-lead',
@@ -151,6 +163,8 @@ export interface FileRoutesByFullPath {
   '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
   '/route-builder': typeof RouteBuilderRoute
+  '/signup-01': typeof Signup01Route
+  '/signup-02': typeof Signup02Route
   '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
@@ -174,6 +188,8 @@ export interface FileRoutesByTo {
   '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
   '/route-builder': typeof RouteBuilderRoute
+  '/signup-01': typeof Signup01Route
+  '/signup-02': typeof Signup02Route
   '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
@@ -198,6 +214,8 @@ export interface FileRoutesById {
   '/kids': typeof KidsRoute
   '/privacy': typeof PrivacyRoute
   '/route-builder': typeof RouteBuilderRoute
+  '/signup-01': typeof Signup01Route
+  '/signup-02': typeof Signup02Route
   '/skip-lead': typeof SkipLeadRoute
   '/terms': typeof TermsRoute
   '/waiver': typeof WaiverRoute
@@ -223,6 +241,8 @@ export interface FileRouteTypes {
     | '/kids'
     | '/privacy'
     | '/route-builder'
+    | '/signup-01'
+    | '/signup-02'
     | '/skip-lead'
     | '/terms'
     | '/waiver'
@@ -246,6 +266,8 @@ export interface FileRouteTypes {
     | '/kids'
     | '/privacy'
     | '/route-builder'
+    | '/signup-01'
+    | '/signup-02'
     | '/skip-lead'
     | '/terms'
     | '/waiver'
@@ -269,6 +291,8 @@ export interface FileRouteTypes {
     | '/kids'
     | '/privacy'
     | '/route-builder'
+    | '/signup-01'
+    | '/signup-02'
     | '/skip-lead'
     | '/terms'
     | '/waiver'
@@ -293,6 +317,8 @@ export interface RootRouteChildren {
   KidsRoute: typeof KidsRoute
   PrivacyRoute: typeof PrivacyRoute
   RouteBuilderRoute: typeof RouteBuilderRoute
+  Signup01Route: typeof Signup01Route
+  Signup02Route: typeof Signup02Route
   SkipLeadRoute: typeof SkipLeadRoute
   TermsRoute: typeof TermsRoute
   WaiverRoute: typeof WaiverRoute
@@ -396,6 +422,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RouteBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup-01': {
+      id: '/signup-01'
+      path: '/signup-01'
+      fullPath: '/signup-01'
+      preLoaderRoute: typeof Signup01RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup-02': {
+      id: '/signup-02'
+      path: '/signup-02'
+      fullPath: '/signup-02'
+      preLoaderRoute: typeof Signup02RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skip-lead': {
       id: '/skip-lead'
       path: '/skip-lead'
@@ -469,6 +509,8 @@ const rootRouteChildren: RootRouteChildren = {
   KidsRoute: KidsRoute,
   PrivacyRoute: PrivacyRoute,
   RouteBuilderRoute: RouteBuilderRoute,
+  Signup01Route: Signup01Route,
+  Signup02Route: Signup02Route,
   SkipLeadRoute: SkipLeadRoute,
   TermsRoute: TermsRoute,
   WaiverRoute: WaiverRoute,

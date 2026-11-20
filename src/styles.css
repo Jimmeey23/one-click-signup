@@ -295,7 +295,7 @@ html {
   will-change: transform;
 }
 .animate-marquee {
-  animation: marquee 40s linear infinite;
+  animation: marquee 24s linear infinite;
 }
 
 @keyframes policy-card-enter {
@@ -378,7 +378,7 @@ html {
 
   /* Keep the strip moving (a stopped strip reads as broken), just much slower. */
   .animate-marquee {
-    animation-duration: 120s;
+    animation-duration: 60s;
   }
 
   .brand-logo {
