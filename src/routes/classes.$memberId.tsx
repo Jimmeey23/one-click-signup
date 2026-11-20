@@ -265,7 +265,7 @@ function formatInfoForKey(key: ClassFormatKey): FormatInfo {
         teaser:
           "Structured circuit training with heavier weights, progressive overload, and power work.",
         detail:
-          "StrengthLab is a 57-minute full-body strength class built around power, upper-body, lower-body, and core circuits. It prioritizes heavier weights, moderate reps, and clean form.",
+          "Strength Lab is a 57-minute full-body strength class built around power, upper-body, lower-body, and core circuits. It prioritizes heavier weights, moderate reps, and clean form.",
         bestFor: "Anyone wanting to build real strength - all levels, with coached progressions.",
         expect:
           "Dumbbells, kettlebells, resistance bands, pull-up bars, strength circuits, and form-led progressions.",

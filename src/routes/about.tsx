@@ -169,7 +169,7 @@ function AboutPage() {
               to={isBengaluru ? "/bengaluru" : "/"}
               className="inline-block mt-7 px-6 h-12 rounded-full bg-foreground text-background text-xs uppercase tracking-[0.2em] font-bold leading-[3rem]"
             >
-              Claim your {isBengaluru ? "trial" : "free"} class
+              Book your first class
             </Link>
           </div>
         </div>

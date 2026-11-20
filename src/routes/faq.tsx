@@ -123,7 +123,7 @@ const MUMBAI_CATEGORIES: FaqCategory[] = [
     items: [
       {
         q: "What class formats are offered in Mumbai?",
-        a: "Barre 57, Cardio Barre, Cardio Barre Plus, Studio FIT, HIIT, Mat 57, StrengthLab, Back Body Blaze, Recovery, and powerCycle - a full spread across cardio, strength, and recovery formats.",
+        a: "Barre 57, Cardio Barre, Cardio Barre Plus, Studio FIT, HIIT, Mat 57, Strength Lab, Back Body Blaze, Recovery, and powerCycle - a full spread across cardio, strength, and recovery formats.",
         icon: Dumbbell,
       },
       {

@@ -28,7 +28,7 @@ export type ClassFormat = {
 export const CLASS_FORMATS: ClassFormat[] = [
   {
     key: "barre-57",
-    name: "Barre",
+    name: "Barre 57",
     image: barreImage,
     intensity: "Beginner to intermediate",
     bestFor: "All fitness levels, and your very first class",
@@ -105,7 +105,7 @@ export const CLASS_FORMATS: ClassFormat[] = [
   },
   {
     key: "strength-lab",
-    name: "StrengthLab",
+    name: "Strength Lab",
     image: strengthImage,
     intensity: "All Levels",
     bestFor: "Building lean muscle and boosting metabolism",

@@ -17,13 +17,13 @@ export const Route = createFileRoute("/classes-info")({
       {
         name: "description",
         content:
-          "Barre 57, powerCycle, StrengthLab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more - explore our 57-minute class formats.",
+          "Barre 57, powerCycle, Strength Lab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more - explore our 57-minute class formats.",
       },
       { property: "og:title", content: "Classes - Physique 57 India" },
       {
         property: "og:description",
         content:
-          "Barre 57, powerCycle, StrengthLab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more.",
+          "Barre 57, powerCycle, Strength Lab, HIIT, Cardio Barre Plus, Back Body Blaze, Recovery and more.",
       },
     ],
   }),
@@ -74,7 +74,7 @@ function ClassesInfoPage() {
           <p className="mt-6 max-w-xl text-base md:text-lg text-white/70 leading-relaxed">
             {isBengaluru
               ? "Lavelle Road and Indiranagar focus on Barre-first bookings and Bengaluru-specific introductory offers."
-              : "Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle, and StrengthLab."}
+              : "Kemps Corner and Bandra offer the full class mix including Barre 57, powerCycle, and Strength Lab."}
           </p>
           <nav className="mt-10 flex flex-wrap gap-2" aria-label="Jump to a class format">
             {classFormats.map((c) => (
